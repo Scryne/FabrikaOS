@@ -1,0 +1,277 @@
+{% extends "base.html" %}
+{% block title %}Fabrika Haritası{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/fabrika_harita.css') }}?v=4.0" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h2 class="mb-1"><i class="bi bi-map me-2 text-primary"></i>Fabrika Haritası</h2>
+        <p class="text-muted mb-0">Dijital İkiz — Canlı Yerleşim Planı</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        <div class="harita-legend d-flex gap-3 me-3">
+            <span class="legend-item"><span class="legend-dot dot-aktif"></span>Çalışıyor</span>
+            <span class="legend-item"><span class="legend-dot dot-bakimda"></span>Bakımda</span>
+            <span class="legend-item"><span class="legend-dot dot-arizali"></span>Arızalı</span>
+            <span class="legend-item"><span class="legend-dot dot-kapali"></span>Kapalı</span>
+        </div>
+        {% if is_admin %}
+        <button class="btn btn-outline-primary btn-sm" id="btnEditMode" onclick="toggleEditMode()">
+            <i class="bi bi-pencil-square me-1"></i>Düzenle
+        </button>
+        <button class="btn btn-primary btn-sm d-none" id="btnSaveLayout" onclick="saveAllPositions()">
+            <i class="bi bi-check-lg me-1"></i>Kaydet
+        </button>
+        <button class="btn btn-outline-secondary btn-sm d-none" id="btnCancelEdit" onclick="cancelEditMode()">
+            <i class="bi bi-x-lg me-1"></i>İptal
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- KPI Strip -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3 col-xl">
+        <div class="harita-kpi-card">
+            <div class="harita-kpi-icon" style="color:#3b82f6;background:rgba(59,130,246,0.1)"><i class="bi bi-cpu"></i></div>
+            <div>
+                <div class="harita-kpi-value">{{ stats.toplam }}</div>
+                <div class="harita-kpi-label">Toplam Makine</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl">
+        <div class="harita-kpi-card">
+            <div class="harita-kpi-icon" style="color:#10b981;background:rgba(16,185,129,0.1)"><i class="bi bi-check-circle"></i></div>
+            <div>
+                <div class="harita-kpi-value">{{ stats.calisir }}</div>
+                <div class="harita-kpi-label">Çalışıyor</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl">
+        <div class="harita-kpi-card">
+            <div class="harita-kpi-icon" style="color:#ef4444;background:rgba(239,68,68,0.1)"><i class="bi bi-exclamation-triangle"></i></div>
+            <div>
+                <div class="harita-kpi-value">{{ stats.arizali }}</div>
+                <div class="harita-kpi-label">Arızalı</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl">
+        <div class="harita-kpi-card">
+            <div class="harita-kpi-icon" style="color:#f59e0b;background:rgba(245,158,11,0.1)"><i class="bi bi-wrench"></i></div>
+            <div>
+                <div class="harita-kpi-value">{{ stats.bakimda }}</div>
+                <div class="harita-kpi-label">Bakımda</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3 col-xl">
+        <div class="harita-kpi-card">
+            <div class="harita-kpi-icon" style="color:#8b5cf6;background:rgba(139,92,246,0.1)"><i class="bi bi-speedometer2"></i></div>
+            <div>
+                <div class="harita-kpi-value">%{{ stats.ort_oee }}</div>
+                <div class="harita-kpi-label">Ort. OEE</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Map -->
+<div class="card harita-container-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-building me-2"></i>Fabrika Yerleşim Planı</h5>
+        <div class="d-flex gap-2 align-items-center">
+            <span class="badge bg-primary-subtle text-primary-emphasis">
+                <i class="bi bi-broadcast me-1"></i>Canlı
+            </span>
+        </div>
+    </div>
+    <div class="card-body p-0 position-relative">
+        <!-- Edit Banner -->
+        <div class="edit-mode-banner d-none" id="editBanner">
+            <i class="bi bi-info-circle me-2"></i>
+            <strong>Düzenleme Modu:</strong>&nbsp;Makineleri sürükleyerek konumlandırın.
+        </div>
+
+        <!-- Loading -->
+        <div class="harita-loading" id="haritaLoading">
+            <div class="harita-loading-spinner"></div>
+            <div class="harita-loading-text">Harita yükleniyor…</div>
+        </div>
+
+        <!-- SVG -->
+        <div class="harita-viewport" id="haritaViewport">
+            <svg id="fabrikaHarita" class="harita-svg" viewBox="0 0 1200 680" preserveAspectRatio="xMidYMid meet">
+                <defs>
+                    <!-- Subtle Dot Grid -->
+                    <pattern id="dotGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+                        <circle cx="10" cy="10" r="0.5" fill="rgba(255,255,255,0.04)"/>
+                    </pattern>
+
+                    <!-- Zone Fills -->
+                    <linearGradient id="zoneA" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.035"/>
+                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.008"/>
+                    </linearGradient>
+                    <linearGradient id="zoneB" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.035"/>
+                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.008"/>
+                    </linearGradient>
+                    <linearGradient id="zoneC" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.035"/>
+                        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.008"/>
+                    </linearGradient>
+                    <linearGradient id="zoneD" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.035"/>
+                        <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.008"/>
+                    </linearGradient>
+                </defs>
+
+                <!-- Background -->
+                <rect width="1200" height="680" fill="#111111"/>
+                <rect width="1200" height="680" fill="url(#dotGrid)"/>
+
+                <!-- Factory Outline -->
+                <rect x="16" y="16" width="1168" height="648" rx="8" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+
+                <!-- ═══ Zone A: Üretim Hattı A ═══ -->
+                <rect x="24" y="24" width="563" height="300" rx="6" fill="url(#zoneA)" stroke="rgba(16,185,129,0.12)" stroke-width="1"/>
+                <!-- Corner brackets -->
+                <path d="M 24 48 L 24 24 L 48 24" fill="none" stroke="rgba(16,185,129,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 563 24 L 587 24 L 587 48" fill="none" stroke="rgba(16,185,129,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 24 300 L 24 324 L 48 324" fill="none" stroke="rgba(16,185,129,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 563 324 L 587 324 L 587 300" fill="none" stroke="rgba(16,185,129,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <!-- Label badge -->
+                <rect x="32" y="32" width="128" height="24" rx="4" fill="rgba(16,185,129,0.08)" stroke="rgba(16,185,129,0.12)" stroke-width="0.5"/>
+                <circle cx="44" cy="44" r="3" fill="#10b981"/>
+                <text x="54" y="48" fill="#10b981" opacity="0.85" font-size="9.5" font-family="Outfit, sans-serif" font-weight="600" letter-spacing="1.5">ÜRETİM HATTI A</text>
+
+                <!-- ═══ Zone B: Üretim Hattı B ═══ -->
+                <rect x="613" y="24" width="563" height="300" rx="6" fill="url(#zoneB)" stroke="rgba(59,130,246,0.12)" stroke-width="1"/>
+                <!-- Corner brackets -->
+                <path d="M 613 48 L 613 24 L 637 24" fill="none" stroke="rgba(59,130,246,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 1152 24 L 1176 24 L 1176 48" fill="none" stroke="rgba(59,130,246,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 613 300 L 613 324 L 637 324" fill="none" stroke="rgba(59,130,246,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 1152 324 L 1176 324 L 1176 300" fill="none" stroke="rgba(59,130,246,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <!-- Label badge -->
+                <rect x="621" y="32" width="128" height="24" rx="4" fill="rgba(59,130,246,0.08)" stroke="rgba(59,130,246,0.12)" stroke-width="0.5"/>
+                <circle cx="633" cy="44" r="3" fill="#3b82f6"/>
+                <text x="643" y="48" fill="#3b82f6" opacity="0.85" font-size="9.5" font-family="Outfit, sans-serif" font-weight="600" letter-spacing="1.5">ÜRETİM HATTI B</text>
+
+                <!-- ═══ Zone C: Montaj & Final ═══ -->
+                <rect x="24" y="348" width="760" height="308" rx="6" fill="url(#zoneC)" stroke="rgba(139,92,246,0.12)" stroke-width="1"/>
+                <!-- Corner brackets -->
+                <path d="M 24 372 L 24 348 L 48 348" fill="none" stroke="rgba(139,92,246,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 760 348 L 784 348 L 784 372" fill="none" stroke="rgba(139,92,246,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 24 632 L 24 656 L 48 656" fill="none" stroke="rgba(139,92,246,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 760 656 L 784 656 L 784 632" fill="none" stroke="rgba(139,92,246,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <!-- Label badge -->
+                <rect x="32" y="356" width="128" height="24" rx="4" fill="rgba(139,92,246,0.08)" stroke="rgba(139,92,246,0.12)" stroke-width="0.5"/>
+                <circle cx="44" cy="368" r="3" fill="#8b5cf6"/>
+                <text x="54" y="372" fill="#8b5cf6" opacity="0.85" font-size="9.5" font-family="Outfit, sans-serif" font-weight="600" letter-spacing="1.5">MONTAJ &amp; FİNAL</text>
+
+                <!-- ═══ Zone D: Depo ═══ -->
+                <rect x="808" y="348" width="368" height="308" rx="6" fill="url(#zoneD)" stroke="rgba(245,158,11,0.12)" stroke-width="1"/>
+                <!-- Corner brackets -->
+                <path d="M 808 372 L 808 348 L 832 348" fill="none" stroke="rgba(245,158,11,0.3)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 1152 348 L 1176 348 L 1176 372" fill="none" stroke="rgba(245,158,11,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 808 632 L 808 656 L 832 656" fill="none" stroke="rgba(245,158,11,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <path d="M 1152 656 L 1176 656 L 1176 632" fill="none" stroke="rgba(245,158,11,0.15)" stroke-width="1.5" stroke-linecap="round"/>
+                <!-- Label badge -->
+                <rect x="816" y="356" width="62" height="24" rx="4" fill="rgba(245,158,11,0.08)" stroke="rgba(245,158,11,0.12)" stroke-width="0.5"/>
+                <circle cx="828" cy="368" r="3" fill="#f59e0b"/>
+                <text x="838" y="372" fill="#f59e0b" opacity="0.85" font-size="9.5" font-family="Outfit, sans-serif" font-weight="600" letter-spacing="1.5">DEPO</text>
+
+                <!-- ═══ Corridors ═══ -->
+                <!-- Vertical corridor (between A/B and C/D) -->
+                <line x1="597" y1="24" x2="597" y2="340" stroke="rgba(255,255,255,0.035)" stroke-width="1" stroke-dasharray="4,8"/>
+                <!-- Horizontal corridor -->
+                <line x1="24" y1="336" x2="1176" y2="336" stroke="rgba(255,255,255,0.035)" stroke-width="1" stroke-dasharray="4,8"/>
+                <!-- Vertical corridor (between C and D) -->
+                <line x1="796" y1="348" x2="796" y2="656" stroke="rgba(255,255,255,0.035)" stroke-width="1" stroke-dasharray="4,8"/>
+
+                <!-- Corridor intersection markers -->
+                <circle cx="597" cy="336" r="3" fill="#1a1a1a" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                <circle cx="597" cy="336" r="1" fill="rgba(59,130,246,0.4)"/>
+                <circle cx="796" cy="336" r="3" fill="#1a1a1a" stroke="rgba(255,255,255,0.08)" stroke-width="1"/>
+                <circle cx="796" cy="336" r="1" fill="rgba(59,130,246,0.4)"/>
+
+                <!-- Machine Layer -->
+                <g id="machineLayer"></g>
+            </svg>
+        </div>
+    </div>
+</div>
+
+<!-- Unplaced Panel -->
+<div class="card mt-4 d-none" id="unplacedPanel">
+    <div class="card-header">
+        <h6 class="mb-0"><i class="bi bi-geo-alt me-2"></i>Konumlandırılmamış Makineler</h6>
+    </div>
+    <div class="card-body">
+        <div class="d-flex flex-wrap gap-2" id="unplacedList"></div>
+        <p class="text-muted mt-2 mb-0 small" id="unplacedHint"></p>
+    </div>
+</div>
+
+<!-- Popup -->
+<div class="makine-popup" id="makinePopup" style="display:none;">
+    <div class="popup-header">
+        <div class="popup-status-dot" id="popupStatusDot"></div>
+        <div>
+            <div class="popup-title" id="popupTitle"></div>
+            <div class="popup-subtitle" id="popupSubtitle"></div>
+        </div>
+    </div>
+    <div class="popup-divider"></div>
+    <div class="popup-body">
+        <div class="popup-row">
+            <span class="popup-label"><i class="bi bi-speedometer2 me-1"></i>OEE</span>
+            <span class="popup-value" id="popupOEE"></span>
+        </div>
+        <!-- Sparkline Container -->
+        <div class="popup-trend-container" id="popupTrendContainer" style="display:none;">
+            <div class="popup-trend-label">Son 7 Gün OEE Trendi</div>
+            <svg class="popup-sparkline" id="popupSparkline" viewBox="0 0 100 30" preserveAspectRatio="none"></svg>
+        </div>
+        <div class="popup-row mt-2">
+            <span class="popup-label"><i class="bi bi-box-seam me-1"></i>Bugün Üretim</span>
+            <span class="popup-value" id="popupUretim"></span>
+        </div>
+        <div class="popup-row">
+            <span class="popup-label"><i class="bi bi-person me-1"></i>Operatör</span>
+            <span class="popup-value" id="popupOperator"></span>
+        </div>
+        <div class="popup-row">
+            <span class="popup-label"><i class="bi bi-tools me-1"></i>Son Bakım</span>
+            <span class="popup-value" id="popupBakim"></span>
+        </div>
+        <div class="popup-row" id="popupArizaRow" style="display:none;">
+            <span class="popup-label"><i class="bi bi-exclamation-diamond me-1"></i>Son Arıza</span>
+            <span class="popup-value text-danger" id="popupAriza"></span>
+        </div>
+    </div>
+    <div class="popup-footer">
+        <a href="#" id="popupDetailLink" class="btn btn-sm btn-primary w-100">
+            <i class="bi bi-arrow-right me-1"></i>Detaya Git
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    const IS_ADMIN = {{ 'true' if is_admin else 'false' }};
+    const API_URL = "{{ url_for('fabrika_harita.api_makineler') }}";
+    const UPDATE_URL = "{{ url_for('fabrika_harita.toplu_konum_guncelle') }}";
+    const DETAIL_BASE = "{{ url_for('makine.detay', id=0) }}".replace('/0', '');
+</script>
+<script src="{{ url_for('static', filename='js/fabrika_harita.js') }}?v=4.0"></script>
+{% endblock %}

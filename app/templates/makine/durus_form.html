@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Duruş Kaydı - {{ makine.ad }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-7">
+        <div class="card shadow-sm border-0 border-top border-4 border-info">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-pause-circle me-2 text-info"></i>Duruş Kaydı (Altı Büyük Kayıp)</h5>
+                <small class="text-muted">{{ makine.ad }} ({{ makine.kod }})</small>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info border-0 mb-4">
+                    <small>
+                        <strong>Altı Büyük Kayıp:</strong> TPM metodolojisine göre duruş kategorileri —
+                        Ekipman Arızası, Ayar/Setup, Küçük Duraklamalar, Düşük Hız, Kalite Hataları ve Başlangıç Kayıpları.
+                    </small>
+                </div>
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.baslangic.label }}</label>
+                            {{ form.baslangic(class="form-control", type="datetime-local") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.bitis.label }}</label>
+                            {{ form.bitis(class="form-control", type="datetime-local") }}
+                            <small class="text-muted">Boş bırakılırsa devam eden duruş olarak kaydedilir.</small>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.kategori.label }}</label>
+                            {{ form.kategori(class="form-select") }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.neden.label }}</label>
+                            {{ form.neden(class="form-control", placeholder="Duruşun ana nedeni") }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.aciklama.label }}</label>
+                            {{ form.aciklama(class="form-control", rows="3", placeholder="Detaylı açıklama (opsiyonel)") }}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-info btn-lg shadow-sm fw-bold text-white") }}
+                                <a href="{{ url_for('makine.detay', id=makine.id) }}" class="btn btn-light">İptal</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

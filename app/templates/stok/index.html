@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Stok ve Malzeme Yönetimi{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Stok ve Malzeme</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-primary"></i>Stok ve Malzeme Yönetimi</h2>
+        <p class="text-muted mb-0 mt-1">Malzeme takibi, kritik stok uyarıları ve tedarikçi yönetimi</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('rapor.excel_stok') }}" class="btn btn-outline-success shadow-sm" title="Excel'e Aktar">
+            <i class="bi bi-file-excel me-1"></i><span class="d-none d-md-inline">Excel</span>
+        </a>
+        <a href="{{ url_for('stok.tedarikciler') }}" class="btn btn-secondary shadow-sm">
+            <i class="bi bi-truck me-1"></i>Tedarikçiler
+        </a>
+        <a href="{{ url_for('stok.ekle') }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Malzeme
+        </a>
+    </div>
+</div>
+
+{% if kritik_sayisi > 0 %}
+<div class="alert alert-danger d-flex align-items-center shadow-sm border-0 mb-4" role="alert">
+    <div class="rounded-circle d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;background:rgba(214,48,49,0.2);">
+        <i class="bi bi-exclamation-triangle-fill fs-5 text-danger"></i>
+    </div>
+    <div>
+        <strong class="text-heading">Dikkat!</strong> Şu an stok seviyesi kritik eşiğin altında olan <strong class="text-heading">{{ kritik_sayisi }}</strong> adet malzeme bulunuyor.
+    </div>
+</div>
+{% endif %}
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Malzeme / Kod</th>
+                        <th>Kategori</th>
+                        <th>Mevcut Stok</th>
+                        <th>Birim Fiyat</th>
+                        <th>Lokasyon</th>
+                        <th class="text-end pe-4">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for malzeme in malzemeler %}
+                    {% set kritik = malzeme.stok_kritik_mi() %}
+                    <tr class="{% if kritik %}table-danger{% endif %}">
+                        <td class="ps-4">
+                            <div class="fw-bold text-heading">{{ malzeme.ad }}</div>
+                            <small class="text-muted font-monospace">{{ malzeme.kod }}</small>
+                        </td>
+                        <td><span class="badge bg-secondary">{{ malzeme.kategori or '-' }}</span></td>
+                        <td>
+                            <div class="fw-bold {% if kritik %}text-danger{% else %}text-heading{% endif %}">
+                                {{ malzeme.mevcut_miktar }} {{ malzeme.birim }}
+                                {% if kritik %}<i class="bi bi-arrow-down-circle ms-1"></i>{% endif %}
+                            </div>
+                            <small class="text-muted">Kritik: {{ malzeme.minimum_stok }}</small>
+                        </td>
+                        <td><span class="text-muted">{{ "{:,.2f}".format(malzeme.birim_fiyat) if malzeme.birim_fiyat else '-' }} ₺</span></td>
+                        <td><small class="text-muted">{{ malzeme.lokasyon or '-' }}</small></td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('stok.duzenle', id=malzeme.id) }}" class="btn btn-outline-primary" title="Düzenle">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ url_for('stok.hareket_ekle', id=malzeme.id) }}" class="btn btn-primary" title="İşlem Yap">
+                                    <i class="bi bi-arrow-left-right me-1"></i>İşlem
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="fdys-empty-state">
+                                <div class="fdys-empty-icon"><i class="bi bi-box-seam"></i></div>
+                                <h5>Henüz Malzeme Tanımlanmamış</h5>
+                                <p>Stok takibine başlamak için ilk malzemenizi ekleyin.</p>
+                                <a href="{{ url_for('stok.ekle') }}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-plus-circle me-1"></i>İlk Malzemeyi Ekle
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

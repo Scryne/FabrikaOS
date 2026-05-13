@@ -1,0 +1,120 @@
+/*
+ * FDYS — Fabrika Haritası v4.0
+ * Professional flat design — matching app theme
+ */
+
+/* ── Legend ── */
+.harita-legend { font-size: 0.8rem; color: var(--text-secondary); }
+.legend-item { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; font-weight: 500; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex-shrink: 0; }
+.dot-aktif   { background: #10b981; }
+.dot-bakimda { background: #f59e0b; }
+.dot-arizali { background: #ef4444; animation: pulseDot 2s ease-in-out infinite; }
+.dot-kapali  { background: #525252; }
+@keyframes pulseDot {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.4; }
+}
+
+/* ── KPI Strip ── */
+.harita-kpi-card {
+    background: var(--bg-card); border: 1px solid var(--border-color);
+    border-radius: 0.75rem; padding: 1rem 1.1rem;
+    display: flex; align-items: center; gap: 0.85rem;
+    transition: background 0.15s ease, border-color 0.15s ease; height: 100%;
+}
+.harita-kpi-card:hover { background: var(--bg-card-hover); border-color: var(--border-light); }
+.harita-kpi-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.15rem; flex-shrink: 0;
+}
+.harita-kpi-value { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 1.35rem; color: var(--text-heading); line-height: 1.2; }
+.harita-kpi-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
+
+/* ── Map Container ── */
+.harita-container-card { border-radius: 1rem; overflow: hidden; }
+.harita-container-card .card-body { background: #111111; position: relative; }
+
+/* ── Viewport ── */
+.harita-viewport {
+    width: 100%; overflow: hidden;
+    position: relative; user-select: none;
+}
+.harita-svg { width: 100%; height: auto; display: block; }
+
+/* ── Edit Mode Banner ── */
+.edit-mode-banner {
+    background: rgba(59,130,246,0.06);
+    border-bottom: 1px solid rgba(59,130,246,0.12);
+    padding: 0.55rem 1.25rem; font-size: 0.84rem; color: #93c5fd;
+    display: flex; align-items: center;
+}
+
+/* ── Machine Nodes ── */
+.machine-node { cursor: pointer; }
+.machine-node.is-editing { cursor: move; }
+.machine-node.is-dragging { opacity: 0.6; }
+
+/* ── Popup — Flat, matching app theme ── */
+.makine-popup {
+    position: fixed; z-index: 2000; width: 300px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a; border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
+    pointer-events: auto; font-size: 0.85rem; overflow: hidden;
+    opacity: 0; transform: translateY(6px);
+    transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.makine-popup.is-visible { opacity: 1; transform: translateY(0); }
+
+.popup-header {
+    display: flex; align-items: center; gap: 10px;
+    padding: 0.9rem 1.1rem 0.6rem;
+}
+.popup-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.popup-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.95rem; color: #e5e5e5; line-height: 1.3; }
+.popup-subtitle { font-size: 0.72rem; color: #737373; margin-top: 1px; }
+.popup-divider { height: 1px; background: #262626; margin: 0; }
+.popup-body { padding: 0.65rem 1.1rem; }
+.popup-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; gap: 8px; }
+.popup-label { color: #737373; font-size: 0.78rem; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.popup-value { color: #e5e5e5; font-weight: 600; font-size: 0.82rem; text-align: right; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.popup-trend-container { padding: 0.4rem 0; margin-top: 0.3rem; border-top: 1px solid #262626; border-bottom: 1px solid #262626; }
+.popup-trend-label { font-size: 0.7rem; color: #737373; margin-bottom: 0.3rem; }
+.popup-sparkline { width: 100%; height: 30px; overflow: visible; }
+
+.popup-footer { padding: 0.5rem 1.1rem 0.85rem; }
+.popup-footer .btn { border-radius: 8px; font-size: 0.82rem; font-weight: 600; }
+
+/* ── Unplaced Chips ── */
+.unplaced-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0.45rem 0.85rem; background: var(--bg-card-hover);
+    border: 1px dashed var(--border-light); border-radius: 8px;
+    font-size: 0.82rem; color: var(--text-primary);
+    cursor: pointer; transition: all 0.15s ease; user-select: none;
+}
+.unplaced-chip:hover { background: rgba(59,130,246,0.08); border-color: #3b82f6; color: #60a5fa; }
+.unplaced-chip .chip-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Loading ── */
+.harita-loading {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    background: #111111; z-index: 10; gap: 1rem;
+}
+.harita-loading-spinner {
+    width: 36px; height: 36px; border: 3px solid #262626;
+    border-top-color: #3b82f6; border-radius: 50%;
+    animation: spinLoader 0.8s linear infinite;
+}
+@keyframes spinLoader { to { transform: rotate(360deg); } }
+.harita-loading-text { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .makine-popup { width: 260px; }
+    .harita-kpi-value { font-size: 1.1rem; }
+}

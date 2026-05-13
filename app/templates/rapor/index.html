@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+{% block title %}Raporlama Merkezi{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Raporlama</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-file-earmark-bar-graph me-2 text-primary"></i>Raporlama Merkezi</h2>
+        <p class="text-muted mb-0 mt-1">Sistemdeki tüm verileri profesyonel ISO uyumlu PDF ve Excel formatlarında dışa aktarın.</p>
+    </div>
+    <div class="text-end">
+        <span class="badge bg-primary fs-6 p-2 shadow-sm"><i class="bi bi-calendar-check me-1"></i> Rapor Dönemi: {{ ay }}/{{ yil }}</span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Kurumsal PDF Raporları -->
+    <div class="col-md-6">
+        <div class="card border-0 h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-file-pdf-fill me-2"></i>ISO Uyumlu PDF Raporları</h5>
+                <i class="bi bi-award fs-4 text-warning"></i>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-4">Kurumsal standartlarda (ISO) formatlanmış raporlar.</p>
+                <div class="list-group list-group-flush mb-4">
+                    <a href="{{ url_for('rapor.pdf_kalite', ay=ay, yil=yil) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-3 py-3 border rounded mb-2" style="background:rgba(255,255,255,0.03);">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-danger-subtle text-danger-emphasis rounded p-2 me-3"><i class="bi bi-shield-check fs-5"></i></div>
+                            <div>
+                                <div class="fw-bold text-heading">ISO 9001 Kalite Raporu</div>
+                                <small class="text-muted">Aylık hata ve düzeltici faaliyet analizi</small>
+                            </div>
+                        </div>
+                        <i class="bi bi-download text-primary fs-5"></i>
+                    </a>
+                    
+                    <a href="{{ url_for('rapor.pdf_isg', yil=yil) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-3 py-3 border rounded mb-2" style="background:rgba(255,255,255,0.03);">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning-subtle text-warning-emphasis rounded p-2 me-3"><i class="bi bi-heart-pulse fs-5"></i></div>
+                            <div>
+                                <div class="fw-bold text-heading">ISO 45001 İSG Raporu</div>
+                                <small class="text-muted">Yıllık iş kazası ve risk değerlendirme istatistikleri</small>
+                            </div>
+                        </div>
+                        <i class="bi bi-download text-primary fs-5"></i>
+                    </a>
+                    
+                    <a href="{{ url_for('rapor.pdf_enerji', ay=ay, yil=yil) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-3 py-3 border rounded" style="background:rgba(255,255,255,0.03);">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success-subtle text-success-emphasis rounded p-2 me-3"><i class="bi bi-lightning-charge fs-5"></i></div>
+                            <div>
+                                <div class="fw-bold text-heading">ISO 50001 Enerji Raporu</div>
+                                <small class="text-muted">Aylık makine bazlı enerji tüketim ve maliyetleri</small>
+                            </div>
+                        </div>
+                        <i class="bi bi-download text-primary fs-5"></i>
+                    </a>
+                </div>
+
+                <h6 class="fw-bold text-secondary mb-3 mt-4">Makine & Üretim Raporları (OEE)</h6>
+                <div class="list-group list-group-flush">
+                    {% for m in makineler %}
+                    <a href="{{ url_for('rapor.pdf_makine', id=m.id) }}" class="list-group-item list-group-item-action d-flex justify-content-between align-items-center px-3 py-2 border rounded mb-2" style="background:transparent;">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-gear-fill text-secondary me-3 fs-5"></i>
+                            <div>
+                                <div class="fw-bold text-heading">{{ m.ad }} <span class="badge bg-secondary ms-2">{{ m.kod }}</span></div>
+                            </div>
+                        </div>
+                        <i class="bi bi-download text-primary"></i>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Excel Veri Dışa Aktarma -->
+    <div class="col-md-6">
+        <div class="card border-0 h-100" style="background:var(--bg-input);">
+            <div class="card-header bg-transparent border-bottom-0">
+                <h5 class="mb-0 fw-bold text-success"><i class="bi bi-file-excel-fill me-2"></i>Ham Veri Dışa Aktarımı (Excel)</h5>
+            </div>
+            <div class="card-body">
+                <p class="small text-muted mb-4">Veritabanındaki kayıtları detaylı analizleriniz için Excel tabloları halinde indirin.</p>
+                
+                <div class="row g-3">
+                    <div class="col-12">
+                        <a href="{{ url_for('rapor.excel_uretim') }}" class="btn btn-white w-100 text-start shadow-sm d-flex align-items-center p-3 border hover-success rounded-3">
+                            <div class="bg-success-subtle text-success-emphasis rounded p-3 me-3"><i class="bi bi-activity fs-4"></i></div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1 text-heading">Üretim Geçmişi (OEE)</h6>
+                                <small class="text-muted">Tüm vardiya üretimleri ve duruşları</small>
+                            </div>
+                            <i class="bi bi-cloud-download text-success fs-5"></i>
+                        </a>
+                    </div>
+
+                    <div class="col-12">
+                        <a href="{{ url_for('rapor.excel_kalite') }}" class="btn btn-white w-100 text-start shadow-sm d-flex align-items-center p-3 border hover-success rounded-3">
+                            <div class="bg-success-subtle text-success-emphasis rounded p-3 me-3"><i class="bi bi-bug fs-4"></i></div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1 text-heading">Kalite Hataları Listesi</h6>
+                                <small class="text-muted">Detaylı hata ve fire verileri</small>
+                            </div>
+                            <i class="bi bi-cloud-download text-success fs-5"></i>
+                        </a>
+                    </div>
+                    
+                    <div class="col-12">
+                        <a href="{{ url_for('rapor.excel_enerji') }}" class="btn btn-white w-100 text-start shadow-sm d-flex align-items-center p-3 border hover-success rounded-3">
+                            <div class="bg-success-subtle text-success-emphasis rounded p-3 me-3"><i class="bi bi-lightning fs-4"></i></div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1 text-heading">Enerji Tüketim Verileri</h6>
+                                <small class="text-muted">Aylık maliyet ve tüketim kayıtları</small>
+                            </div>
+                            <i class="bi bi-cloud-download text-success fs-5"></i>
+                        </a>
+                    </div>
+
+                    <div class="col-12">
+                        <a href="{{ url_for('rapor.excel_isg') }}" class="btn btn-white w-100 text-start shadow-sm d-flex align-items-center p-3 border hover-success rounded-3">
+                            <div class="bg-success-subtle text-success-emphasis rounded p-3 me-3"><i class="bi bi-heart-pulse fs-4"></i></div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold mb-1 text-heading">İSG Olayları Listesi</h6>
+                                <small class="text-muted">İş kazaları, ramak kala ve risk kayıtları</small>
+                            </div>
+                            <i class="bi bi-cloud-download text-success fs-5"></i>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6">
+                        <a href="{{ url_for('rapor.excel_stok') }}" class="btn btn-white w-100 text-start shadow-sm p-3 border hover-success rounded-3">
+                            <i class="bi bi-box-seam text-success fs-4 mb-2 d-block"></i>
+                            <h6 class="fw-bold mb-1 text-heading">Stok & Envanter</h6>
+                            <small class="text-muted d-block">Malzeme listesi</small>
+                        </a>
+                    </div>
+
+                    <div class="col-md-6">
+                        <a href="{{ url_for('rapor.excel_personel') }}" class="btn btn-white w-100 text-start shadow-sm p-3 border hover-success rounded-3">
+                            <i class="bi bi-people text-success fs-4 mb-2 d-block"></i>
+                            <h6 class="fw-bold mb-1 text-heading">Personel Özlük</h6>
+                            <small class="text-muted d-block">Çalışan listesi</small>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gelişmiş Raporlama Kartları -->
+<div class="row g-4 mt-2">
+    <div class="col-md-6">
+        <a href="{{ url_for('rapor.gelismis') }}" class="kpi-mini-card h-100" style="padding: 1.5rem;">
+            <div class="bg-primary-subtle text-primary-emphasis rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 64px; height: 64px;">
+                <i class="bi bi-bar-chart-line fs-2"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="fw-bold mb-1 text-heading">Gelişmiş Raporlama</h5>
+                <p class="text-muted mb-0 small">Tarih aralığına göre dinamik rapor oluşturun, grafik ve tablo ile analiz edin</p>
+            </div>
+            <i class="bi bi-chevron-right text-muted fs-4"></i>
+        </a>
+    </div>
+    <div class="col-md-6">
+        <a href="{{ url_for('rapor.karsilastirma') }}" class="kpi-mini-card h-100" style="padding: 1.5rem;">
+            <div class="bg-success-subtle text-success-emphasis rounded-3 d-flex align-items-center justify-content-center flex-shrink-0" style="width: 64px; height: 64px;">
+                <i class="bi bi-arrow-left-right fs-2"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="fw-bold mb-1 text-heading">Karşılaştırmalı Rapor</h5>
+                <p class="text-muted mb-0 small">Bu ay ile geçen ayın KPI değerlerini yan yana karşılaştırın</p>
+            </div>
+            <i class="bi bi-chevron-right text-muted fs-4"></i>
+        </a>
+    </div>
+</div>
+{% endblock %}

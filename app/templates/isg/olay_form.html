@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+{% block title %}İSG Olay Bildirimi{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0 border-top border-4 border-danger">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-megaphone-fill me-2"></i>İSG Olay Bildirim Formu</h5>
+                <small class="text-muted">İş kazası, ramak kala veya meslek hastalığı şüphesi bildirimi</small>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <h6 class="text-danger border-bottom pb-2 mb-3 mt-3"><i class="bi bi-info-circle me-2"></i>Genel Bilgiler</h6>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">{{ form.olay_no.label }}</label>
+                            {{ form.olay_no(class="form-control", placeholder="Sistem atayabilir") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">{{ form.tarih.label }}</label>
+                            {{ form.tarih(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">{{ form.vardiya.label }}</label>
+                            {{ form.vardiya(class="form-select") }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.olay_turu.label }}</label>
+                            {{ form.olay_turu(class="form-select") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.calisan_id.label }}</label>
+                            {{ form.calisan_id(class="form-select") }}
+                        </div>
+
+                        <h6 class="text-danger border-bottom pb-2 mb-3 mt-4"><i class="bi bi-geo-alt me-2"></i>Olay Yeri ve Türü</h6>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.yer.label }}</label>
+                            {{ form.yer(class="form-control" + (" is-invalid" if form.yer.errors else ""), placeholder="Örn: Üretim Hattı B, Depo Giriş vb.") }}
+                            {% for error in form.yer.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.kaza_sekli.label }}</label>
+                            {{ form.kaza_sekli(class="form-select") }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">{{ form.yaralanma_tipi.label }}</label>
+                            {{ form.yaralanma_tipi(class="form-control" + (" is-invalid" if form.yaralanma_tipi.errors else ""), placeholder="Örn: Kesik, Yanık, Kırık vb.") }}
+                            {% for error in form.yaralanma_tipi.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">{{ form.uzuv.label }}</label>
+                            {{ form.uzuv(class="form-control", placeholder="Örn: Sağ El İşaret Parmağı") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">{{ form.siddet.label }}</label>
+                            {{ form.siddet(class="form-select") }}
+                        </div>
+
+                        <h6 class="text-danger border-bottom pb-2 mb-3 mt-4"><i class="bi bi-journal-text me-2"></i>Detaylı Analiz ve Müdahale</h6>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.aciklama.label }}</label>
+                            {{ form.aciklama(class="form-control" + (" is-invalid" if form.aciklama.errors else ""), rows="3", placeholder="Olay nasıl gerçekleşti? Kim, nerede, ne zaman, nasıl?") }}
+                            {% for error in form.aciklama.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.kok_neden.label }}</label>
+                            {{ form.kok_neden(class="form-control", rows="2", placeholder="Olayın temel sebebi (Eğitim eksikliği, KKD kullanılmaması vb.)") }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.duzeltici_faaliyet.label }}</label>
+                            {{ form.duzeltici_faaliyet(class="form-control", rows="2", placeholder="Alınan ilk müdahale ve önleyici aksiyonlar") }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">{{ form.kayip_gun.label }}</label>
+                            <div class="input-group">
+                                {{ form.kayip_gun(class="form-control", type="number") }}
+                                <span class="input-group-text">Gün</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <div class="alert alert-danger border-0 d-flex align-items-center mt-3 shadow-sm">
+                                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                                <div>
+                                    <strong>Acil Bildirim:</strong> İş kazası bildirimi yapıldığında tüm yöneticilere anlık bildirim gönderilecektir.
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-danger btn-lg shadow-sm fw-bold") }}
+                                <a href="{{ url_for('isg.index') }}" class="btn btn-light">İptal</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

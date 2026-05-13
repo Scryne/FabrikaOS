@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Düzeltici Faaliyetler{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-clipboard-check me-2"></i>Düzeltici / Önleyici Faaliyetler</h2>
+        <p class="text-muted mb-0 mt-1">CAPA (Corrective and Preventive Action) süreç takibi</p>
+    </div>
+    <a href="{{ url_for('kalite.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Kalite Paneli
+    </a>
+</div>
+
+<!-- Durum Filtreleri ve İstatistikler -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <a href="?durum=tumu" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'tumu' %}border-start border-4 border-primary{% endif %}">
+            <div class="card-body py-3 d-flex align-items-center">
+                <i class="bi bi-grid text-primary fs-4 me-3"></i>
+                <div>
+                    <div class="small text-muted fw-bold">Tümü</div>
+                    <div class="h5 mb-0 fw-bold">{{ stats.acik + stats.devam + stats.dogrulama + stats.kapandi }}</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="?durum=acik" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'acik' %}border-start border-4 border-danger{% endif %}">
+            <div class="card-body py-3 d-flex align-items-center">
+                <i class="bi bi-exclamation-circle text-danger fs-4 me-3"></i>
+                <div>
+                    <div class="small text-muted fw-bold">Açık</div>
+                    <div class="h5 mb-0 fw-bold text-danger">{{ stats.acik }}</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="?durum=devam" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'devam' %}border-start border-4 border-warning{% endif %}">
+            <div class="card-body py-3 d-flex align-items-center">
+                <i class="bi bi-hourglass-split text-warning fs-4 me-3"></i>
+                <div>
+                    <div class="small text-muted fw-bold">Devam Ediyor</div>
+                    <div class="h5 mb-0 fw-bold text-warning">{{ stats.devam }}</div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="?durum=kapandi" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'kapandi' %}border-start border-4 border-success{% endif %}">
+            <div class="card-body py-3 d-flex align-items-center">
+                <i class="bi bi-check-circle text-success fs-4 me-3"></i>
+                <div>
+                    <div class="small text-muted fw-bold">Kapandı</div>
+                    <div class="h5 mb-0 fw-bold text-success">{{ stats.kapandi }}</div>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Faaliyet Listesi -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                        <th>CAPA No</th>
+                        <th>Hata Kaynağı</th>
+                        <th>Kök Neden / Kategori</th>
+                        <th>Faaliyet</th>
+                        <th>Sorumlu</th>
+                        <th>Hedef Tarih</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for f in faaliyetler %}
+                    <tr>
+                        <td>
+                            <span class="badge bg-light text-dark border">{{ f.capa_no or 'Atanmadı' }}</span>
+                        </td>
+                        <td>
+                            <div class="fw-medium small">{{ f.hata_kaydi.hata_turu }}</div>
+                            <small class="text-muted">{{ f.hata_kaydi.urun_adi }}</small>
+                        </td>
+                        <td>
+                            <div class="small fw-bold text-muted text-capitalize mb-1">{{ f.neden_kategorisi or 'Belirtilmedi' }}</div>
+                            <small style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                                {{ f.kok_neden }}
+                            </small>
+                        </td>
+                        <td>
+                            <small style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                                {{ f.faaliyet }}
+                            </small>
+                        </td>
+                        <td>{{ f.sorumlu.ad_soyad if f.sorumlu else '—' }}</td>
+                        <td>
+                            <small class="{% if f.gecikme_gun > 0 %}text-danger fw-bold{% endif %}">
+                                {{ f.hedef_tarih.strftime('%d.%m.%Y') if f.hedef_tarih else '—' }}
+                                {% if f.gecikme_gun > 0 %}
+                                <br><span class="badge bg-danger-subtle text-danger">{{ f.gecikme_gun }} gün gecikmiş</span>
+                                {% endif %}
+                            </small>
+                        </td>
+                        <td>
+                            {% if f.durum == 'acik' %}
+                                <span class="badge bg-danger-subtle text-danger-emphasis">Açık</span>
+                            {% elif f.durum == 'devam' %}
+                                <span class="badge bg-warning-subtle text-warning-emphasis">Devam</span>
+                            {% elif f.durum == 'dogrulama' %}
+                                <span class="badge bg-info-subtle text-info-emphasis">Doğrulama</span>
+                            {% else %}
+                                <span class="badge bg-success-subtle text-success-emphasis">Kapandı</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if f.durum != 'kapandi' %}
+                            <div class="btn-group btn-group-sm">
+                                {% if f.durum == 'acik' %}
+                                <form method="POST" action="{{ url_for('kalite.faaliyet_guncelle', faaliyet_id=f.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="durum" value="devam">
+                                    <button type="submit" class="btn btn-outline-warning btn-sm" title="Başlat">
+                                        <i class="bi bi-play-fill"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if f.durum in ('acik', 'devam') %}
+                                <form method="POST" action="{{ url_for('kalite.faaliyet_guncelle', faaliyet_id=f.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="durum" value="dogrulama">
+                                    <button type="submit" class="btn btn-outline-info btn-sm" title="Doğrulamaya Al">
+                                        <i class="bi bi-check2"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                {% if f.durum == 'dogrulama' %}
+                                <form method="POST" action="{{ url_for('kalite.faaliyet_guncelle', faaliyet_id=f.id) }}" style="display:inline;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <input type="hidden" name="durum" value="kapandi">
+                                    <button type="submit" class="btn btn-outline-success btn-sm" title="Kapat">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                            {% else %}
+                            <small class="text-success"><i class="bi bi-check-circle"></i> {{ f.tamamlanma_tarihi.strftime('%d.%m.%Y') if f.tamamlanma_tarihi else '' }}</small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            <i class="bi bi-clipboard-x fs-1 d-block mb-2 opacity-25"></i>
+                            Bu filtrede kayıt bulunamadı.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

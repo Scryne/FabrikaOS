@@ -1,0 +1,493 @@
+{% extends "base.html" %}
+{% block title %}Takvim{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+<style>
+/* ── Calendar Theme Override ── */
+.fc {
+    --fc-border-color: var(--border-color);
+    --fc-today-bg-color: rgba(59,130,246,0.06);
+    --fc-page-bg-color: transparent;
+    --fc-neutral-bg-color: transparent;
+    --fc-list-event-hover-bg-color: var(--bg-card-hover);
+}
+.fc .fc-toolbar-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-heading);
+}
+.fc .fc-button {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.5rem !important;
+    transition: all 0.15s ease;
+    box-shadow: none !important;
+}
+.fc .fc-button:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-heading);
+    border-color: var(--border-light);
+}
+.fc .fc-button-active,
+.fc .fc-button:active {
+    background: #3b82f6 !important;
+    border-color: #3b82f6 !important;
+    color: #fff !important;
+}
+.fc .fc-button-group {
+    gap: 4px;
+}
+.fc .fc-button-group .fc-button {
+    border-radius: 0.5rem !important;
+}
+.fc .fc-toolbar {
+    margin-bottom: 1.25rem !important;
+    gap: 0.75rem;
+}
+.fc .fc-toolbar.fc-header-toolbar {
+    flex-wrap: wrap;
+}
+
+/* ── Column Headers ── */
+.fc .fc-col-header-cell {
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.6rem 0;
+}
+.fc .fc-col-header-cell-cushion {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-decoration: none;
+}
+
+/* ── Day Cells ── */
+.fc .fc-daygrid-day {
+    transition: background 0.15s ease;
+}
+.fc .fc-daygrid-day:hover {
+    background: var(--bg-body);
+}
+.fc .fc-daygrid-day-number {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 0.5rem 0.65rem;
+}
+.fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+    color: #3b82f6;
+    font-weight: 700;
+    background: rgba(59,130,246,0.12);
+    border-radius: 0.35rem;
+    padding: 0.2rem 0.45rem;
+}
+.fc .fc-daygrid-day.fc-day-other .fc-daygrid-day-number {
+    color: var(--text-muted);
+    opacity: 0.5;
+}
+
+/* ── Events ── */
+.fc .fc-event {
+    border: none;
+    border-radius: 5px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    padding: 2px 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    margin-bottom: 1px;
+}
+.fc .fc-event:hover {
+    filter: brightness(1.15);
+    transform: scale(1.01);
+}
+.fc .fc-daygrid-event-dot { display: none; }
+.fc .fc-more-link {
+    color: var(--accent);
+    font-size: 0.72rem;
+    font-weight: 600;
+}
+.fc .fc-more-link:hover {
+    color: var(--accent-light);
+}
+
+/* ── Scrollbar & Popover ── */
+.fc .fc-scroller::-webkit-scrollbar { width: 6px; }
+.fc .fc-scroller::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+
+.fc .fc-popover {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    z-index: 1050 !important;
+}
+.fc .fc-popover-header {
+    background: var(--bg-card) !important;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-heading);
+    font-weight: 600;
+    padding: 0.6rem 0.85rem;
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+.fc .fc-popover-body {
+    padding: 0.5rem;
+    max-height: 350px;
+    overflow-y: auto;
+}
+.fc .fc-popover-body .fc-event {
+    color: #fff !important;
+    font-size: 0.75rem;
+    padding: 3px 6px;
+    margin-bottom: 2px;
+}
+.fc .fc-popover-body .fc-event-title {
+    color: #fff !important;
+    font-weight: 500;
+}
+
+/* ── List View ── */
+.fc .fc-list {
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+.fc .fc-list-day-cushion {
+    background: var(--bg-card) !important;
+    color: var(--text-heading);
+    font-weight: 600;
+}
+.fc .fc-list-event td {
+    border-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* ── Filter Buttons ── */
+.tkv-filter-bar {
+    display: flex;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+}
+.tkv-filter-btn {
+    padding: 0.4rem 1rem;
+    border-radius: 0.5rem;
+    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.tkv-filter-btn:hover {
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+    border-color: var(--border-light);
+}
+.tkv-filter-btn.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: #fff;
+}
+.tkv-filter-btn i {
+    font-size: 0.9rem;
+}
+
+/* ── Legend ── */
+.tkv-legend {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    padding: 0.75rem 1.25rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+}
+.tkv-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+.tkv-legend-dot {
+    width: 8px; height: 8px;
+    border-radius: 3px;
+    flex-shrink: 0;
+}
+
+/* ── Stats Mini Cards ── */
+.tkv-stat {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 0.75rem;
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+.tkv-stat::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    border-radius: 0.75rem 0.75rem 0 0;
+}
+.tkv-stat:hover {
+    background: var(--bg-card-hover);
+    transform: translateY(-1px);
+}
+.tkv-stat-icon {
+    width: 40px; height: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; flex-shrink: 0;
+}
+.tkv-stat-val {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.4rem; font-weight: 700; line-height: 1;
+    color: var(--text-heading);
+}
+.tkv-stat-label {
+    font-size: 0.75rem; font-weight: 600;
+    color: var(--text-muted);
+}
+
+/* ── Event Detail Modal ── */
+.tkv-detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.tkv-detail-row:last-child { border-bottom: none; }
+.tkv-detail-label {
+    font-size: 0.8rem; font-weight: 600;
+    color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 0.03em;
+}
+.tkv-detail-value {
+    font-size: 0.88rem; font-weight: 600;
+    color: var(--text-heading);
+}
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+    .tkv-legend { gap: 0.6rem; padding: 0.6rem 1rem; }
+    .tkv-stats-row { flex-direction: column; }
+}
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+    <li class="breadcrumb-item active">Takvim</li>
+</ol></nav>
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-3">
+    <div>
+        <h2 class="fw-bold mb-1" style="letter-spacing:-0.5px;">
+            <i class="bi bi-calendar3 me-2" style="color:var(--accent);"></i>Takvim
+        </h2>
+        <p class="text-muted mb-0" style="font-size:0.88rem;">Bakım, vardiya ve izin takvimleriniz birleşik görünümde</p>
+    </div>
+    <div class="tkv-filter-bar">
+        <button class="tkv-filter-btn active" data-filtre="hepsi"><i class="bi bi-grid-3x3-gap"></i> Tümü</button>
+        <button class="tkv-filter-btn" data-filtre="bakim"><i class="bi bi-wrench"></i> Bakım</button>
+        <button class="tkv-filter-btn" data-filtre="vardiya"><i class="bi bi-clock-history"></i> Vardiya</button>
+        <button class="tkv-filter-btn" data-filtre="izin"><i class="bi bi-sun"></i> İzin</button>
+    </div>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4 tkv-stats-row" id="takvimStats">
+    <div class="col-xl-3 col-md-6">
+        <div class="tkv-stat" style="--stat-c:#3b82f6;">
+            <div class="tkv-stat-icon" style="background:rgba(59,130,246,0.12);color:#3b82f6;"><i class="bi bi-calendar-event"></i></div>
+            <div>
+                <div class="tkv-stat-val" id="statToplam">—</div>
+                <div class="tkv-stat-label">Toplam Etkinlik</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="tkv-stat" style="--stat-c:#22c55e;">
+            <div class="tkv-stat-icon" style="background:rgba(34,197,94,0.12);color:#22c55e;"><i class="bi bi-wrench-adjustable-circle"></i></div>
+            <div>
+                <div class="tkv-stat-val" id="statBakim">—</div>
+                <div class="tkv-stat-label">Bakım Planı</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="tkv-stat" style="--stat-c:#f59e0b;">
+            <div class="tkv-stat-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="tkv-stat-val" id="statVardiya">—</div>
+                <div class="tkv-stat-label">Vardiya Ataması</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="tkv-stat" style="--stat-c:#06b6d4;">
+            <div class="tkv-stat-icon" style="background:rgba(6,182,212,0.12);color:#06b6d4;"><i class="bi bi-sun"></i></div>
+            <div>
+                <div class="tkv-stat-val" id="statIzin">—</div>
+                <div class="tkv-stat-label">Aktif İzin</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="tkv-legend mb-4">
+    <span class="tkv-legend-item"><span class="tkv-legend-dot" style="background:#22c55e;"></span>Planlanan Bakım</span>
+    <span class="tkv-legend-item"><span class="tkv-legend-dot" style="background:#ef4444;"></span>Geciken Bakım</span>
+    <span class="tkv-legend-item"><span class="tkv-legend-dot" style="background:#3b82f6;"></span>Sabah Vardiyası</span>
+    <span class="tkv-legend-item"><span class="tkv-legend-dot" style="background:#f59e0b;"></span>Öğleden Sonra</span>
+    <span class="tkv-legend-item"><span class="tkv-legend-dot" style="background:#8b5cf6;"></span>Gece Vardiyası</span>
+    <span class="tkv-legend-item"><span class="tkv-legend-dot" style="background:#06b6d4;"></span>Yıllık İzin</span>
+    <span class="tkv-legend-item"><span class="tkv-legend-dot" style="background:#f97316;"></span>Mazeret İzni</span>
+</div>
+
+<!-- Calendar -->
+<div class="card" style="overflow:visible;">
+    <div class="card-body p-3" style="overflow:visible;">
+        <div id="takvimContainer"></div>
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal fade" id="etkinlikModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <span class="badge mb-2" id="etkinlikTipBadge"></span>
+                    <h5 class="modal-title fw-bold" id="etkinlikBaslik"></h5>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-2" id="etkinlikIcerik"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let aktifFiltre = 'hepsi';
+    let cachedEvents = [];
+
+    function updateStats(events) {
+        let bakim=0, vardiya=0, izin=0;
+        events.forEach(e => {
+            const tip = e.extendedProps?.tip || '';
+            if(tip==='bakim'||tip==='bakim_yapilan') bakim++;
+            else if(tip==='vardiya') vardiya++;
+            else if(tip==='izin') izin++;
+        });
+        document.getElementById('statToplam').textContent = events.length;
+        document.getElementById('statBakim').textContent = bakim;
+        document.getElementById('statVardiya').textContent = vardiya;
+        document.getElementById('statIzin').textContent = izin;
+    }
+
+    const calendar = new FullCalendar.Calendar(document.getElementById('takvimContainer'), {
+        initialView: 'dayGridMonth',
+        locale: 'tr',
+        height: 'auto',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,listWeek'
+        },
+        buttonIcons: false,
+        buttonText: { 
+            today: 'Bugün', 
+            month: 'Ay', 
+            week: 'Hafta', 
+            list: 'Liste',
+            prev: 'Geri',
+            next: 'İleri'
+        },
+        events: function(fetchInfo, successCallback, failureCallback) {
+            fetch(`/takvim/api/etkinlikler?start=${fetchInfo.startStr}&end=${fetchInfo.endStr}&filtre=${aktifFiltre}`)
+                .then(r => r.json())
+                .then(data => {
+                    cachedEvents = data;
+                    updateStats(data);
+                    successCallback(data);
+                })
+                .catch(err => failureCallback(err));
+        },
+        eventClick: function(info) {
+            const props = info.event.extendedProps;
+            const tipBadge = document.getElementById('etkinlikTipBadge');
+            document.getElementById('etkinlikBaslik').textContent = info.event.title.replace(/^[^\w\sğüşıöçĞÜŞİÖÇ]+\s*/u, '');
+
+            let html = '';
+            if (props.tip === 'bakim' || props.tip === 'bakim_yapilan') {
+                tipBadge.className = 'badge bg-success-subtle text-success-emphasis mb-2';
+                tipBadge.innerHTML = '<i class="bi bi-wrench me-1"></i>Bakım';
+                html = `<div class="tkv-detail-row"><span class="tkv-detail-label">Makine</span><span class="tkv-detail-value">${props.makine_ad || '—'}</span></div>`;
+                if(props.bakim_turu) html += `<div class="tkv-detail-row"><span class="tkv-detail-label">Bakım Türü</span><span class="tkv-detail-value">${props.bakim_turu}</span></div>`;
+                html += `<div class="tkv-detail-row"><span class="tkv-detail-label">Tarih</span><span class="tkv-detail-value">${info.event.startStr}</span></div>`;
+                if(props.gecikti) html += `<div class="alert alert-danger py-2 mt-3 mb-0 d-flex align-items-center gap-2"><i class="bi bi-exclamation-triangle"></i><span class="fw-bold">Bu bakım gecikmiş durumda!</span></div>`;
+            } else if (props.tip === 'vardiya') {
+                tipBadge.className = 'badge bg-primary-subtle text-primary-emphasis mb-2';
+                tipBadge.innerHTML = '<i class="bi bi-clock-history me-1"></i>Vardiya';
+                html = `<div class="tkv-detail-row"><span class="tkv-detail-label">Çalışan</span><span class="tkv-detail-value">${props.calisan}</span></div>`;
+                html += `<div class="tkv-detail-row"><span class="tkv-detail-label">Vardiya</span><span class="tkv-detail-value">${props.vardiya_turu}</span></div>`;
+                html += `<div class="tkv-detail-row"><span class="tkv-detail-label">Saat</span><span class="tkv-detail-value">${props.saat}</span></div>`;
+            } else if (props.tip === 'izin') {
+                tipBadge.className = 'badge bg-info-subtle text-info-emphasis mb-2';
+                tipBadge.innerHTML = '<i class="bi bi-sun me-1"></i>İzin';
+                html = `<div class="tkv-detail-row"><span class="tkv-detail-label">Çalışan</span><span class="tkv-detail-value">${props.calisan}</span></div>`;
+                html += `<div class="tkv-detail-row"><span class="tkv-detail-label">İzin Türü</span><span class="tkv-detail-value">${props.izin_turu}</span></div>`;
+            }
+            if(props.detay) html += `<div class="mt-3 p-2 rounded" style="background:var(--bg-body);border:1px solid var(--border-color);"><small class="text-muted"><i class="bi bi-info-circle me-1"></i>${props.detay}</small></div>`;
+            document.getElementById('etkinlikIcerik').innerHTML = html;
+            new bootstrap.Modal(document.getElementById('etkinlikModal')).show();
+        },
+        dayMaxEvents: 3,
+        moreLinkText: function(num) { return '+' + num + ' daha'; },
+        eventDisplay: 'block',
+        displayEventTime: false
+    });
+
+    calendar.render();
+
+    // Filter buttons
+    document.querySelectorAll('.tkv-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.tkv-filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            aktifFiltre = this.dataset.filtre;
+            calendar.refetchEvents();
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}Düzeltici Faaliyet Başlat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card shadow-sm border-0 border-top border-4 border-primary">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-clipboard-plus me-2 text-primary"></i>8D / CAPA Süreci Başlat</h5>
+                <small class="text-muted">Kapsamlı Düzeltici ve Önleyici Faaliyet Raporu</small>
+            </div>
+            <div class="card-body">
+                <!-- Hata Bilgi Kartı -->
+                <div class="alert alert-secondary border-0 mb-4 rounded-3">
+                    <h6 class="fw-bold mb-2"><i class="bi bi-info-circle me-1"></i>İlgili Hata Kaydı (Kaynak)</h6>
+                    <div class="row g-2 small">
+                        <div class="col-md-3"><strong>Ürün:</strong> {{ hata.urun_adi }}</div>
+                        <div class="col-md-3"><strong>Parti:</strong> {{ hata.parti_no or '—' }}</div>
+                        <div class="col-md-3"><strong>Kategori:</strong> {{ hata.hata_kategorisi }}</div>
+                        <div class="col-md-3"><strong>Miktar/Fire:</strong> <span class="text-danger fw-bold">{{ hata.adet }} ({{ '%'~hata.fire_orani if hata.fire_orani else '—' }})</span></div>
+                    </div>
+                    <div class="mt-2 small border-top pt-2"><strong>Açıklama:</strong> {{ hata.hata_turu }}</div>
+                </div>
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <h6 class="text-primary border-bottom pb-2 mb-2 mt-2"><i class="bi bi-journal-text me-2"></i>Genel Bilgiler</h6>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.capa_no.label }}</label>
+                            {{ form.capa_no(class="form-control", placeholder="Sistem otomatik atayabilir veya manuel girebilirsiniz") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.ekip_lideri_id.label }}</label>
+                            {{ form.ekip_lideri_id(class="form-select") }}
+                        </div>
+
+                        <h6 class="text-primary border-bottom pb-2 mb-2 mt-4"><i class="bi bi-diagram-3 me-2"></i>Kök Neden ve Önlemler</h6>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.gecici_onlem.label }}</label>
+                            {{ form.gecici_onlem(class="form-control", rows="2", placeholder="Hatanın müşteriye/sonraki prosese geçmesini engellemek için alınan acil önlem (Containment Action)") }}
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-medium">{{ form.kok_neden.label }}</label>
+                            {{ form.kok_neden(class="form-control" + (" is-invalid" if form.kok_neden.errors else ""), rows="3", placeholder="5-Neden (Why-Why) analizi veya İshikawa diyagramı sonuçları...") }}
+                            {% for error in form.kok_neden.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-medium">{{ form.neden_kategorisi.label }}</label>
+                            {{ form.neden_kategorisi(class="form-select") }}
+                        </div>
+
+                        <div class="col-12 mt-3">
+                            <label class="form-label fw-medium">{{ form.faaliyet.label }}</label>
+                            {{ form.faaliyet(class="form-control" + (" is-invalid" if form.faaliyet.errors else ""), rows="3", placeholder="Kök nedeni ortadan kaldıracak kalıcı düzeltici ve önleyici aksiyonlar...") }}
+                            {% for error in form.faaliyet.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <h6 class="text-primary border-bottom pb-2 mb-2 mt-4"><i class="bi bi-calendar-check me-2"></i>Termin ve Sorumluluk</h6>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.sorumlu_id.label }}</label>
+                            {{ form.sorumlu_id(class="form-select") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.hedef_tarih.label }}</label>
+                            {{ form.hedef_tarih(class="form-control", type="date") }}
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mt-5">
+                        {{ form.submit(class="btn btn-primary btn-lg shadow-sm") }}
+                        <a href="{{ url_for('kalite.index') }}" class="btn btn-light">İptal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

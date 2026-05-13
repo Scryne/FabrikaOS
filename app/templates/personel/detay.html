@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}Personel Detayı - {{ calisan.ad_soyad }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-person-badge me-2"></i>Personel Detayı</h2>
+    <div>
+        <a href="{{ url_for('personel.index') }}" class="btn btn-outline-secondary me-2">
+            <i class="bi bi-arrow-left me-1"></i>Listeye Dön
+        </a>
+        <a href="{{ url_for('personel.izin_talep', calisan_id=calisan.id) }}" class="btn btn-outline-warning me-2">
+            <i class="bi bi-calendar-plus me-1"></i>İzin Talep Et
+        </a>
+        <a href="{{ url_for('personel.vardiya_ata', calisan_id=calisan.id) }}" class="btn btn-outline-info me-2">
+            <i class="bi bi-clock-history me-1"></i>Vardiya Ata
+        </a>
+        <a href="{{ url_for('personel.duzenle', id=calisan.id) }}" class="btn btn-primary">
+            <i class="bi bi-pencil me-1"></i>Düzenle
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Sol Sütun: Profil Kartı -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body text-center pt-5">
+                {% if calisan.fotograf %}
+                    <img src="{{ url_for('static', filename='uploads/' + calisan.fotograf) }}" alt="{{ calisan.ad_soyad }}" class="rounded-circle mb-3 border p-1" width="120" height="120" style="object-fit: cover;">
+                {% else %}
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 120px; height: 120px; font-size: 2.5rem;">
+                        {{ calisan.ad_soyad[:2] | upper }}
+                    </div>
+                {% endif %}
+                
+                <h4 class="mb-1 fw-bold">{{ calisan.ad_soyad }}</h4>
+                <p class="text-muted mb-3">{{ calisan.pozisyon }} | {{ calisan.departman }}</p>
+                <span class="badge bg-secondary mb-4 fs-6 py-2 px-3 border"><i class="bi bi-hash"></i> {{ calisan.sicil_no }}</span>
+                
+                <ul class="list-group list-group-flush text-start mt-3 border-top">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span class="text-muted"><i class="bi bi-telephone me-2"></i>Telefon</span>
+                        <span class="fw-medium">{{ calisan.telefon or '-' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span class="text-muted"><i class="bi bi-envelope me-2"></i>E-posta</span>
+                        <span class="fw-medium">{{ calisan.eposta or '-' }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                        <span class="text-muted"><i class="bi bi-calendar-check me-2"></i>İşe Başlama</span>
+                        <span class="fw-medium">{{ calisan.ise_baslama.strftime('%d.%m.%Y') }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ Sütun: Yetkinlik ve Vardiya -->
+    <div class="col-md-8">
+        
+        <!-- Yetkinlik Matrisi -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-white border-bottom-0 pt-4 pb-0">
+                <h5 class="card-title fw-bold"><i class="bi bi-star-fill text-warning me-2"></i>Makine Yetkinlik Matrisi</h5>
+                <p class="text-muted small">Çalışanın makineleri kullanabilme yetkinliği (1-5 puan arası)</p>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Makine</th>
+                                <th>Yetkinlik Seviyesi</th>
+                                <th>Puan</th>
+                                <th class="text-end">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for makine in makineler %}
+                            {% set puan = calisan.yetkinlik_puani(makine.id) %}
+                            <tr>
+                                <td><span class="fw-medium">{{ makine.ad }}</span> <small class="text-muted">({{ makine.kod }})</small></td>
+                                <td>
+                                    <div class="d-flex text-warning">
+                                        {% for i in range(1, 6) %}
+                                            {% if i <= puan %}
+                                                <i class="bi bi-star-fill me-1"></i>
+                                            {% else %}
+                                                <i class="bi bi-star text-muted me-1 opacity-25"></i>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td><span class="badge {% if puan >= 4 %}bg-success{% elif puan >= 2 %}bg-warning text-dark{% elif puan == 1 %}bg-danger{% else %}bg-secondary{% endif %}">{{ puan }}</span></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#yetkinlikModal{{ makine.id }}">
+                                        Güncelle
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+{% endblock %}
+
+{% block modals %}
+<!-- Modals -->
+{% for makine in makineler %}
+{% set puan = calisan.yetkinlik_puani(makine.id) %}
+<div class="modal fade" id="yetkinlikModal{{ makine.id }}" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h6 class="modal-title fw-bold">Yetkinlik Güncelle: {{ makine.ad }}</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ url_for('personel.yetkinlik_guncelle', id=calisan.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="makine_id" value="{{ makine.id }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small">Puan (1-5):</label>
+                        <select class="form-select" name="puan">
+                            <option value="0" {% if puan == 0 %}selected{% endif %}>0 - Yetkisiz</option>
+                            <option value="1" {% if puan == 1 %}selected{% endif %}>1 - Acemi (Gözetim Altında)</option>
+                            <option value="2" {% if puan == 2 %}selected{% endif %}>2 - Temel Seviye</option>
+                            <option value="3" {% if puan == 3 %}selected{% endif %}>3 - Bağımsız Çalışabilir</option>
+                            <option value="4" {% if puan == 4 %}selected{% endif %}>4 - İleri Seviye (Eğitebilir)</option>
+                            <option value="5" {% if puan == 5 %}selected{% endif %}>5 - Uzman (Sertifikalı Master)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0">
+                    <button type="submit" class="btn btn-primary w-100">Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+{% endblock %}

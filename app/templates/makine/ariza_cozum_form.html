@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Arıza Müdahale - {{ ariza.makine.ad }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 border-top border-4 border-success">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold text-success"><i class="bi bi-tools me-2"></i>Arıza Müdahale ve Çözüm</h5>
+                <small class="text-muted">{{ ariza.makine.ad }} | Bildirim: {{ ariza.baslangic_zamani.strftime('%H:%M %d.%m.%Y') }}</small>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-secondary mb-4">
+                    <h6 class="fw-bold">Arıza Bildirimi: {{ ariza.ariza_turu }}</h6>
+                    <p class="mb-0 small">{{ ariza.aciklama }}</p>
+                </div>
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ form.cozum.label }}</label>
+                        {{ form.cozum(class="form-control", rows="5", placeholder="Yapılan işlemler, değişen parçalar vb.") }}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">{{ form.durum.label }}</label>
+                        {{ form.durum(class="form-select") }}
+                        <small class="text-muted">"Çözüldü" işaretlenirse makine tekrar aktif duruma geçer.</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-success btn-lg shadow-sm") }}
+                        <a href="{{ url_for('makine.detay', id=ariza.makine_id) }}" class="btn btn-light">İptal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

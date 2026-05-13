@@ -1,0 +1,304 @@
+{% extends "base.html" %}
+{% block title %}AI Tahminleme Motoru{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h2 class="mb-1 fw-bold" style="font-family:'Outfit',sans-serif;">
+            <i class="bi bi-cpu me-2" style="color: #a29bfe;"></i>AI Tahminleme Motoru
+        </h2>
+        <p class="text-muted mb-0">Yapay zeka destekli tahminleme ve proaktif uyarı sistemi</p>
+    </div>
+    <button class="btn btn-primary shadow-sm" id="btnYenidenHesapla" onclick="yenidenHesapla()">
+        <i class="bi bi-arrow-repeat me-1"></i>Tahminleri Güncelle
+    </button>
+</div>
+
+<!-- AI Özet KPI Kartları -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="ai-kpi-card ai-kpi-danger">
+            <div class="ai-kpi-icon">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="ai-kpi-body">
+                <div class="ai-kpi-value">{{ ozet.kritik_bakim|default(0) }}</div>
+                <div class="ai-kpi-label">Kritik Bakım Uyarısı</div>
+                <div class="ai-kpi-sub">Risk skoru ≥75</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="ai-kpi-card ai-kpi-warning">
+            <div class="ai-kpi-icon">
+                <i class="bi bi-tools"></i>
+            </div>
+            <div class="ai-kpi-body">
+                <div class="ai-kpi-value">{{ ozet.yuksek_bakim|default(0) }}</div>
+                <div class="ai-kpi-label">Yüksek Risk Makine</div>
+                <div class="ai-kpi-sub">Risk skoru 50-75</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="ai-kpi-card ai-kpi-info">
+            <div class="ai-kpi-icon">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div class="ai-kpi-body">
+                <div class="ai-kpi-value">{{ ozet.kritik_stok|default(0) }}</div>
+                <div class="ai-kpi-label">Kritik Stok Tahmini</div>
+                <div class="ai-kpi-sub">Tükenme riski yüksek</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="ai-kpi-card ai-kpi-purple">
+            <div class="ai-kpi-icon">
+                <i class="bi bi-activity"></i>
+            </div>
+            <div class="ai-kpi-body">
+                <div class="ai-kpi-value">{{ ozet.anomali_sayisi|default(0) }}</div>
+                <div class="ai-kpi-label">Anomali Tespiti</div>
+                <div class="ai-kpi-sub">Enerji + Kalite</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 4 Modül Kartları -->
+<div class="row g-4 mb-4">
+    <!-- Kestirimci Bakım -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-tools me-2 text-danger"></i>Kestirimci Bakım
+                </h5>
+                <a href="{{ url_for('tahmin.kestirimci_bakim') }}" class="btn btn-sm btn-outline-danger">Detay →</a>
+            </div>
+            <div class="card-body p-0">
+                {% if bakim_sonuclari %}
+                <div class="list-group list-group-flush">
+                    {% for s in bakim_sonuclari[:5] %}
+                    <div class="list-group-item border-0 py-3 px-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold" style="color:var(--text-heading);">{{ s.makine_ad }}</span>
+                            <span class="badge bg-{{ 'danger' if s.risk_skoru >= 75 else 'warning' if s.risk_skoru >= 50 else 'info' if s.risk_skoru >= 25 else 'success' }}">
+                                Risk: %{{ s.risk_skoru }}
+                            </span>
+                        </div>
+                        <div class="progress mb-1" style="height: 4px;">
+                            <div class="progress-bar bg-{{ 'danger' if s.risk_skoru >= 75 else 'warning' if s.risk_skoru >= 50 else 'info' if s.risk_skoru >= 25 else 'success' }}"
+                                 style="width: {{ s.risk_skoru }}%"></div>
+                        </div>
+                        <small class="text-muted">Tahmini: {{ s.tahmini_gun }} gün sonra</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-check-circle fs-2 text-success d-block mb-2"></i>
+                    <p class="mb-0 small">Bakım riski tespit edilmedi.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- OEE Tahmin -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-graph-up me-2 text-primary"></i>OEE Trend Tahmini
+                </h5>
+                <a href="{{ url_for('tahmin.oee_tahmin') }}" class="btn btn-sm btn-outline-primary">Detay →</a>
+            </div>
+            <div class="card-body p-0">
+                {% if oee_sonuclari %}
+                <div class="list-group list-group-flush">
+                    {% for s in oee_sonuclari[:5] %}
+                    <div class="list-group-item border-0 py-3 px-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold" style="color:var(--text-heading);">{{ s.makine_ad }}</span>
+                            <div>
+                                <span class="text-muted small me-2">Mevcut: %{{ s.mevcut_oee }}</span>
+                                <span class="badge bg-{{ 'success' if s.trend >= 0 else 'danger' }}">
+                                    {{ '+' if s.trend >= 0 else '' }}{{ s.trend }}
+                                </span>
+                            </div>
+                        </div>
+                        {% if s.uyari %}
+                        <small class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>{{ s.uyari }}</small>
+                        {% else %}
+                        <small class="text-success"><i class="bi bi-check-circle me-1"></i>Tahmin hedef üzerinde</small>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-graph-up fs-2 text-primary d-block mb-2 opacity-50"></i>
+                    <p class="mb-0 small">Yeterli OEE verisi yok.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Stok Tükenme -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-box-seam me-2 text-warning"></i>Stok Tükenme Tahmini
+                </h5>
+                <a href="{{ url_for('tahmin.stok_tahmin') }}" class="btn btn-sm btn-outline-warning">Detay →</a>
+            </div>
+            <div class="card-body p-0">
+                {% if stok_sonuclari %}
+                <div class="list-group list-group-flush">
+                    {% for s in stok_sonuclari[:5] %}
+                    <div class="list-group-item border-0 py-3 px-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold" style="color:var(--text-heading);">{{ s.malzeme_ad }}</span>
+                            <span class="badge bg-{{ 'danger' if s.kritik_mi else 'warning' if s.tukenme_gun is not none and s.tukenme_gun <= 14 else 'success' }}">
+                                {% if s.tukenme_gun is not none %}{{ s.tukenme_gun }} gün{% else %}Stabil{% endif %}
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between small">
+                            <span class="text-muted">Mevcut: {{ s.mevcut_miktar }} {{ s.birim }}</span>
+                            <span class="text-muted">Günlük: {{ s.gunluk_tuketim }} {{ s.birim }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-box-seam fs-2 text-success d-block mb-2 opacity-50"></i>
+                    <p class="mb-0 small">Stok tükenme riski yok.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Anomali Tespiti -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-activity me-2" style="color:#a29bfe;"></i>Anomali Tespiti
+                </h5>
+                <a href="{{ url_for('tahmin.anomaliler') }}" class="btn btn-sm btn-outline-secondary">Detay →</a>
+            </div>
+            <div class="card-body p-0">
+                {% if anomali_sonuclari %}
+                <div class="list-group list-group-flush">
+                    {% for s in anomali_sonuclari[:5] %}
+                    <div class="list-group-item border-0 py-3 px-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold" style="color:var(--text-heading);">
+                                <i class="bi bi-{{ 'lightning-charge text-warning' if s.tip == 'enerji' else 'bug text-danger' }} me-1"></i>
+                                {{ s.kaynak_adi }}
+                            </span>
+                            <span class="badge bg-{{ 'danger' if s.risk_skoru >= 75 else 'warning' if s.risk_skoru >= 50 else 'info' }}">
+                                %{{ s.sapma_yuzde }} sapma
+                            </span>
+                        </div>
+                        <small class="text-muted">{{ s.baslik }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-check-circle fs-2 text-success d-block mb-2"></i>
+                    <p class="mb-0 small">Anomali tespit edilmedi.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- En Riskli Tahminler Tablosu -->
+{% if ozet.en_riskli %}
+<div class="card border-0 shadow-sm">
+    <div class="card-header py-3">
+        <h5 class="card-title mb-0 fw-bold">
+            <i class="bi bi-shield-exclamation me-2 text-danger"></i>En Yüksek Riskli Tahminler
+        </h5>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Tür</th>
+                    <th>Kaynak</th>
+                    <th>Başlık</th>
+                    <th>Risk</th>
+                    <th>Öneri</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in ozet.en_riskli %}
+                <tr>
+                    <td>
+                        <span class="badge bg-{{ 'danger' if t.tahmin_turu == 'bakim' else 'primary' if t.tahmin_turu == 'oee' else 'warning' if t.tahmin_turu == 'stok' else 'info' }}-subtle text-{{ 'danger' if t.tahmin_turu == 'bakim' else 'primary' if t.tahmin_turu == 'oee' else 'warning' if t.tahmin_turu == 'stok' else 'info' }}-emphasis border border-{{ 'danger' if t.tahmin_turu == 'bakim' else 'primary' if t.tahmin_turu == 'oee' else 'warning' if t.tahmin_turu == 'stok' else 'info' }} text-capitalize">
+                            {{ t.tahmin_turu }}
+                        </span>
+                    </td>
+                    <td class="fw-bold">{{ t.kaynak_adi }}</td>
+                    <td>{{ t.baslik }}</td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="progress flex-grow-1" style="height:6px; width:80px;">
+                                <div class="progress-bar bg-{{ t.risk_renk }}" style="width:{{ t.risk_skoru }}%"></div>
+                            </div>
+                            <span class="fw-bold text-{{ t.risk_renk }}">%{{ t.risk_skoru }}</span>
+                        </div>
+                    </td>
+                    <td><small class="text-muted">{{ t.oneri[:80] }}{{ '...' if t.oneri and t.oneri|length > 80 else '' }}</small></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function yenidenHesapla() {
+    const btn = document.getElementById('btnYenidenHesapla');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Hesaplanıyor...';
+
+    fetch('{{ url_for("tahmin.api_hesapla") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+        }
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === 'success') {
+            location.reload();
+        } else {
+            alert('Hata: ' + data.mesaj);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Tahminleri Güncelle';
+        }
+    })
+    .catch(err => {
+        alert('Bağlantı hatası: ' + err);
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Tahminleri Güncelle';
+    });
+}
+</script>
+{% endblock %}

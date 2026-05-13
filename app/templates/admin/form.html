@@ -1,0 +1,128 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{{ title }}</h2>
+            <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Listeye Dön
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <h5 class="card-title fw-bold border-bottom pb-2 mb-3">Hesap Bilgileri</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.kullanici_adi.label }}</label>
+                            {{ form.kullanici_adi(class="form-control" + (" is-invalid" if form.kullanici_adi.errors else "")) }}
+                            {% for error in form.kullanici_adi.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.ad_soyad.label }}</label>
+                            {{ form.ad_soyad(class="form-control" + (" is-invalid" if form.ad_soyad.errors else "")) }}
+                            {% for error in form.ad_soyad.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.sifre.label }}</label>
+                            {{ form.sifre(class="form-control" + (" is-invalid" if form.sifre.errors else "")) }}
+                            {% for error in form.sifre.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.sifre_tekrar.label }}</label>
+                            {{ form.sifre_tekrar(class="form-control" + (" is-invalid" if form.sifre_tekrar.errors else "")) }}
+                            {% for error in form.sifre_tekrar.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.rol.label }}</label>
+                            {{ form.rol(class="form-select" + (" is-invalid" if form.rol.errors else "")) }}
+                            {% for error in form.rol.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <h5 class="card-title fw-bold border-bottom pb-2 mb-3">Modül Erişimleri</h5>
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.modul_personel(class="form-check-input") }}
+                                <label class="form-check-label">{{ form.modul_personel.label }}</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.modul_makine(class="form-check-input") }}
+                                <label class="form-check-label">{{ form.modul_makine.label }}</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.modul_stok(class="form-check-input") }}
+                                <label class="form-check-label">{{ form.modul_stok.label }}</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.modul_kalite(class="form-check-input") }}
+                                <label class="form-check-label">{{ form.modul_kalite.label }}</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.modul_enerji(class="form-check-input") }}
+                                <label class="form-check-label">{{ form.modul_enerji.label }}</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check form-switch">
+                                {{ form.modul_isg(class="form-check-input") }}
+                                <label class="form-check-label">{{ form.modul_isg.label }}</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h5 class="card-title fw-bold border-bottom pb-2 mb-3">Durum</h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                {{ form.aktif(class="form-check-input") }}
+                                <label class="form-check-label fw-medium">{{ form.aktif.label }}</label>
+                            </div>
+                        </div>
+                        {% if form.hesap_kilitli is defined %}
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                {{ form.hesap_kilitli(class="form-check-input") }}
+                                <label class="form-check-label fw-medium text-danger">{{ form.hesap_kilitli.label }}</label>
+                                <div class="form-text">Hesap kilitliyse bu işareti kaldırarak açabilirsiniz.</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mt-4 text-end">
+                        <a href="{{ url_for('admin.index') }}" class="btn btn-light me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary px-4") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

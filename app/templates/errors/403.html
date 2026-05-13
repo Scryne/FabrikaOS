@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}403 — Erişim Engellendi{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-center" style="min-height: 60vh;">
+    <div class="text-center" style="max-width: 440px;">
+        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-4"
+             style="width:100px;height:100px;background:rgba(239,68,68,0.08);border:2px solid rgba(239,68,68,0.15);">
+            <i class="bi bi-shield-lock" style="font-size:2.8rem;color:#ef4444;"></i>
+        </div>
+        <h2 class="fw-bold mb-2" style="color:var(--text-heading);font-family:'Outfit',sans-serif;letter-spacing:-0.5px;">
+            403 — Erişim Engellendi
+        </h2>
+        <p class="text-muted mb-4" style="line-height:1.6;">
+            Bu sayfaya erişim yetkiniz bulunmuyor. Eğer bu bir hata olduğunu düşünüyorsanız, sistem yöneticinizle iletişime geçin.
+        </p>
+        <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary px-4">
+            <i class="bi bi-arrow-left me-2"></i>Dashboard'a Dön
+        </a>
+    </div>
+</div>
+{% endblock %}

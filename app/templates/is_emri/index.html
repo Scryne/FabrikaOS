@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}İş Emirleri{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1"><i class="bi bi-clipboard2-check me-2" style="color:#f59e0b;"></i>İş Emirleri</h2>
+        <p class="text-muted mb-0">Görev ve iş emirlerini yönetin, takip edin</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('is_emri.kanban') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-kanban"></i> Kanban
+        </a>
+        <a href="{{ url_for('is_emri.olustur') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg"></i> Yeni İş Emri
+        </a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4 col-xl">
+        <div class="ie-kpi-card ie-kpi-open">
+            <div class="ie-kpi-icon"><i class="bi bi-inbox"></i></div>
+            <div>
+                <div class="ie-kpi-value">{{ stats.bekleyen }}</div>
+                <div class="ie-kpi-label">Bekleyen</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="ie-kpi-card ie-kpi-progress">
+            <div class="ie-kpi-icon"><i class="bi bi-arrow-repeat"></i></div>
+            <div>
+                <div class="ie-kpi-value">{{ stats.devam }}</div>
+                <div class="ie-kpi-label">Devam Eden</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="ie-kpi-card ie-kpi-done">
+            <div class="ie-kpi-icon"><i class="bi bi-check2-circle"></i></div>
+            <div>
+                <div class="ie-kpi-value">{{ stats.tamamlandi + stats.onaylandi }}</div>
+                <div class="ie-kpi-label">Tamamlanan</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="ie-kpi-card ie-kpi-sla">
+            <div class="ie-kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <div>
+                <div class="ie-kpi-value">{{ stats.sla_asilan }}</div>
+                <div class="ie-kpi-label">SLA Aşılan</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="ie-kpi-card ie-kpi-time">
+            <div class="ie-kpi-icon"><i class="bi bi-clock-history"></i></div>
+            <div>
+                <div class="ie-kpi-value">{{ stats.ort_cozum_suresi_dk|int }}<small class="text-muted" style="font-size:0.6em;">dk</small></div>
+                <div class="ie-kpi-label">Ort. Çözüm</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body py-3">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label">Arama</label>
+                <div class="position-relative">
+                    <input type="text" name="q" id="isEmriSearchInput" class="form-control form-control-sm pe-4" placeholder="No veya başlık..." value="{{ filtreler.q }}" spellcheck="false" oninput="toggleSearchClearIsEmri()">
+                    <button type="button" id="clearSearchBtnIsEmri" class="btn position-absolute border-0 p-0 text-muted" style="top: 50%; right: 0.5rem; transform: translateY(-50%); display: none; z-index: 5;" onclick="clearSearchIsEmri()" title="Aramayı Temizle">
+                        <i class="bi bi-x-circle-fill" style="font-size: 0.9rem; opacity: 0.6; transition: opacity 0.2s;" onmouseover="this.style.opacity='1'" onmouseout="this.style.opacity='0.6'"></i>
+                    </button>
+                </div>
+                <script>
+                    function toggleSearchClearIsEmri() {
+                        const input = document.getElementById('isEmriSearchInput');
+                        const btn = document.getElementById('clearSearchBtnIsEmri');
+                        if(btn) btn.style.display = input.value.length > 0 ? 'block' : 'none';
+                    }
+                    function clearSearchIsEmri() {
+                        const input = document.getElementById('isEmriSearchInput');
+                        input.value = '';
+                        toggleSearchClearIsEmri();
+                        input.focus();
+                        if ('{{ filtreler.q }}' !== '') {
+                            input.closest('form').submit();
+                        }
+                    }
+                    document.addEventListener('DOMContentLoaded', toggleSearchClearIsEmri);
+                </script>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Durum</label>
+                <select name="durum" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    <option value="acik" {% if filtreler.durum == 'acik' %}selected{% endif %}>Açık</option>
+                    <option value="atandi" {% if filtreler.durum == 'atandi' %}selected{% endif %}>Atandı</option>
+                    <option value="devam" {% if filtreler.durum == 'devam' %}selected{% endif %}>Devam</option>
+                    <option value="tamamlandi" {% if filtreler.durum == 'tamamlandi' %}selected{% endif %}>Tamamlandı</option>
+                    <option value="onaylandi" {% if filtreler.durum == 'onaylandi' %}selected{% endif %}>Onaylandı</option>
+                    <option value="iptal" {% if filtreler.durum == 'iptal' %}selected{% endif %}>İptal</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Öncelik</label>
+                <select name="oncelik" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    <option value="kritik" {% if filtreler.oncelik == 'kritik' %}selected{% endif %}>Kritik</option>
+                    <option value="yuksek" {% if filtreler.oncelik == 'yuksek' %}selected{% endif %}>Yüksek</option>
+                    <option value="normal" {% if filtreler.oncelik == 'normal' %}selected{% endif %}>Normal</option>
+                    <option value="dusuk" {% if filtreler.oncelik == 'dusuk' %}selected{% endif %}>Düşük</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Kategori</label>
+                <select name="kategori" class="form-select form-select-sm">
+                    <option value="">Tümü</option>
+                    <option value="ariza" {% if filtreler.kategori == 'ariza' %}selected{% endif %}>Arıza</option>
+                    <option value="bakim" {% if filtreler.kategori == 'bakim' %}selected{% endif %}>Bakım</option>
+                    <option value="satin_alma" {% if filtreler.kategori == 'satin_alma' %}selected{% endif %}>Satın Alma</option>
+                    <option value="egitim" {% if filtreler.kategori == 'egitim' %}selected{% endif %}>Eğitim</option>
+                    <option value="genel" {% if filtreler.kategori == 'genel' %}selected{% endif %}>Genel</option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-sm btn-primary flex-fill"><i class="bi bi-funnel"></i> Filtrele</button>
+                <a href="{{ url_for('is_emri.index') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Work Orders Table -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0"><i class="bi bi-list-task me-2"></i>İş Emirleri ({{ is_emirleri|length }})</h6>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" id="isEmriTable">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Başlık</th>
+                    <th>Kaynak</th>
+                    <th>Öncelik</th>
+                    <th>Durum</th>
+                    <th>Atanan</th>
+                    <th>SLA</th>
+                    <th>Tarih</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ie in is_emirleri %}
+                <tr class="{% if ie.sla_asildi_mi %}ie-row-sla-exceeded{% endif %}">
+                    <td>
+                        <a href="{{ url_for('is_emri.detay', id=ie.id) }}" class="fw-bold text-decoration-none" style="color:var(--accent-light);">
+                            {{ ie.is_emri_no }}
+                        </a>
+                    </td>
+                    <td>
+                        <div class="text-truncate" style="max-width: 280px;" title="{{ ie.baslik }}">{{ ie.baslik }}</div>
+                        <small class="text-muted">{{ ie.kategori_etiket }}</small>
+                    </td>
+                    <td><span class="badge bg-secondary">{{ ie.kaynak_modul_etiket }}</span></td>
+                    <td><span class="badge bg-{{ ie.oncelik_sinif }}">{{ ie.oncelik_etiket }}</span></td>
+                    <td><span class="badge bg-{{ ie.durum_sinif }}-subtle text-{{ ie.durum_sinif }}-emphasis">{{ ie.durum_etiket }}</span></td>
+                    <td>
+                        {% if ie.atanan %}
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white flex-shrink-0" style="width:26px;height:26px;font-size:0.65rem;font-weight:700;">
+                                {{ ie.atanan.ad_soyad[:2]|upper }}
+                            </div>
+                            <small>{{ ie.atanan.ad_soyad }}</small>
+                        </div>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if ie.sla_bitis %}
+                            {% set kalan = ie.sla_kalan_dk %}
+                            {% if ie.sla_asildi_mi or (kalan is not none and kalan < 0) %}
+                                <span class="badge bg-danger-subtle text-danger-emphasis"><i class="bi bi-exclamation-triangle-fill me-1"></i>Aşıldı</span>
+                            {% elif kalan is not none and kalan < 60 %}
+                                <span class="badge bg-warning-subtle text-warning-emphasis"><i class="bi bi-clock me-1"></i>{{ kalan }} dk</span>
+                            {% elif kalan is not none %}
+                                <span class="text-muted" style="font-size:0.8rem;">{{ (kalan / 60)|round(1) }} sa</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                    <td><small class="text-muted">{{ ie.olusturma_tarihi.strftime('%d.%m.%Y') }}</small></td>
+                    <td>
+                        <a href="{{ url_for('is_emri.detay', id=ie.id) }}" class="btn btn-sm btn-outline-primary" title="Detay">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="9" class="text-center text-muted py-5">
+                        <i class="bi bi-clipboard2 d-block mb-2" style="font-size:2rem;"></i>
+                        Henüz iş emri bulunmuyor.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

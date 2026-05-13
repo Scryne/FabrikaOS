@@ -1,0 +1,21 @@
+{% extends "eposta_sablonlari/temel.html" %}
+
+{% block content %}
+<h2 style="color: #dc3545; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-top: 0;">🚨 Kritik Uyarı: {{ baslik }}</h2>
+<p>Merhaba,</p>
+<p>Sistemde yeni bir kritik uyarı tespit edildi. Lütfen en kısa sürede kontrol ediniz:</p>
+
+<div style="background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; margin: 20px 0; border-radius: 4px;">
+    <strong>Mesaj:</strong><br>
+    {{ mesaj }}
+</div>
+
+<p><strong>İlgili Modül:</strong> {{ modul }}</p>
+<p><strong>Tarih:</strong> {{ tarih }}</p>
+
+{% if url %}
+<div style="text-align: center;">
+    <a href="{{ url }}" class="btn">Sisteme Git ve İncele</a>
+</div>
+{% endif %}
+{% endblock %}

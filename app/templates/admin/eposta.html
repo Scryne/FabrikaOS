@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}E-posta Ayarları{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Ayarlar</a></li>
+    <li class="breadcrumb-item active">E-posta Ayarları</li>
+</ol></nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1"><i class="bi bi-envelope-at me-2 text-primary"></i>E-posta Bildirim Ayarları</h3>
+        <p class="text-muted mb-0">SMTP yapılandırması ve bildirim tercihleri</p>
+    </div>
+    <div>
+        {% if ayarlar.test_basarili %}
+            <span class="badge bg-success-subtle text-success-emphasis py-2 px-3"><i class="bi bi-check-circle me-1"></i>Bağlantı Aktif</span>
+        {% elif ayarlar.yapilandirildi_mi %}
+            <span class="badge bg-warning-subtle text-warning-emphasis py-2 px-3"><i class="bi bi-exclamation-circle me-1"></i>Test Edilmedi</span>
+        {% else %}
+            <span class="badge bg-secondary-subtle text-secondary-emphasis py-2 px-3"><i class="bi bi-dash-circle me-1"></i>Yapılandırılmadı</span>
+        {% endif %}
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('admin.eposta_kaydet') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="row g-4">
+        <!-- Sol: SMTP Ayarları -->
+        <div class="col-lg-7">
+            <div class="card border-0 mb-4">
+                <div class="card-header"><h5 class="card-title mb-0 fw-bold"><i class="bi bi-server me-2"></i>SMTP Sunucu Ayarları</h5></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-8">
+                            <label class="form-label fw-medium">SMTP Sunucu</label>
+                            <input type="text" name="smtp_host" class="form-control" value="{{ ayarlar.smtp_host or '' }}" placeholder="smtp.gmail.com">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label fw-medium">Port</label>
+                            <input type="number" name="smtp_port" class="form-control" value="{{ ayarlar.smtp_port or 587 }}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-medium">Kullanıcı Adı</label>
+                            <input type="text" name="smtp_kullanici" class="form-control" value="{{ ayarlar.smtp_kullanici or '' }}" placeholder="user@domain.com">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-medium">Şifre</label>
+                            <input type="password" name="smtp_sifre" class="form-control" value="{{ ayarlar.smtp_sifre or '' }}" placeholder="••••••••">
+                        </div>
+                        <div class="col-12">
+                            <div class="d-flex gap-4">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="tls_aktif" id="tlsCheck" {{ 'checked' if ayarlar.tls_aktif }}>
+                                    <label class="form-check-label" for="tlsCheck">STARTTLS</label>
+                                </div>
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" name="ssl_aktif" id="sslCheck" {{ 'checked' if ayarlar.ssl_aktif }}>
+                                    <label class="form-check-label" for="sslCheck">SSL</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0">
+                <div class="card-header"><h5 class="card-title mb-0 fw-bold"><i class="bi bi-person-badge me-2"></i>Gönderici Bilgileri</h5></div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label fw-medium">Gönderici Adı</label>
+                            <input type="text" name="gonderici_ad" class="form-control" value="{{ ayarlar.gonderici_ad or 'FDYS Bildirim Sistemi' }}">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-medium">Gönderici E-posta</label>
+                            <input type="email" name="gonderici_eposta" class="form-control" value="{{ ayarlar.gonderici_eposta or '' }}" placeholder="noreply@firma.com">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sağ: Bildirim Tercihleri -->
+        <div class="col-lg-5">
+            <div class="card border-0 mb-4">
+                <div class="card-header"><h5 class="card-title mb-0 fw-bold"><i class="bi bi-bell me-2"></i>Bildirim Tercihleri</h5></div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="aktif" id="sistemAktif" {{ 'checked' if ayarlar.aktif }}>
+                        <label class="form-check-label fw-bold" for="sistemAktif">E-posta Sistemi Aktif</label>
+                    </div>
+                    <hr>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="kritik_uyari_aktif" {{ 'checked' if ayarlar.kritik_uyari_aktif }}>
+                        <label class="form-check-label">Kritik uyarılarda e-posta gönder</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="ariza_uyari_aktif" {{ 'checked' if ayarlar.ariza_uyari_aktif }}>
+                        <label class="form-check-label">Arıza bildirimlerinde e-posta gönder</label>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="stok_uyari_aktif" {{ 'checked' if ayarlar.stok_uyari_aktif }}>
+                        <label class="form-check-label">Stok kritik seviyede e-posta gönder</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 mb-4">
+                <div class="card-header"><h5 class="card-title mb-0 fw-bold"><i class="bi bi-calendar-week me-2"></i>Özet Raporlar</h5></div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" name="gunluk_ozet_aktif" {{ 'checked' if ayarlar.gunluk_ozet_aktif }}>
+                        <label class="form-check-label">Günlük özet e-postası</label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" name="haftalik_ozet_aktif" {{ 'checked' if ayarlar.haftalik_ozet_aktif }}>
+                        <label class="form-check-label">Haftalık özet e-postası</label>
+                    </div>
+                    <label class="form-label fw-medium small">Alıcı E-postalar <small class="text-muted">(her satıra bir adres)</small></label>
+                    <textarea name="ozet_alicilar" class="form-control" rows="3" placeholder="admin@firma.com&#10;yonetici@firma.com">{{ (ayarlar.ozet_alici_epostalar or []) | join('\n') }}</textarea>
+                </div>
+            </div>
+
+            <!-- Test & Kaydet -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-check-lg me-1"></i>Kaydet</button>
+                <button type="button" class="btn btn-outline-secondary" id="testBtn" onclick="testSmtp()"><i class="bi bi-send me-1"></i>Test</button>
+            </div>
+
+            {% if ayarlar.son_test_tarihi %}
+            <div class="mt-2 small text-muted text-center">
+                Son test: {{ ayarlar.son_test_tarihi.strftime('%d.%m.%Y %H:%M') }}
+                {% if ayarlar.test_basarili %}<span class="text-success">✓ Başarılı</span>{% else %}<span class="text-danger">✗ Başarısız</span>{% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function testSmtp() {
+    const btn = document.getElementById('testBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Test ediliyor...';
+    try {
+        const resp = await fetch('{{ url_for("admin.eposta_test") }}', {
+            method: 'POST',
+            headers: {'X-CSRFToken': '{{ csrf_token() }}', 'Content-Type': 'application/json'}
+        });
+        const data = await resp.json();
+        if (typeof showToast === 'function') showToast(data.basarili ? 'Başarılı' : 'Hata', data.mesaj, data.basarili ? 'success' : 'danger');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('Hata', 'Test sırasında hata oluştu.', 'danger');
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i class="bi bi-send me-1"></i>Test';
+}
+</script>
+{% endblock %}

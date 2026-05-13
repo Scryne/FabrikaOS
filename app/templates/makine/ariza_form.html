@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Arıza Bildirimi - {{ makine.ad }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 border-top border-4 border-danger">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold text-danger"><i class="bi bi-lightning-fill me-2"></i>Acil Arıza Bildirimi</h5>
+                <small class="text-muted">{{ makine.ad }} ({{ makine.kod }})</small>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ form.ariza_turu.label }}</label>
+                        {{ form.ariza_turu(class="form-control", placeholder="Örn: Motor Isınması, Sensör Hatası...") }}
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ form.oncelik.label }}</label>
+                        {{ form.oncelik(class="form-select") }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">{{ form.aciklama.label }}</label>
+                        {{ form.aciklama(class="form-control", rows="4", placeholder="Arızanın detaylarını ve ne zaman başladığını yazınız...") }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-danger btn-lg shadow-sm") }}
+                        <a href="{{ url_for('makine.detay', id=makine.id) }}" class="btn btn-light">Vazgeç</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+{% block title %}Kanban — İş Emirleri{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-1"><i class="bi bi-kanban me-2" style="color:#f59e0b;"></i>Kanban Board</h2>
+        <p class="text-muted mb-0">Sürükle-bırak ile iş emri durumlarını yönetin</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('is_emri.index') }}" class="btn btn-outline-secondary"><i class="bi bi-list-task"></i> Liste</a>
+        <a href="{{ url_for('is_emri.olustur') }}" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni</a>
+    </div>
+</div>
+
+<!-- Kanban Board -->
+<div class="ie-kanban-board" id="kanbanBoard">
+    <!-- Açık / Atandı -->
+    <div class="ie-kanban-column" data-durum="acik">
+        <div class="ie-kanban-header ie-kanban-header-open">
+            <span><i class="bi bi-inbox me-1"></i>Açık / Atandı</span>
+            <span class="badge bg-secondary">{{ kolonlar.acik|length }}</span>
+        </div>
+        <div class="ie-kanban-cards" data-durum="atandi">
+            {% for ie in kolonlar.acik %}
+            <div class="ie-kanban-card" draggable="true" data-id="{{ ie.id }}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-{{ ie.oncelik_sinif }}" style="font-size:0.65rem;">{{ ie.oncelik_etiket }}</span>
+                    {% if ie.sla_asildi_mi %}<span class="badge bg-danger" style="font-size:0.6rem;">SLA!</span>{% endif %}
+                </div>
+                <a href="{{ url_for('is_emri.detay', id=ie.id) }}" class="ie-kanban-title">{{ ie.baslik }}</a>
+                <div class="ie-kanban-meta">
+                    <span><i class="bi bi-hash"></i>{{ ie.is_emri_no }}</span>
+                    <span><i class="bi bi-tag"></i>{{ ie.kategori_etiket }}</span>
+                </div>
+                {% if ie.atanan %}
+                <div class="ie-kanban-assignee">
+                    <div class="ie-kanban-avatar">{{ ie.atanan.ad_soyad[:2]|upper }}</div>
+                    <small>{{ ie.atanan.ad_soyad }}</small>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Devam Ediyor -->
+    <div class="ie-kanban-column" data-durum="devam">
+        <div class="ie-kanban-header ie-kanban-header-progress">
+            <span><i class="bi bi-arrow-repeat me-1"></i>Devam Ediyor</span>
+            <span class="badge bg-secondary">{{ kolonlar.devam|length }}</span>
+        </div>
+        <div class="ie-kanban-cards" data-durum="devam">
+            {% for ie in kolonlar.devam %}
+            <div class="ie-kanban-card" draggable="true" data-id="{{ ie.id }}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-{{ ie.oncelik_sinif }}" style="font-size:0.65rem;">{{ ie.oncelik_etiket }}</span>
+                    {% if ie.sla_asildi_mi %}<span class="badge bg-danger" style="font-size:0.6rem;">SLA!</span>{% endif %}
+                </div>
+                <a href="{{ url_for('is_emri.detay', id=ie.id) }}" class="ie-kanban-title">{{ ie.baslik }}</a>
+                <div class="ie-kanban-meta">
+                    <span><i class="bi bi-hash"></i>{{ ie.is_emri_no }}</span>
+                    <span><i class="bi bi-tag"></i>{{ ie.kategori_etiket }}</span>
+                </div>
+                {% if ie.atanan %}
+                <div class="ie-kanban-assignee">
+                    <div class="ie-kanban-avatar">{{ ie.atanan.ad_soyad[:2]|upper }}</div>
+                    <small>{{ ie.atanan.ad_soyad }}</small>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Tamamlandı -->
+    <div class="ie-kanban-column" data-durum="tamamlandi">
+        <div class="ie-kanban-header ie-kanban-header-done">
+            <span><i class="bi bi-check2-circle me-1"></i>Tamamlandı</span>
+            <span class="badge bg-secondary">{{ kolonlar.tamamlandi|length }}</span>
+        </div>
+        <div class="ie-kanban-cards" data-durum="tamamlandi">
+            {% for ie in kolonlar.tamamlandi %}
+            <div class="ie-kanban-card" draggable="true" data-id="{{ ie.id }}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-{{ ie.oncelik_sinif }}" style="font-size:0.65rem;">{{ ie.oncelik_etiket }}</span>
+                </div>
+                <a href="{{ url_for('is_emri.detay', id=ie.id) }}" class="ie-kanban-title">{{ ie.baslik }}</a>
+                <div class="ie-kanban-meta">
+                    <span><i class="bi bi-hash"></i>{{ ie.is_emri_no }}</span>
+                </div>
+                {% if ie.atanan %}
+                <div class="ie-kanban-assignee">
+                    <div class="ie-kanban-avatar">{{ ie.atanan.ad_soyad[:2]|upper }}</div>
+                    <small>{{ ie.atanan.ad_soyad }}</small>
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Onaylandı -->
+    <div class="ie-kanban-column" data-durum="onaylandi">
+        <div class="ie-kanban-header ie-kanban-header-approved">
+            <span><i class="bi bi-patch-check me-1"></i>Onaylandı</span>
+            <span class="badge bg-secondary">{{ kolonlar.onaylandi|length }}</span>
+        </div>
+        <div class="ie-kanban-cards" data-durum="onaylandi">
+            {% for ie in kolonlar.onaylandi %}
+            <div class="ie-kanban-card" data-id="{{ ie.id }}">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-success" style="font-size:0.65rem;">Onaylandı</span>
+                </div>
+                <a href="{{ url_for('is_emri.detay', id=ie.id) }}" class="ie-kanban-title">{{ ie.baslik }}</a>
+                <div class="ie-kanban-meta">
+                    <span><i class="bi bi-hash"></i>{{ ie.is_emri_no }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/is_emri.js') }}"></script>
+{% endblock %}

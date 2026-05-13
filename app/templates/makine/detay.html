@@ -1,0 +1,498 @@
+{% extends "base.html" %}
+{% block title %}{{ makine.ad }} — Makine Analizi{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb & Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('makine.index') }}">Makineler</a></li>
+                <li class="breadcrumb-item active">{{ makine.ad }}</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0 fw-bold">
+            {{ makine.ad }}
+            <small class="text-muted fs-6 font-monospace">({{ makine.kod }})</small>
+            {% if makine.durum == 'aktif' %}
+                <span class="badge bg-success-subtle text-success-emphasis border border-success ms-2 fs-6">Çalışıyor</span>
+            {% elif makine.durum == 'arizali' %}
+                <span class="badge bg-danger-subtle text-danger-emphasis border border-danger ms-2 fs-6">Arızalı</span>
+            {% else %}
+                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning ms-2 fs-6">Bakımda</span>
+            {% endif %}
+        </h2>
+    </div>
+    <div class="btn-group">
+        <a href="{{ url_for('makine.uretim_girisi', id=makine.id) }}" class="btn btn-success shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i>Üretim Girişi
+        </a>
+        <a href="{{ url_for('makine.ariza_bildir', id=makine.id) }}" class="btn btn-danger shadow-sm">
+            <i class="bi bi-lightning me-1"></i>Arıza Bildir
+        </a>
+        <a href="{{ url_for('makine.bakim_kaydi', id=makine.id) }}" class="btn btn-warning shadow-sm">
+            <i class="bi bi-tools me-1"></i>Bakım Kaydı
+        </a>
+        <a href="{{ url_for('makine.duzenle', id=makine.id) }}" class="btn btn-outline-secondary shadow-sm">
+            <i class="bi bi-pencil me-1"></i>Düzenle
+        </a>
+    </div>
+</div>
+
+<!-- Üst Özet Kartları -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body py-2">
+                <div class="text-muted small fw-bold text-uppercase">Ort. OEE (30 Gün)</div>
+                <h2 class="mb-0 fw-bold {% if ort_oee >= 85 %}text-success{% elif ort_oee >= 70 %}text-warning{% else %}text-danger{% endif %}">
+                    %{{ ort_oee }}
+                </h2>
+                <small class="text-muted">Hedef: %{{ makine.hedef_oee }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body py-2">
+                <div class="text-muted small fw-bold text-uppercase">Aylık Üretim</div>
+                <h2 class="mb-0 fw-bold text-primary">{{ "{:,}".format(aylik_uretim) }}</h2>
+                <small class="text-danger">{{ aylik_hata }} hatalı</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body py-2">
+                <div class="text-muted small fw-bold text-uppercase">Toplam Arıza</div>
+                <h2 class="mb-0 fw-bold">{{ toplam_ariza }}</h2>
+                <small class="text-success">{{ kapanan_ariza }} çözüldü</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm text-center py-3">
+            <div class="card-body py-2">
+                <div class="text-muted small fw-bold text-uppercase">Bakım Maliyeti</div>
+                <h2 class="mb-0 fw-bold">{{ "{:,.0f}".format(makine.toplam_bakim_maliyeti) }} ₺</h2>
+                <small class="text-muted">
+                    {% if makine.sonraki_bakim_tarihi %}
+                        Sonraki: {{ makine.sonraki_bakim_tarihi.strftime('%d.%m.%Y') }}
+                    {% else %}
+                        Bakım kaydı yok
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sol Sütun: Grafikler ve Üretim Verileri -->
+    <div class="col-lg-8">
+        <!-- OEE Performans Grafiği (Çoklu Veri Seti) -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-graph-up me-2 text-primary"></i>OEE Performans Trendi (Son 30 Gün)</h5>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-secondary active" onclick="toggleOeeDataset('all')">Hepsi</button>
+                    <button class="btn btn-outline-primary" onclick="toggleOeeDataset('oee')">OEE</button>
+                    <button class="btn btn-outline-info" onclick="toggleOeeDataset('kpq')">K/P/Q</button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 320px; width: 100%;">
+                    <canvas id="oeeChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Duruş Kategorileri -->
+        {% if durus_chart.labels %}
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-pie-chart me-2 text-warning"></i>Duruş Kategorileri Dağılımı</h5>
+            </div>
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div style="position: relative; height: 250px; width: 100%;">
+                            <canvas id="durusChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="list-group list-group-flush">
+                            {% for i in range(durus_chart.labels|length) %}
+                            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span class="fw-medium text-capitalize">{{ durus_chart.labels[i].replace('_', ' ') }}</span>
+                                <span class="badge bg-secondary">{{ durus_chart.values[i] }} dk</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Son Üretim Verileri Tablosu -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-table me-2 text-success"></i>Son Üretim Verileri</h5>
+                <span class="badge bg-light text-dark border">{{ son_uretimler|length }} kayıt</span>
+            </div>
+            <div class="card-body p-0">
+                <style>
+                    .table-production-data th {
+                        padding: 0.75rem 0.5rem !important;
+                        font-size: 0.75rem !important;
+                        white-space: nowrap;
+                    }
+                    .table-production-data td {
+                        padding: 0.75rem 0.5rem !important;
+                        font-size: 0.85rem !important;
+                    }
+                    .table-production-data .badge {
+                        padding: 0.35em 0.5em;
+                    }
+                </style>
+                <div class="w-100 overflow-hidden">
+                    <table class="table table-hover align-middle mb-0 table-production-data w-100">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tarih / Vardiya</th>
+                                <th>Operatör</th>
+                                <th>Üretim</th>
+                                <th>Hatalı</th>
+                                <th>Süre(Dk)</th>
+                                <th>K(%)</th>
+                                <th>P(%)</th>
+                                <th>Q(%)</th>
+                                <th>OEE(%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for uretim in son_uretimler %}
+                            <tr>
+                                <td>
+                                    <div class="fw-medium">{{ uretim.tarih.strftime('%d.%m.%Y') }}</div>
+                                    <small class="text-muted text-capitalize">{{ uretim.vardiya.replace('_', ' ') }}</small>
+                                </td>
+                                <td>
+                                    {% if uretim.calisan %}
+                                        {{ uretim.calisan.ad_soyad }}
+                                    {% else %}
+                                        <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                                <td class="fw-bold">{{ uretim.gercek_uretim }}</td>
+                                <td>
+                                    {% if uretim.hatali_uretim > 0 %}
+                                        <span class="text-danger fw-medium">{{ uretim.hatali_uretim }}</span>
+                                    {% else %}
+                                        <span class="text-success">0</span>
+                                    {% endif %}
+                                </td>
+                                <td><small>{{ uretim.gercek_calisma_dk }}/{{ uretim.planlanan_sure_dk }}</small></td>
+                                <td><small>{{ uretim.kullanilabilirlik or '—' }}</small></td>
+                                <td><small>{{ uretim.performans or '—' }}</small></td>
+                                <td><small>{{ uretim.kalite or '—' }}</small></td>
+                                <td>
+                                    {% if uretim.oee_yuzde %}
+                                    <span class="badge {% if uretim.oee_yuzde >= 85 %}bg-success{% elif uretim.oee_yuzde >= 70 %}bg-warning text-dark{% else %}bg-danger{% endif %}">
+                                        {{ uretim.oee_yuzde }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="9" class="text-center py-4 text-muted">Henüz üretim verisi girilmemiş.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ Sütun: Makine Bilgileri, Arızalar, Bakımlar -->
+    <div class="col-lg-4">
+        <!-- Makine Künyesi -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-body">
+                <div class="d-flex align-items-center mb-3">
+                    <div class="flex-shrink-0 rounded-3 p-3" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="bi bi-display-fill fs-3 text-white"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0 fw-bold">Makine Künyesi</h6>
+                        <small class="text-muted">{{ makine.marka or '—' }} {{ makine.model or '' }}</small>
+                    </div>
+                </div>
+                <hr>
+                <div class="row g-3">
+                    <div class="col-6">
+                        <label class="text-muted small d-block">Kapasite</label>
+                        <span class="fw-bold">{{ makine.teorik_kapasite }} ad/sa</span>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small d-block">Bakım Periyodu</label>
+                        <span class="fw-bold">{{ makine.periyodik_bakim_gun }} Gün</span>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small d-block">Satın Alma</label>
+                        <span class="fw-bold">{{ makine.satin_alma_tarihi.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                    <div class="col-6">
+                        <label class="text-muted small d-block">Garanti</label>
+                        {% if makine.garanti_durumu %}
+                            <span class="fw-bold text-success"><i class="bi bi-check-circle me-1"></i>Aktif</span>
+                        {% else %}
+                            <span class="fw-bold text-muted">{{ makine.garantisi_bitis.strftime('%d.%m.%Y') if makine.garantisi_bitis else 'Bilinmiyor' }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted small d-block">Lokasyon</label>
+                        <span class="fw-bold"><i class="bi bi-geo-alt me-1 text-muted"></i>{{ makine.lokasyon or 'Belirtilmemiş' }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Açık Arızalar -->
+        <div class="card shadow-sm border-0 mb-4 {% if acik_arizalar %}border-start border-4 border-danger{% endif %}">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold {% if acik_arizalar %}text-danger{% endif %}">
+                    <i class="bi bi-lightning me-1"></i>Açık Arıza Kayıtları
+                </h6>
+                <span class="badge bg-danger">{{ acik_arizalar|length }}</span>
+            </div>
+            <div class="card-body">
+                {% for ariza in acik_arizalar %}
+                <div class="mb-3 p-3 bg-light rounded border {% if ariza.oncelik == 'kritik' %}border-danger critical-pulse{% endif %}">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="badge {% if ariza.oncelik == 'kritik' %}bg-danger{% elif ariza.oncelik == 'yuksek' %}bg-warning text-dark{% else %}bg-secondary{% endif %} text-uppercase small">
+                            {{ ariza.oncelik }}
+                        </span>
+                        <small class="text-muted">
+                            <i class="bi bi-clock me-1"></i>{{ ariza.bekleme_suresi_dk }} dk
+                        </small>
+                    </div>
+                    <div class="fw-bold">{{ ariza.ariza_turu }}</div>
+                    <p class="small text-muted mb-2" style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">{{ ariza.aciklama }}</p>
+                    <small class="text-muted d-block mb-2">
+                        <i class="bi bi-person me-1"></i>{{ ariza.bildiren.ad_soyad if ariza.bildiren else 'Sistem' }}
+                        · {{ ariza.baslangic_zamani.strftime('%d.%m %H:%M') }}
+                    </small>
+                    <a href="{{ url_for('makine.ariza_coz', ariza_id=ariza.id) }}" class="btn btn-sm btn-outline-danger w-100">
+                        <i class="bi bi-tools me-1"></i>Müdahale Et / Kapat
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="bi bi-check-circle text-success fs-2 d-block mb-2"></i>
+                    <p class="small text-muted mb-0">Şu an aktif arıza kaydı bulunmuyor.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Son Bakımlar -->
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-tools me-1 text-warning"></i>Son Bakımlar</h6>
+                <a href="{{ url_for('makine.bakim_kaydi', id=makine.id) }}" class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-plus"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                {% for bakim in son_bakimlar %}
+                <div class="d-flex align-items-start mb-3 pb-3 {% if not loop.last %}border-bottom{% endif %}">
+                    <div class="flex-shrink-0">
+                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill">
+                            {{ bakim.tarih.strftime('%d.%m') }}
+                        </span>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <div class="fw-bold small text-capitalize">{{ bakim.bakim_turu.replace('_', ' ') }}</div>
+                        <small class="text-muted" style="display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden;">
+                            {{ bakim.yapilan_islem }}
+                        </small>
+                        {% if bakim.maliyet %}
+                        <small class="text-primary d-block mt-1">{{ "{:,.2f}".format(bakim.maliyet) }} ₺</small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% else %}
+                <div class="text-center py-3 text-muted small">
+                    <i class="bi bi-calendar-x d-block fs-3 mb-2 opacity-25"></i>
+                    Bakım kaydı bulunmuyor.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- AI Tahminleme Paneli -->
+        {% if ai_bakim or ai_oee %}
+        <div class="card shadow-sm border-0 mb-4 ai-panel">
+            <div class="card-header py-3">
+                <h6 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-cpu me-1" style="color:#a29bfe;"></i>AI Tahminleme
+                </h6>
+            </div>
+            <div class="card-body">
+                {% if ai_bakim %}
+                <!-- Bakım Tahmini -->
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="fw-bold text-uppercase" style="color:var(--text-secondary);">Bakım Riski</small>
+                        <span class="badge bg-{{ 'danger' if ai_bakim.risk_skoru >= 75 else 'warning text-dark' if ai_bakim.risk_skoru >= 50 else 'success' }}">
+                            %{{ ai_bakim.risk_skoru }}
+                        </span>
+                    </div>
+                    <div class="ai-risk-gauge-bar mb-2">
+                        <div class="ai-risk-gauge-fill bg-{{ 'danger' if ai_bakim.risk_skoru >= 75 else 'warning' if ai_bakim.risk_skoru >= 50 else 'info' if ai_bakim.risk_skoru >= 25 else 'success' }}"
+                             style="width: {{ ai_bakim.risk_skoru }}%"></div>
+                    </div>
+                    <small class="text-muted d-block mb-2">Tahmini bakım: {{ ai_bakim.tahmini_gun }} gün sonra</small>
+                    <div class="p-2 rounded" style="background:rgba(162,155,254,0.06);">
+                        <small class="text-muted">{{ ai_bakim.oneri }}</small>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if ai_oee %}
+                <hr style="border-color:rgba(162,155,254,0.1);">
+                <!-- OEE Tahmini -->
+                <div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="fw-bold text-uppercase" style="color:var(--text-secondary);">OEE Tahmini (7 gün)</small>
+                        <span class="badge bg-{{ 'success' if ai_oee.trend >= 0 else 'danger' }}">
+                            {{ '+' if ai_oee.trend >= 0 else '' }}{{ ai_oee.trend }}
+                        </span>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-6">
+                            <div class="text-center p-2 rounded" style="background:rgba(255,255,255,0.04);">
+                                <small class="text-muted d-block">Mevcut</small>
+                                <span class="fw-bold">%{{ ai_oee.mevcut_oee }}</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="text-center p-2 rounded" style="background:rgba(255,255,255,0.04);">
+                                <small class="text-muted d-block">Tahmin Ort.</small>
+                                <span class="fw-bold">%{{ ai_oee.tahmin_ort }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    {% if ai_oee.uyari %}
+                    <div class="p-2 rounded" style="background:rgba(245,158,11,0.06);">
+                        <small class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>{{ ai_oee.uyari }}</small>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                <a href="{{ url_for('tahmin.index') }}" class="btn btn-sm btn-outline-secondary w-100 mt-3" style="border-color:rgba(162,155,254,0.2); color:#a29bfe;">
+                    <i class="bi bi-cpu me-1"></i>Detaylı AI Analiz
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Dosya Ekleri Bileşeni -->
+        {% set kaynak_tablo = 'makine' %}
+        {% set kaynak_id = makine.id %}
+        {% include 'components/dosya_eki.html' %}
+
+        <!-- Bakım Gecikme Uyarısı -->
+        {% if makine.bakim_gecikti_mi %}
+        <div class="alert alert-danger border-0 shadow-sm d-flex align-items-center" role="alert">
+            <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+            <div>
+                <strong>Bakım Gecikmiş!</strong><br>
+                <small>Periyodik bakım tarihi geçmiş. Son bakım: {{ makine.son_bakim_tarihi.strftime('%d.%m.%Y') if makine.son_bakim_tarihi else 'Yok' }}</small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ── OEE Performans Grafiği (Çoklu Veri Seti) ──
+    const oeeChartInstance = FDYS_CHARTS.createMultiLineChart('oeeChart', {
+        labels: {{ oee_chart['labels']|tojson }},
+        yTitle: 'Verimlilik (%)',
+        maxY: 100,
+        unit: '%',
+        tickSuffix: '%',
+        datasets: [
+            {
+                label: 'OEE %',
+                data: {{ oee_chart.oee|tojson }},
+                color: FDYS_CHARTS.COLORS.primary,
+                primary: true,
+                fill: true,
+                gradientTop: FDYS_CHARTS.COLORS.primaryLight
+            },
+            {
+                label: 'Kullanılabilirlik %',
+                data: {{ oee_chart.kullanilabilirlik|tojson }},
+                color: FDYS_CHARTS.COLORS.success,
+                dashed: true
+            },
+            {
+                label: 'Performans %',
+                data: {{ oee_chart.performans|tojson }},
+                color: FDYS_CHARTS.COLORS.warning,
+                dashed: true
+            },
+            {
+                label: 'Kalite %',
+                data: {{ oee_chart.kalite|tojson }},
+                color: FDYS_CHARTS.COLORS.accent,
+                dashed: true
+            }
+        ]
+    });
+
+    // Fonksiyon: Dataset toggle (Hepsi / OEE / K-P-Q)
+    window.toggleOeeDataset = function(mode) {
+        if (!oeeChartInstance) return;
+        if (mode === 'all') {
+            oeeChartInstance.data.datasets.forEach(ds => ds.hidden = false);
+        } else if (mode === 'oee') {
+            oeeChartInstance.data.datasets[0].hidden = false;
+            oeeChartInstance.data.datasets[1].hidden = true;
+            oeeChartInstance.data.datasets[2].hidden = true;
+            oeeChartInstance.data.datasets[3].hidden = true;
+        } else if (mode === 'kpq') {
+            oeeChartInstance.data.datasets[0].hidden = true;
+            oeeChartInstance.data.datasets[1].hidden = false;
+            oeeChartInstance.data.datasets[2].hidden = false;
+            oeeChartInstance.data.datasets[3].hidden = false;
+        }
+        oeeChartInstance.update();
+    };
+
+    // ── Duruş Kategorileri (Doughnut) ──
+    const durusEl = document.getElementById('durusChart');
+    if (durusEl) {
+        const durusLabels = {{ durus_chart['labels']|tojson }};
+        FDYS_CHARTS.createDoughnutChart('durusChart', {
+            labels: durusLabels.map(l => FDYS_CHARTS.formatSnakeCaseLabel(l)),
+            values: {{ durus_chart['values']|tojson }},
+            unit: ' dk',
+            centerText: 'Toplam Duruş'
+        });
+    }
+});
+</script>
+{% endblock %}

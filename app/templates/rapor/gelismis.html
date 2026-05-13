@@ -1,0 +1,383 @@
+{% extends "base.html" %}
+{% block title %}Gelişmiş Raporlama Merkezi{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/gelismis_rapor.css') }}?v=2.0">
+{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1" style="letter-spacing:-0.5px;">
+            <i class="bi bi-bar-chart-line me-2" style="color:var(--accent);"></i>Gelişmiş Raporlama
+        </h2>
+        <p class="text-muted mb-0" style="font-size:0.88rem;">Tüm modüller için dinamik veri analizi, görselleştirme ve dışa aktarma</p>
+    </div>
+    <div class="d-flex gap-2 d-none" id="exportActions">
+        <button class="btn btn-secondary" onclick="disaAktar('excel')" title="Excel İndir">
+            <i class="bi bi-file-earmark-spreadsheet text-success"></i> Excel
+        </button>
+        <button class="btn btn-secondary" onclick="disaAktar('pdf')" title="PDF İndir">
+            <i class="bi bi-file-earmark-pdf text-danger"></i> PDF
+        </button>
+    </div>
+</div>
+
+<!-- Module Selection Cards -->
+<div class="gr-module-bar mb-4">
+    <div class="gr-module-card active" data-modul="uretim" onclick="modulSec(this)">
+        <div class="gr-module-icon" style="background:rgba(59,130,246,0.12);color:#3b82f6;"><i class="bi bi-gear-wide-connected"></i></div>
+        <div>
+            <div class="gr-module-title">Üretim & OEE</div>
+            <div class="gr-module-sub">Üretim verileri analizi</div>
+        </div>
+    </div>
+    <div class="gr-module-card" data-modul="stok" onclick="modulSec(this)">
+        <div class="gr-module-icon" style="background:rgba(16,185,129,0.12);color:#10b981;"><i class="bi bi-box-seam"></i></div>
+        <div>
+            <div class="gr-module-title">Stok & Envanter</div>
+            <div class="gr-module-sub">Stok hareketleri</div>
+        </div>
+    </div>
+    <div class="gr-module-card" data-modul="kalite" onclick="modulSec(this)">
+        <div class="gr-module-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;"><i class="bi bi-patch-check"></i></div>
+        <div>
+            <div class="gr-module-title">Kalite & Fire</div>
+            <div class="gr-module-sub">Hata kayıtları</div>
+        </div>
+    </div>
+    <div class="gr-module-card" data-modul="enerji" onclick="modulSec(this)">
+        <div class="gr-module-icon" style="background:rgba(251,191,36,0.12);color:#fbbf24;"><i class="bi bi-lightning-charge"></i></div>
+        <div>
+            <div class="gr-module-title">Enerji & Maliyet</div>
+            <div class="gr-module-sub">Tüketim analizi</div>
+        </div>
+    </div>
+    <div class="gr-module-card" data-modul="isg" onclick="modulSec(this)">
+        <div class="gr-module-icon" style="background:rgba(239,68,68,0.12);color:#ef4444;"><i class="bi bi-shield-exclamation"></i></div>
+        <div>
+            <div class="gr-module-title">İSG</div>
+            <div class="gr-module-sub">Kaza & ramak kala</div>
+        </div>
+    </div>
+    <div class="gr-module-card" data-modul="personel" onclick="modulSec(this)">
+        <div class="gr-module-icon" style="background:rgba(139,92,246,0.12);color:#8b5cf6;"><i class="bi bi-people"></i></div>
+        <div>
+            <div class="gr-module-title">Personel</div>
+            <div class="gr-module-sub">Vardiya dağılımı</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="gr-filter-bar mb-4">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0 text-muted small fw-bold text-nowrap">Başlangıç</label>
+            <input type="date" class="form-control form-control-sm" id="raporBaslangic" style="width:160px;">
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <label class="form-label mb-0 text-muted small fw-bold text-nowrap">Bitiş</label>
+            <input type="date" class="form-control form-control-sm" id="raporBitis" style="width:160px;">
+        </div>
+        <div class="gr-quick-btns">
+            <button class="btn btn-sm btn-secondary" onclick="hizliTarih(7)">7 Gün</button>
+            <button class="btn btn-sm btn-secondary" onclick="hizliTarih(30)">30 Gün</button>
+            <button class="btn btn-sm btn-secondary" onclick="hizliTarih(90)">3 Ay</button>
+            <button class="btn btn-sm btn-secondary" onclick="hizliTarih(180)">6 Ay</button>
+        </div>
+        <button class="btn btn-primary btn-sm fw-bold px-4 ms-auto" onclick="raporOlustur()" id="btnRaporGetir">
+            <i class="bi bi-search me-1"></i>Raporu Getir
+        </button>
+    </div>
+</div>
+
+<!-- Empty State -->
+<div id="raporBos" class="gr-empty-state">
+    <div class="gr-empty-icon"><i class="bi bi-clipboard2-data"></i></div>
+    <h4 class="fw-bold mb-2">Rapor Oluşturmaya Hazır</h4>
+    <p class="text-muted mb-0" style="max-width:420px;">Yukarıdan modül seçin, tarih aralığını belirleyin ve <strong>Raporu Getir</strong> butonuna tıklayın.</p>
+</div>
+
+<!-- Loading State -->
+<div id="raporLoading" class="gr-loading-state" style="display:none;">
+    <div class="gr-loading-spinner"></div>
+    <h5 class="fw-bold mb-1">Veriler Analiz Ediliyor</h5>
+    <p class="text-muted small mb-0">Seçilen aralıktaki kayıtlar derleniyor...</p>
+</div>
+
+<!-- Results -->
+<div id="raporIcerik" style="display:none;">
+    <!-- KPI Row -->
+    <div class="row g-3 mb-4" id="raporOzetIcerik"></div>
+
+    <!-- Charts Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-activity me-2 text-muted"></i>Trend Analizi</h6>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="gr-chart-toggle" role="group">
+                            <button class="gr-chart-btn active" data-type="line" onclick="grafikTipiDegistir('line',this)"><i class="bi bi-graph-up"></i></button>
+                            <button class="gr-chart-btn" data-type="bar" onclick="grafikTipiDegistir('bar',this)"><i class="bi bi-bar-chart"></i></button>
+                            <button class="gr-chart-btn" data-type="area" onclick="grafikTipiDegistir('area',this)"><i class="bi bi-graph-up-arrow"></i></button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body" style="height:380px;"><canvas id="raporGrafik"></canvas></div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header"><h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2 text-muted"></i>Dağılım</h6></div>
+                <div class="card-body d-flex align-items-center justify-content-center" id="dagilimContainer" style="height:380px;">
+                    <canvas id="dagilimGrafik"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-table me-2 text-muted"></i>Detaylı Veri Dökümü</h6>
+            <div class="d-flex align-items-center gap-2">
+                <div class="position-relative">
+                    <input type="text" class="form-control form-control-sm" id="tabloArama" placeholder="Tabloda ara..." style="width:200px;padding-left:2rem;">
+                    <i class="bi bi-search position-absolute text-muted" style="left:8px;top:50%;transform:translateY(-50%);font-size:0.75rem;"></i>
+                </div>
+                <span class="badge bg-secondary" id="kayitSayisi">0 kayıt</span>
+            </div>
+        </div>
+        <div class="table-responsive" style="max-height:500px;">
+            <table class="table table-hover w-100 mb-0" id="raporTablosu">
+                <thead id="raporTabloBaslik" style="position:sticky;top:0;z-index:1;"></thead>
+                <tbody id="raporTabloIcerik"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let raporChart = null, dagilimChart = null, _lastData = null, _seciliModul = 'uretim';
+
+// Init dates
+(function(){
+    const b = new Date(), o = new Date(b - 30*24*60*60*1000);
+    document.getElementById('raporBitis').value = b.toISOString().split('T')[0];
+    document.getElementById('raporBaslangic').value = o.toISOString().split('T')[0];
+})();
+
+function hizliTarih(g){
+    const b = new Date(), p = new Date(b - g*24*60*60*1000);
+    document.getElementById('raporBitis').value = b.toISOString().split('T')[0];
+    document.getElementById('raporBaslangic').value = p.toISOString().split('T')[0];
+    document.querySelectorAll('.gr-quick-btns .btn').forEach(el => el.classList.remove('active'));
+    event.target.classList.add('active');
+}
+
+function modulSec(el){
+    document.querySelectorAll('.gr-module-card').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    _seciliModul = el.dataset.modul;
+}
+
+async function raporOlustur(){
+    const modul = _seciliModul;
+    const baslangic = document.getElementById('raporBaslangic').value;
+    const bitis = document.getElementById('raporBitis').value;
+    if(!baslangic||!bitis){if(typeof showToast==='function')showToast('Lütfen tarih aralığı seçin.','warning');return;}
+
+    const bos = document.getElementById('raporBos');
+    const loading = document.getElementById('raporLoading');
+    const icerik = document.getElementById('raporIcerik');
+    const btn = document.getElementById('btnRaporGetir');
+
+    bos.style.display='none';
+    icerik.style.display='none';
+    loading.style.display='flex';
+    btn.disabled=true;
+    btn.innerHTML='<span class="fdys-spinner"></span> Yükleniyor...';
+
+    try{
+        const resp = await fetch(`/rapor/api/veri?modul=${modul}&baslangic=${baslangic}&bitis=${bitis}`);
+        const data = await resp.json();
+        loading.style.display='none';
+        btn.disabled=false;
+        btn.innerHTML='<i class="bi bi-search me-1"></i>Raporu Getir';
+
+        if(!data.success){
+            if(typeof showToast==='function')showToast(data.error||'Hata oluştu.','danger');
+            bos.style.display='flex';return;
+        }
+
+        _lastData = data;
+        document.getElementById('exportActions').classList.remove('d-none');
+        _renderOzet(data.ozet);
+        _renderGrafik(data.grafik,'line');
+        _renderDagilim(data.ozet, modul);
+        _renderTablo(data.tablo);
+
+        // Reset chart toggle
+        document.querySelectorAll('.gr-chart-btn').forEach(b=>b.classList.remove('active'));
+        document.querySelector('.gr-chart-btn[data-type="line"]').classList.add('active');
+
+        icerik.style.display='block';
+        icerik.style.animation='fadeUp 0.4s ease';
+    }catch(e){
+        loading.style.display='none';
+        bos.style.display='flex';
+        btn.disabled=false;
+        btn.innerHTML='<i class="bi bi-search me-1"></i>Raporu Getir';
+        if(typeof showToast==='function')showToast('Ağ hatası oluştu.','danger');
+    }
+}
+
+function _renderOzet(ozet){
+    const c = document.getElementById('raporOzetIcerik');
+    if(!ozet||!ozet.length){c.innerHTML='';return;}
+    const icons = {'Toplam Üretim':'bi-box','Ort. OEE':'bi-speedometer2','Hatalı Üretim':'bi-bug','Gün Sayısı':'bi-calendar3',
+        'Toplam Hata Kaydı':'bi-exclamation-triangle','Toplam Fire Adedi':'bi-trash3','Toplam Maliyet':'bi-currency-lira','Kayıt Sayısı':'bi-hash',
+        'Toplam Olay':'bi-shield-exclamation','İş Kazası':'bi-bandaid','Ramak Kala':'bi-exclamation-diamond',
+        'Toplam Giriş':'bi-box-arrow-in-down','Toplam Çıkış':'bi-box-arrow-up','Net Hareket':'bi-arrow-left-right',
+        'Aktif Personel':'bi-people','Toplam Vardiya Ataması':'bi-calendar2-week'};
+    const colClass = ozet.length<=2?'col-xl-6 col-md-6':ozet.length===3?'col-xl-4 col-md-4':'col-xl-3 col-md-6';
+    c.innerHTML = ozet.map(o=>{
+        const icon = icons[o.baslik]||'bi-graph-up';
+        return `<div class="${colClass}"><div class="gr-kpi-card" style="--kpi-accent:${o.renk||'#3b82f6'};">
+            <div class="gr-kpi-icon"><i class="bi ${icon}"></i></div>
+            <div class="gr-kpi-body">
+                <div class="gr-kpi-value">${o.deger}</div>
+                <div class="gr-kpi-label">${o.baslik}</div>
+            </div>
+        </div></div>`;
+    }).join('');
+}
+
+function hexToRgb(hex){
+    const r=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return r?`${parseInt(r[1],16)},${parseInt(r[2],16)},${parseInt(r[3],16)}`:'255,255,255';
+}
+
+function _renderGrafik(grafik, tip){
+    const container = document.getElementById('raporGrafik').parentElement;
+    if(!grafik||!grafik.labels||!grafik.labels.length){
+        container.innerHTML='<div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted"><i class="bi bi-graph-down display-4 mb-3 opacity-25"></i><h6>Görselleştirilecek Veri Yok</h6></div>';
+        return;
+    }
+    container.innerHTML='<canvas id="raporGrafik"></canvas>';
+    const ctx=document.getElementById('raporGrafik').getContext('2d');
+    if(raporChart)raporChart.destroy();
+
+    const chartType = tip==='area'?'line':tip;
+    const datasets = grafik.datasets.map(ds=>{
+        const rgb = hexToRgb(ds.color||'#3b82f6');
+        let bg = tip==='bar'?`rgba(${rgb},0.25)`:'transparent';
+        if(tip==='line'||tip==='area'){
+            const grad=ctx.createLinearGradient(0,0,0,350);
+            grad.addColorStop(0,`rgba(${rgb},${tip==='area'?0.35:0.15})`);
+            grad.addColorStop(1,`rgba(${rgb},0.0)`);
+            bg=grad;
+        }
+        return{label:ds.label,data:ds.data,borderColor:ds.color||'#3b82f6',backgroundColor:bg,
+            borderWidth:tip==='bar'?0:2.5,borderRadius:tip==='bar'?6:0,tension:0.4,
+            pointRadius:tip==='bar'?0:3,pointBackgroundColor:ds.color||'#3b82f6',
+            pointBorderColor:'transparent',pointHoverRadius:5,fill:tip!=='bar'};
+    });
+
+    Chart.defaults.color='#737373';
+    Chart.defaults.font.family="'Inter',system-ui,sans-serif";
+
+    raporChart=new Chart(ctx,{type:chartType,data:{labels:grafik.labels,datasets},
+        options:{responsive:true,maintainAspectRatio:false,
+            interaction:{mode:'index',intersect:false},
+            plugins:{legend:{position:'top',align:'end',labels:{usePointStyle:true,boxWidth:6,padding:16,font:{size:11,weight:'600'}}},
+                tooltip:{backgroundColor:'rgba(23,23,23,0.95)',titleColor:'#fff',bodyColor:'#e5e5e5',
+                    borderColor:'rgba(255,255,255,0.08)',borderWidth:1,padding:12,boxPadding:6,usePointStyle:true,
+                    titleFont:{size:13,weight:'bold'},bodyFont:{size:12}}},
+            scales:{x:{grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},ticks:{maxRotation:45,padding:8,font:{size:10}}},
+                y:{grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},beginAtZero:true,ticks:{padding:12,font:{size:10}}}}}});
+    window._lastGrafik=grafik;
+}
+
+function _renderDagilim(ozet, modul){
+    const container=document.getElementById('dagilimContainer');
+    if(!ozet||ozet.length<2){
+        container.innerHTML='<div class="text-center text-muted"><i class="bi bi-pie-chart display-4 d-block mb-2 opacity-25"></i><small>Dağılım verisi yok</small></div>';
+        return;
+    }
+    container.innerHTML='<canvas id="dagilimGrafik"></canvas>';
+    const ctx=document.getElementById('dagilimGrafik').getContext('2d');
+    if(dagilimChart)dagilimChart.destroy();
+    const labels=ozet.map(o=>o.baslik);
+    const values=ozet.map(o=>{const n=String(o.deger).replace(/[^0-9.,]/g,'').replace(',','');return parseFloat(n)||0;});
+    const colors=ozet.map(o=>o.renk||'#3b82f6');
+
+    dagilimChart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:colors.map(c=>c+'30'),borderColor:colors,borderWidth:2,hoverOffset:8}]},
+        options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+            plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:6,padding:12,font:{size:11},color:'#a3a3a3'}},
+                tooltip:{backgroundColor:'rgba(23,23,23,0.95)',titleColor:'#fff',bodyColor:'#e5e5e5',padding:10,borderColor:'rgba(255,255,255,0.08)',borderWidth:1}}}});
+}
+
+function grafikTipiDegistir(tip,btn){
+    document.querySelectorAll('.gr-chart-btn').forEach(b=>b.classList.remove('active'));
+    if(btn)btn.classList.add('active');
+    if(window._lastGrafik)_renderGrafik(window._lastGrafik,tip);
+}
+
+function _renderTablo(tablo){
+    const thead=document.getElementById('raporTabloBaslik');
+    const tbody=document.getElementById('raporTabloIcerik');
+    const badge=document.getElementById('kayitSayisi');
+
+    if(!tablo||!tablo.basliklar||!tablo.basliklar.length){
+        thead.innerHTML='';tbody.innerHTML='<tr><td colspan="10" class="text-center text-muted py-5"><i class="bi bi-inbox display-6 d-block mb-2 opacity-25"></i>Gösterilecek veri yok</td></tr>';
+        badge.textContent='0 kayıt';return;
+    }
+    thead.innerHTML='<tr>'+tablo.basliklar.map(b=>`<th>${b}</th>`).join('')+'</tr>';
+    badge.textContent=`${tablo.satirlar.length} kayıt`;
+    window._tabloSatirlar=tablo.satirlar;
+    window._tabloBasliklar=tablo.basliklar;
+    _tabloYaz(tablo.satirlar);
+}
+
+function _tabloYaz(satirlar){
+    const tbody=document.getElementById('raporTabloIcerik');
+    if(!satirlar.length){
+        tbody.innerHTML=`<tr><td colspan="10" class="text-center text-muted py-5"><i class="bi bi-calendar-x display-6 d-block mb-2 opacity-25"></i>Kayıt bulunamadı</td></tr>`;
+        return;
+    }
+    tbody.innerHTML=satirlar.map(s=>'<tr>'+s.map((c,i)=>{
+        if(i===0)return`<td class="fw-bold">${c!==null?c:'—'}</td>`;
+        return`<td>${c!==null?c:'—'}</td>`;
+    }).join('')+'</tr>').join('');
+}
+
+// Table search
+document.getElementById('tabloArama')?.addEventListener('input',function(){
+    const q=this.value.toLowerCase().trim();
+    if(!window._tabloSatirlar)return;
+    if(!q){_tabloYaz(window._tabloSatirlar);document.getElementById('kayitSayisi').textContent=`${window._tabloSatirlar.length} kayıt`;return;}
+    const filtered=window._tabloSatirlar.filter(s=>s.some(c=>String(c).toLowerCase().includes(q)));
+    _tabloYaz(filtered);
+    document.getElementById('kayitSayisi').textContent=`${filtered.length} kayıt`;
+});
+
+function disaAktar(format){
+    const modul=_seciliModul;
+    const baslangic=document.getElementById('raporBaslangic').value;
+    const bitis=document.getElementById('raporBitis').value;
+    if(!baslangic||!bitis){if(typeof showToast==='function')showToast('Lütfen önce tarih seçin.','warning');return;}
+    if(typeof showToast==='function')showToast('Dosya hazırlanıyor...','info');
+    if(format==='excel'){window.location.href=`/rapor/excel/${modul}?baslangic=${baslangic}&bitis=${bitis}`;}
+    else if(format==='pdf'){
+        if(['kalite','isg','enerji'].includes(modul)){window.location.href=`/rapor/pdf/${modul}?baslangic=${baslangic}&bitis=${bitis}`;}
+        else{if(typeof showToast==='function')showToast('Bu modül için PDF çıktısı hazırlanamıyor, Excel formatını deneyin.','warning');}
+    }
+}
+</script>
+{% endblock %}

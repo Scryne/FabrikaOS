@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}İzin Talepleri{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-calendar-x me-2"></i>İzin Talepleri</h2>
+    <a href="{{ url_for('personel.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Personel Listesi
+    </a>
+</div>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link {% if durum == 'bekliyor' %}active{% endif %}" href="{{ url_for('personel.izinler', durum='bekliyor') }}">
+            Bekleyenler
+            {% set count = izinler|length if durum == 'bekliyor' else 0 %}
+            {% if count > 0 %}<span class="badge bg-warning text-dark ms-1">{{ count }}</span>{% endif %}
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if durum == 'onaylandi' %}active{% endif %}" href="{{ url_for('personel.izinler', durum='onaylandi') }}">Onaylananlar</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link {% if durum == 'reddedildi' %}active{% endif %}" href="{{ url_for('personel.izinler', durum='reddedildi') }}">Reddedilenler</a>
+    </li>
+</ul>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Talep Tarihi</th>
+                        <th>Personel</th>
+                        <th>İzin Türü</th>
+                        <th>Tarih Aralığı</th>
+                        <th>Süre</th>
+                        <th>Açıklama</th>
+                        {% if durum == 'bekliyor' and current_user.yonetici_mi() %}
+                        <th class="text-end">İşlemler</th>
+                        {% elif durum != 'bekliyor' %}
+                        <th>İşlem Yapan</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for izin in izinler %}
+                    <tr>
+                        <td class="text-muted"><small>{{ izin.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</small></td>
+                        <td class="fw-medium">
+                            {{ izin.calisan.ad_soyad }}
+                            <div class="small text-muted">{{ izin.calisan.departman }}</div>
+                        </td>
+                        <td>
+                            <span class="badge bg-info text-dark border border-info">{{ izin.tur|capitalize }}</span>
+                        </td>
+                        <td>{{ izin.baslangic_tarihi.strftime('%d.%m.%Y') }} - {{ izin.bitis_tarihi.strftime('%d.%m.%Y') }}</td>
+                        <td>{{ (izin.bitis_tarihi - izin.baslangic_tarihi).days + 1 }} gün</td>
+                        <td><small class="text-muted">{{ izin.aciklama|truncate(30) or '-' }}</small></td>
+                        
+                        {% if durum == 'bekliyor' and current_user.yonetici_mi() %}
+                        <td class="text-end">
+                            <form action="{{ url_for('personel.izin_onayla', id=izin.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-sm btn-success" title="Onayla"><i class="bi bi-check-lg"></i> Onayla</button>
+                            </form>
+                            <button type="button" class="btn btn-sm btn-danger ms-1" data-bs-toggle="modal" data-bs-target="#redModal{{ izin.id }}">
+                                <i class="bi bi-x-lg"></i> Reddet
+                            </button>
+
+                            <!-- Reddetme Modalı -->
+                            <div class="modal fade text-start" id="redModal{{ izin.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">İzin Talebini Reddet</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form action="{{ url_for('personel.izin_reddet', id=izin.id) }}" method="POST">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Red Nedeni (İsteğe bağlı)</label>
+                                                    <textarea class="form-control" name="red_nedeni" rows="3"></textarea>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                                                <button type="submit" class="btn btn-danger">Talebi Reddet</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        {% elif durum != 'bekliyor' %}
+                        <td>
+                            <small class="d-block">{{ izin.onaylayan.ad_soyad if izin.onaylayan else 'Sistem' }}</small>
+                            <small class="text-muted">{{ izin.onay_tarihi.strftime('%d.%m.%Y %H:%M') if izin.onay_tarihi else '' }}</small>
+                            {% if izin.red_nedeni %}
+                            <i class="bi bi-info-circle text-danger ms-1" data-bs-toggle="tooltip" title="{{ izin.red_nedeni }}"></i>
+                            {% endif %}
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="{% if durum == 'bekliyor' and current_user.yonetici_mi() or durum != 'bekliyor' %}7{% else %}6{% endif %}" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox fs-4 d-block mb-2"></i>
+                            Bu durumda izin talebi bulunmuyor.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

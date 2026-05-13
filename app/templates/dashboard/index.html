@@ -1,0 +1,423 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<!-- Welcome Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="welcome-section">
+        <h2>Hoş geldiniz, {{ current_user.ad_soyad }}👋</h2>
+        <p class="text-muted mb-0">Tüm modüllerden canlı veriler ve KPI takibi</p>
+    </div>
+    <div class="d-flex gap-2 align-items-center">
+        <span class="badge" style="background:var(--bg-card);color:var(--text-secondary);padding:0.6em 1em;font-size:0.8rem;border:1px solid var(--border-color);">
+            <i class="bi bi-calendar3 me-1"></i>{{ now().strftime('%d %B %Y') if now is defined else '' }}
+        </span>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{{ url_for('personel.index') }}" class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:rgba(102,126,234,0.12);color:#667eea;">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ stats.aktif_calisan }}</div>
+                <div class="kpi-label">Aktif Personel</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{{ url_for('makine.index') }}" class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:rgba(59,130,246,0.12);color:#3b82f6;">
+                <i class="bi bi-speedometer"></i>
+            </div>
+            <div>
+                <div class="kpi-value {% if stats.ort_oee >= 85 %}text-success{% elif stats.ort_oee >= 70 %}text-warning{% else %}text-danger{% endif %}">%{{ stats.ort_oee }}</div>
+                <div class="kpi-label">Haftalık OEE</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{{ url_for('stok.index') }}" class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                <i class="bi bi-box-seam-fill"></i>
+            </div>
+            <div>
+                <div class="kpi-value {% if stats.kritik_stok > 0 %}text-warning{% endif %}">{{ stats.kritik_stok }}</div>
+                <div class="kpi-label">Kritik Stok</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{{ url_for('kalite.index') }}" class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:rgba(6,182,212,0.12);color:#06b6d4;">
+                <i class="bi bi-patch-check-fill"></i>
+            </div>
+            <div>
+                <div class="kpi-value">%{{ stats.hata_orani }}</div>
+                <div class="kpi-label">Hata Oranı</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{{ url_for('enerji.index') }}" class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:rgba(139,92,246,0.12);color:#8b5cf6;">
+                <i class="bi bi-lightning-charge-fill"></i>
+            </div>
+            <div>
+                <div class="kpi-value {% if stats.enerji_sapma > 10 %}text-danger{% elif stats.enerji_sapma > 0 %}text-warning{% else %}text-success{% endif %}">{% if stats.enerji_sapma > 0 %}+{% endif %}%{{ stats.enerji_sapma }}</div>
+                <div class="kpi-label">Enerji Sapma</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-md-4 col-6">
+        <a href="{{ url_for('isg.index') }}" class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:{% if stats.is_kazasi > 0 %}rgba(239,68,68,0.12){% else %}rgba(16,185,129,0.12){% endif %};color:{% if stats.is_kazasi > 0 %}#ef4444{% else %}#10b981{% endif %};">
+                <i class="bi bi-shield-fill-check"></i>
+            </div>
+            <div>
+                <div class="kpi-value {% if stats.is_kazasi > 0 %}text-danger{% else %}text-success{% endif %}">{{ stats.is_kazasi }}</div>
+                <div class="kpi-label">İş Kazası (Yıl)</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Alert Banners -->
+{% if stats.acik_ariza > 0 or stats.bakim_geciken > 0 or stats.suresi_dolan_egitim > 0 or stats.yuksek_risk > 0 %}
+<div class="row g-2 mb-4">
+    {% if stats.acik_ariza > 0 %}
+    <div class="col-auto">
+        <a href="{{ url_for('makine.index') }}" class="alert alert-danger d-inline-flex align-items-center py-2 px-3 mb-0 text-decoration-none">
+            <i class="bi bi-lightning-fill me-2"></i><strong>{{ stats.acik_ariza }}</strong>&nbsp;açık arıza
+        </a>
+    </div>
+    {% endif %}
+    {% if stats.bakim_geciken > 0 %}
+    <div class="col-auto">
+        <a href="{{ url_for('makine.index') }}" class="alert alert-warning d-inline-flex align-items-center py-2 px-3 mb-0 text-decoration-none">
+            <i class="bi bi-tools me-2"></i><strong>{{ stats.bakim_geciken }}</strong>&nbsp;bakım gecikmiş
+        </a>
+    </div>
+    {% endif %}
+    {% if stats.yuksek_risk > 0 %}
+    <div class="col-auto">
+        <a href="{{ url_for('isg.index') }}" class="alert alert-danger d-inline-flex align-items-center py-2 px-3 mb-0 text-decoration-none">
+            <i class="bi bi-exclamation-triangle me-2"></i><strong>{{ stats.yuksek_risk }}</strong>&nbsp;yüksek risk
+        </a>
+    </div>
+    {% endif %}
+    {% if stats.suresi_dolan_egitim > 0 %}
+    <div class="col-auto">
+        <a href="{{ url_for('isg.egitimler') }}" class="alert alert-warning d-inline-flex align-items-center py-2 px-3 mb-0 text-decoration-none">
+            <i class="bi bi-mortarboard me-2"></i><strong>{{ stats.suresi_dolan_egitim }}</strong>&nbsp;eğitim süresi dolmuş
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- AI Tahminleme Özet Kartı -->
+{% if ai_ozet %}
+<div class="card border-0 mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-cpu me-2 text-primary"></i>AI Tahminleme Özeti</h5>
+        <a href="{{ url_for('tahmin.index') }}" class="btn btn-sm btn-outline-primary">Tümünü Gör →</a>
+    </div>
+    <div class="card-body">
+        <div class="row g-2">
+        {% if ai_ozet.kritik_bakim > 0 %}
+        <div class="col-auto">
+            <a href="{{ url_for('tahmin.kestirimci_bakim') }}" class="badge bg-danger-subtle text-danger-emphasis border border-danger py-2 px-3 text-decoration-none">
+                <i class="bi bi-exclamation-triangle me-1"></i>{{ ai_ozet.kritik_bakim }} kritik bakım uyarısı
+            </a>
+        </div>
+        {% endif %}
+        {% if ai_ozet.kritik_stok > 0 %}
+        <div class="col-auto">
+            <a href="{{ url_for('tahmin.stok_tahmin') }}" class="badge bg-warning-subtle text-warning-emphasis border border-warning py-2 px-3 text-decoration-none">
+                <i class="bi bi-box-seam me-1"></i>{{ ai_ozet.kritik_stok }} stok tükenme riski
+            </a>
+        </div>
+        {% endif %}
+        {% if ai_ozet.anomali_sayisi > 0 %}
+        <div class="col-auto">
+            <a href="{{ url_for('tahmin.anomaliler') }}" class="badge bg-info-subtle text-info-emphasis border border-info py-2 px-3 text-decoration-none">
+                <i class="bi bi-activity me-1"></i>{{ ai_ozet.anomali_sayisi }} anomali tespit edildi
+            </a>
+        </div>
+        {% endif %}
+        {% if ai_ozet.kritik_bakim == 0 and ai_ozet.kritik_stok == 0 and ai_ozet.anomali_sayisi == 0 %}
+        <div class="col-auto">
+            <span class="badge bg-success-subtle text-success-emphasis border border-success py-2 px-3">
+                <i class="bi bi-check-circle me-1"></i>Tüm sistemler normal
+            </span>
+        </div>
+        {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        <!-- OEE Trend Chart -->
+        {% if oee_trend.labels %}
+        <div class="card border-0 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-graph-up me-2 text-primary"></i>Haftalık OEE Trendi</h5>
+                <a href="{{ url_for('makine.index') }}" class="btn btn-sm btn-outline-primary">Detay →</a>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 220px; width: 100%;">
+                    <canvas id="oeeTrendChart"></canvas>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Recent Notifications -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-bell-fill text-primary me-2"></i>Son Aktiviteler & Bildirimler</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for bildirim in son_bildirimler %}
+                    <a href="{{ bildirim.url or '#' }}" class="list-group-item list-group-item-action py-3 px-4 border-0">
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold" style="color:var(--text-heading);">
+                                {% if bildirim.seviye == 'kritik' %}
+                                <i class="bi bi-exclamation-octagon-fill text-danger me-2"></i>
+                                {% elif bildirim.seviye == 'uyari' %}
+                                <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                                {% elif bildirim.seviye == 'guvenlik' %}
+                                <i class="bi bi-shield-exclamation me-2" style="color:var(--text-secondary);"></i>
+                                {% else %}
+                                <i class="bi bi-info-circle-fill text-info me-2"></i>
+                                {% endif %}
+                                {{ bildirim.baslik }}
+                            </h6>
+                            <small class="text-muted">{{ bildirim.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</small>
+                        </div>
+                        <p class="mb-0 text-muted small ms-4 ps-2">{{ bildirim.mesaj }}</p>
+                        {% if bildirim.modul %}
+                        <span class="badge ms-4 mt-1 small text-capitalize" style="background:var(--bg-card-hover);color:var(--text-secondary);">{{ bildirim.modul }}</span>
+                        {% endif %}
+                    </a>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-check2-circle display-4 d-block mb-3 text-success opacity-50"></i>
+                        <p class="mb-0">Şu an için yeni bir bildirim yok.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        <!-- OEE Gauge Widget -->
+        <div class="card border-0 mb-4 dashboard-widget" id="widget-oee-gauge">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-speedometer2 me-2" style="color:#667eea;"></i>Anlık OEE</h6>
+                <span class="badge" style="background:var(--bg-card);color:var(--text-secondary);font-size:0.7rem;border:1px solid var(--border-color);">Canlı</span>
+            </div>
+            <div class="card-body text-center py-3">
+                <div style="position:relative;height:140px;width:100%;">
+                    <canvas id="oeeGaugeCanvas"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Production Counter Widget -->
+        <div class="card border-0 mb-4 dashboard-widget" id="widget-live-counter">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-activity me-2 text-success"></i>Bugünkü Üretim</h6>
+                <span class="badge bg-success-subtle text-success-emphasis" style="font-size:0.7rem;"><i class="bi bi-circle-fill me-1" style="font-size:0.4rem;"></i>Canlı</span>
+            </div>
+            <div class="card-body text-center py-4">
+                <div class="h1 fw-bold mb-1" id="canliUretimSayaci" style="font-family:'Outfit',sans-serif;color:var(--text-heading);font-size:2.5rem;">
+                    {{ "{:,}".format(stats.bugun_uretim) }}
+                </div>
+                <small class="text-muted">adet üretildi</small>
+                <div class="row g-2 mt-3">
+                    <div class="col-4">
+                        <div class="rounded p-2" style="background:var(--bg-card-hover);">
+                            <div class="fw-bold" id="canliAcikAriza" style="color:var(--text-heading);">{{ stats.acik_ariza }}</div>
+                            <small class="text-muted" style="font-size:0.7rem;">Açık Arıza</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="rounded p-2" style="background:var(--bg-card-hover);">
+                            <div class="fw-bold" style="color:var(--text-heading);">{{ stats.aktif_makine }}</div>
+                            <small class="text-muted" style="font-size:0.7rem;">Aktif Makine</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="rounded p-2" style="background:var(--bg-card-hover);">
+                            <div class="fw-bold" id="oeeGaugeValue" style="color:var(--text-heading);">%{{ stats.ort_oee }}</div>
+                            <small class="text-muted" style="font-size:0.7rem;">Haftalık OEE</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Machine Status -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-cpu me-2 text-primary"></i>Makine Durumu</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-muted">Toplam</span>
+                    <span class="fw-bold">{{ stats.toplam_makine }}</span>
+                </div>
+                <div class="progress mb-3" style="height: 8px;">
+                    {% if stats.toplam_makine > 0 %}
+                    <div class="progress-bar" style="width:{{ (stats.aktif_makine / stats.toplam_makine * 100) }}%;background:linear-gradient(90deg,#00b894,#55efc4);" title="Aktif: {{ stats.aktif_makine }}"></div>
+                    <div class="progress-bar" style="width:{{ (stats.arizali_makine / stats.toplam_makine * 100) }}%;background:linear-gradient(90deg,#d63031,#ff7675);" title="Arızalı: {{ stats.arizali_makine }}"></div>
+                    <div class="progress-bar" style="width:{{ ((stats.toplam_makine - stats.aktif_makine - stats.arizali_makine) / stats.toplam_makine * 100) }}%;background:linear-gradient(90deg,#fdcb6e,#e17055);" title="Bakımda"></div>
+                    {% endif %}
+                </div>
+                <div class="row text-center small">
+                    <div class="col-4">
+                        <span class="d-block fw-bold text-success">{{ stats.aktif_makine }}</span>
+                        <span class="text-muted">Aktif</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="d-block fw-bold text-danger">{{ stats.arizali_makine }}</span>
+                        <span class="text-muted">Arızalı</span>
+                    </div>
+                    <div class="col-4">
+                        <span class="d-block fw-bold text-warning">{{ stats.toplam_makine - stats.aktif_makine - stats.arizali_makine }}</span>
+                        <span class="text-muted">Bakımda</span>
+                    </div>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between small">
+                    <span class="text-muted">Bugünkü Üretim</span>
+                    <span class="fw-bold">{{ "{:,}".format(stats.bugun_uretim) }} adet</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pending Tasks -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-list-check text-success me-2"></i>Bekleyen İşler</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                        <span><i class="bi bi-calendar-x text-warning me-2"></i>İzin Talebi</span>
+                        <span class="badge {% if stats.bekleyen_izin > 0 %}bg-warning{% else %}bg-success{% endif %} rounded-pill">{{ stats.bekleyen_izin }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                        <span><i class="bi bi-lightning text-danger me-2"></i>Açık Arıza</span>
+                        <span class="badge {% if stats.acik_ariza > 0 %}bg-danger{% else %}bg-success{% endif %} rounded-pill">{{ stats.acik_ariza }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                        <span><i class="bi bi-clipboard-check text-info me-2"></i>Düzeltici Faaliyet</span>
+                        <span class="badge {% if stats.acik_faaliyetler > 0 %}bg-info{% else %}bg-success{% endif %} rounded-pill">{{ stats.acik_faaliyetler }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3">
+                        <span><i class="bi bi-tools text-warning me-2"></i>Bakım Geciken</span>
+                        <span class="badge {% if stats.bakim_geciken > 0 %}bg-warning{% else %}bg-success{% endif %} rounded-pill">{{ stats.bakim_geciken }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- ISG Summary -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-shield-check text-success me-2"></i>İSG Özeti (Yıl)</h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center g-2">
+                    <div class="col-4">
+                        <div class="{% if stats.is_kazasi > 0 %}text-danger{% else %}text-success{% endif %}">
+                            <div class="h4 fw-bold mb-0">{{ stats.is_kazasi }}</div>
+                            <small class="text-muted">İş Kazası</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-warning">
+                            <div class="h4 fw-bold mb-0">{{ stats.ramak_kala }}</div>
+                            <small class="text-muted">Ramak Kala</small>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="{% if stats.yuksek_risk > 0 %}text-danger{% else %}text-success{% endif %}">
+                            <div class="h4 fw-bold mb-0">{{ stats.yuksek_risk }}</div>
+                            <small class="text-muted">Yüksek Risk</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Personnel -->
+        <div class="card border-0">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-person-plus text-info me-2"></i>Son Katılanlar</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for personel in yeni_personeller %}
+                    <li class="list-group-item px-4 py-3 border-0">
+                        <div class="d-flex align-items-center">
+                            {% if personel.fotograf %}
+                                <img src="{{ url_for('static', filename='uploads/' + personel.fotograf) }}" 
+                                     class="rounded-circle me-3" width="36" height="36" style="object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold" 
+                                     style="width:36px;height:36px;font-size:0.8rem;background:linear-gradient(135deg,#4f8cff,#6c5ce7);color:#fff;">
+                                    {{ personel.ad_soyad[:2] | upper }}
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0 small fw-bold" style="color:var(--text-heading);">{{ personel.ad_soyad }}</h6>
+                                <small class="text-muted">{{ personel.pozisyon }}</small>
+                            </div>
+                        </div>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}?v=2.0"></script>
+<script src="{{ url_for('static', filename='js/dashboard_widgets.js') }}?v=5.1"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ── Haftalık OEE Trend Grafiği ──
+    FDYS_CHARTS.createLineChart('oeeTrendChart', {
+        labels: {{ oee_trend['labels']|tojson }},
+        values: {{ oee_trend['values']|tojson }},
+        label: 'Ortalama OEE %',
+        lineColor: FDYS_CHARTS.COLORS.primary,
+        gradientTop: FDYS_CHARTS.COLORS.primaryLight,
+        yTitle: 'OEE (%)',
+        maxY: 100,
+        unit: '%',
+        pointRadius: 5
+    });
+
+    // ── OEE Gauge Widget ──
+    DashboardWidgets.createOEEGauge('oeeGaugeCanvas', {{ stats.ort_oee }});
+
+    // ── Dashboard Widget Sistemi (Auto-Refresh + Drag-Drop) ──
+    DashboardWidgets.init();
+});
+</script>
+{% endblock %}

@@ -1,0 +1,315 @@
+
+İçindekiler
+
+1. Yönetici Özeti
+
+FDYS (Fabrika Dijital Yönetim Sistemi), bir fabrikanın tüm operasyonel bileşenlerini — personel, makine, stok, kalite, enerji ve iş güvenliği — tek bir web tabanlı platformda dijitalleştiren entegre bir yazılım çözümüdür.
+Türkiye'deki KOBİ fabrikaların büyük çoğunluğu bu süreçleri birbirinden kopuk Excel dosyaları, kâğıt formlar ya da farklı yazılımlarla yönetmektedir. Bu dağınık yapı; veri tutarsızlığına, gecikmeli kararlara ve denetim süreçlerinde ciddi güçlüklere yol açmaktadır. FDYS bu sorunu tek bir platform altında çözmektedir.
+Sistemin temel farkı şudur: piyasadaki SAP, Oracle gibi çözümler yüz binlerce dolar kurulum maliyeti gerektirirken FDYS sıfır sunucu maliyetiyle fabrika yerel ağında çalışır, Türkçe arayüze sahiptir ve KOBİ'nin bütçesine uygun tek seferlik lisans modeliyle satılır.
+
+2. Problem Tanımı ve Pazar Analizi
+
+2.1 Mevcut Durum — Fabrika Gerçeği
+Türkiye'deki orta ölçekli bir imalat fabrikasında tipik bir iş günü şu tabloyu yansıtır:
+Personel devamsızlıkları WhatsApp grubundan takip edilir, resmi kayıt yoktur
+Makine arızaları kâğıt forma yazılır, teknisyen sözlü bildirimle haberdar edilir
+Stok durumu haftada bir elle sayılır, anlık envanter bilinmez
+Kalite hataları üretim bandında kâğıt formla kaydedilir, analiz yapılmaz
+Enerji tüketimi fatura gelince bakılır, makine bazında bilinmez
+İş kazaları SGK'ya bildirilir ama önleyici analiz yapılmaz
+Yönetici tüm bu bilgilere ulaşmak için 6 farklı yerden toplamak zorundadır
+
+Bu tablo, yalnızca verimsizlik değil; aynı zamanda yasal risk, kalite belgesi kaybı ve rekabet dezavantajı anlamına gelmektedir.
+2.2 Neden Mevcut Çözümler Yetersiz
+
+2.3 Pazar Büyüklüğü
+
+3. Mimari Kararlar ve Tasarım Felsefesi
+
+Bu bölüm, projenin teknik yönünde alınan önemli tasarım kararlarını ve bu kararların gerekçelerini içermektedir. Her karar, hem geliştirme kolaylığı hem satış argümanı hem de uzun vadeli sürdürülebilirlik gözetilerek verilmiştir.
+3.1 Neden Tek Monolitik Uygulama — Mikroservis Değil
+Piyasada popüler olan mikroservis mimarisi bu proje için yanlış seçim olurdu. Gerekçe:
+Hedef müşteri KOBİ fabrikası — sunucu yönetebilecek IT ekibi yok
+6 modül birbiriyle sıkı entegre — aynı veri üzerinde çalışıyorlar
+Monolitik yapı: tek dosya kopyala, tek komutla çalıştır, kurulum 30 dakika
+Gelecekte gerekirse modüler monolitten mikroservise geçiş mümkün
+
+3.2 Neden SQLite — PostgreSQL/MySQL Değil
+Sıfır sunucu kurulumu: SQLite tek bir .db dosyası, USB'ye bile kopyalanabilir
+10.000 eş zamanlı kayıt için SQLite yeterli — KOBİ fabrikası bu limiti aşmaz
+Günlük yedek = tek dosya kopyası; müşteri kendi anlayabilir
+v2.0'da PostgreSQL'e geçiş için SQLAlchemy ORM soyutlaması hazır
+
+3.3 Neden Bootstrap 5 — React/Vue Değil
+Fabrika ortamında IT desteği yok; JavaScript bundle güncellemesi sorun
+Bootstrap 5 sunucudan statik dosya olarak sunulabilir, internet bağlantısı gerektirmez
+Operatörler basit, hızlı yüklenen sayfalar ister — SPA overkill
+Geliştirme hızı React'a göre 2-3 kat daha hızlı tek kişilik projede
+
+3.4 Hangi Özellikler KASITLI Olarak Dışarıda Bırakıldı
+İyi bir ürün 'ne içerdiğiyle' değil, 'neyi dışarıda bıraktığıyla' da tanımlanır:
+
+4. Sistem Mimarisi
+
+4.1 Katmanlı Mimari
+Sistem dört ana katmandan oluşmaktadır:
+
+4.2 Klasör Yapısı
+fdys/
+├── app/
+│   ├── __init__.py              ← create_app() fabrika fonksiyonu
+│   ├── extensions.py            ← db, login_manager, bcrypt, socketio örnekleri
+│   ├── models/
+│   │   ├── kullanici.py         ← Kullanıcı ve rol modeli
+│   │   ├── personel.py          ← Çalışan, vardiya, izin modelleri
+│   │   ├── makine.py            ← Makine, arıza, bakım modelleri
+│   │   ├── stok.py              ← Malzeme, hareket, tedarikçi modelleri
+│   │   ├── kalite.py            ← Hata kaydı, denetim modelleri
+│   │   ├── enerji.py            ← Tüketim ve maliyet modelleri
+│   │   └── isg.py               ← Olay, risk, eğitim modelleri
+│   ├── routes/
+│   │   ├── auth.py              ← Giriş/çıkış/profil
+│   │   ├── dashboard.py         ← Ana kontrol paneli
+│   │   ├── personel.py          ← Personel CRUD ve raporlar
+│   │   ├── makine.py            ← Makine ve üretim yönetimi
+│   │   ├── stok.py              ← Stok ve malzeme yönetimi
+│   │   ├── kalite.py            ← Kalite kontrol rotaları
+│   │   ├── enerji.py            ← Enerji takip rotaları
+│   │   ├── isg.py               ← İSG rotaları
+│   │   ├── rapor.py             ← PDF ve Excel raporlama
+│   │   └── admin.py             ← Sistem ayarları
+│   ├── services/
+│   │   ├── bildirim_motoru.py   ← Merkezi uyarı ve bildirim servisi
+│   │   ├── oee_hesaplama.py     ← OEE formül motoru
+│   │   ├── maliyet_analizi.py   ← Enerji maliyet motoru
+│   │   └── isg_risk_puani.py    ← Risk puanlama algoritması
+│   ├── templates/
+│   │   ├── base.html            ← Ana şablon (navbar, sidebar, bildirimler)
+│   │   ├── dashboard/
+│   │   ├── personel/
+│   │   ├── makine/
+│   │   ├── stok/
+│   │   ├── kalite/
+│   │   ├── enerji/
+│   │   ├── isg/
+│   │   └── admin/
+│   ├── static/
+│   │   ├── css/style.css
+│   │   ├── js/
+│   │   │   ├── dashboard.js     ← Ana panel grafikleri
+│   │   │   ├── charts.js        ← Paylaşılan Chart.js yardımcıları
+│   │   │   └── notifications.js ← Gerçek zamanlı uyarı mantığı
+│   │   └── img/
+│   └── utils/
+│       ├── pdf_generator.py
+│       ├── excel_exporter.py
+│       └── decorators.py        ← @role_required, @log_action
+├── config.py
+├── run.py
+├── seed_data.py
+├── requirements.txt
+└── fdys.db
+
+4.3 Teknoloji Yığını — Tam Liste
+
+5. Veritabanı Şeması
+
+Sistem 18 tabloya dayanmaktadır. Tablolar 6 modüle göre gruplanmış olup ortak bir kimlik doğrulama katmanını paylaşır. Tüm tablolar soft delete (silinmeden gizleme) destekler.
+5.1 Kimlik ve Yetki Tabloları
+
+5.2 Personel Modülü Tabloları
+
+5.3 Makine & Üretim Modülü Tabloları
+
+5.4 Stok, Kalite, Enerji ve İSG Tabloları (Özet)
+
+6. Modül Detayları
+
+6.0 Merkezi Dashboard — Fabrikanın Nabzı
+Dashboard, sisteme giriş yapıldığında karşılanan ilk ekrandır ve fabrikanın anlık durumunu tek bakışta sunar. Bu ekran, sistemin 'satış penceresi' niteliğindedir — potansiyel müşteriye demo gösterilecek ilk yer burasıdır.
+Yönetici Dashboard İçeriği
+Üst KPI Şeridi: Bugünkü üretim / hedef · Aktif arıza sayısı · Düşük stok uyarısı · Açık İSG olayları
+OEE Gauge: Tüm fabrika geneli anlık OEE — kırmızı/sarı/yeşil renk bandı
+Modül Özet Kartları: Her modülden 3-4 satır kritik bilgi yan yana
+Son 30 Gün Trend Grafiği: Üretim ve OEE trendi
+Aktif Arıza Listesi: Bekleyen arızalar atanan teknisyenle
+Anlık Bildirim Akışı: Sağ panelde gerçek zamanlı sistem uyarıları
+Operatör Dashboard İçeriği
+Bugünün Vardiya Özeti: Kendi makinesi için üretim girişi hızlı erişim
+Açık Görevler: Üretim girişi bekleyen vardiyalar
+Kendi İzin Durumu: Onay bekleyen veya onaylanan talepler
+Teknisyen Dashboard İçeriği
+Atanan Arızalar: Önceliğe göre sıralı, kritik olanlar kırmızı
+Bugünkü Bakım Takvimi: Periyodik bakımı gelen makineler
+Arıza Çözme Hızı (KPI): Son 30 gün ortalama müdahale süresi
+
+6.1 Personel Yönetimi Modülü
+Temel Özellikler
+Çalışan profil kartı: fotoğraf, sicil no, departman, pozisyon, iletişim
+Dijital özlük dosyası: sözleşme türü, işe başlama, ücret bilgisi (opsiyonel)
+Makine yetkinlik matrisi: hangi operatör hangi makinede çalışabilir, puan 1-5
+Vardiya çizelgesi: haftalık görünüm, sürükle-bırak ile değişim, çakışma uyarısı
+İzin talebi ve onay akışı: çalışan talepte bulunur, yönetici onaylar/reddeder
+Devamsızlık takibi: planlanan vs gerçekleşen karşılaştırması
+'Kim bu makineyi kullanabilir?' sorusu: yetkinlik matrisinden anlık öneri
+Eşsiz Özellik: Yetkinlik Öneri Motoru
+Bir vardiyada operatör hasta geldiğinde yönetici sisteme 'A makinesi için kim var?' diye sorar. Sistem; yetkinlik puanı yüksek, o gün vardiyası uygun, izinli olmayan çalışanları otomatik olarak önerir. Bu özellik Türkiye'deki hiçbir KOBİ yazılımında yok.
+Kasıtlı Çıkarılan Özellikler
+Bordro hesaplama — muhasebe yazılımları bu işi yapar, çakışmaya gerek yok
+SGK e-bildirim — yasal entegrasyon v2.0'a ertelendi
+
+6.2 Makine ve Üretim Takip Modülü
+Temel Özellikler
+Makine kartı: teknik bilgiler, garanti, son bakım, periyodik bakım takvimi
+Vardiya üretim girişi: operatör planlanan süre, gerçek üretim, hatalı adet girer
+Duruş kaydı: neden, süre, altı büyük kayıp kategorisi
+OEE otomatik hesaplama: Kullanılabilirlik × Performans × Kalite
+Arıza bildirim ve takip: operatör bildirir → teknisyen atanır → çözülür → kapanır
+Bakım takvimi: periyodik bakım tarihleri otomatik hesaplanır, uyarı verilir
+Makine geçmişi: tüm arıza, bakım, üretim verisi tek zaman çizelgesinde
+OEE Gösterge Paneli
+Anlık OEE gauge (yarım daire, renkli bantlar)
+30 günlük OEE trend grafiği, hedef çizgisi ile
+Vardiya karşılaştırma çubuk grafiği
+Pareto grafiği: en çok zaman çalan duruş nedenleri
+Makine bazında OEE sıralama tablosu
+
+6.3 Stok ve Malzeme Yönetimi Modülü
+Temel Özellikler
+Malzeme kartı: ad, kod, birim, lokasyon (raf/dolap), birim fiyat, tedarikçi
+Giriş/çıkış hareketi: fatura no, miktar, tarih, neden
+Minimum stok eşiği: altına düşünce otomatik uyarı panoya düşer
+Tedarikçi yönetimi: iletişim, ortalama teslimat süresi, performans puanı
+Stok sayım modülü: dönemsel sayım girişi, sayım farkı raporu
+Malzeme tüketim analizi: hangi malzeme ne kadar kullanılıyor trendi
+Kasıtlı Çıkarılan Özellikler
+Otomatik satın alma siparişi — bu ERP işi, gereksiz karmaşıklık
+Barkod okuyucu entegrasyonu — v1.1'e ertelendi
+
+6.4 Kalite Kontrol Modülü
+Temel Özellikler
+Hata kaydı: ürün, hat, hata türü, adet, vardiya, operatör — maksimum 60 saniyede
+Hata türü tanımlama: altı büyük kayıp kategorisiyle örtüşen sınıflandırma
+Pareto analizi: en sık rastlanan 5 hata türü ve kümülatif yüzde
+Hat bazlı kalite karşılaştırması
+Vardiya bazlı hata yoğunluğu ısı haritası
+ISO 9001 uyumlu aylık kalite raporu (PDF)
+Düzeltici faaliyet kaydı: hata → kök neden → faaliyet → doğrulama
+Eşsiz Özellik: Çapraz Modül Kalite Korelasyonu
+Sistem; belirli bir operatörde, belirli bir makinede veya belirli bir vardiyada hata yoğunlaşması olduğunu tespit ederse otomatik olarak dashboard'da uyarı çıkarır. Örnek: 'Gece vardiyasında A makinesindeki hata oranı diğer vardiyaların 3 katı — inceleme gerekebilir.'
+
+6.5 Enerji ve Maliyet Takip Modülü
+Temel Özellikler
+Elektrik, doğalgaz ve su tüketimini makine veya hat bazında kayıt altına alma
+Birim fiyat girişi: enerji faturasına göre güncellenir, maliyet otomatik hesaplanır
+Aylık hedef belirleme ve hedef vs gerçekleşen karşılaştırması
+Makine başına enerji verimliliği sıralaması
+Enerji yoğun saatlerin tespiti (hangi saat diliminde tüketim pik yapıyor)
+Yıllık enerji maliyet tahmini (mevcut trende göre projeksiyon)
+ISO 50001 uyumlu enerji yönetim raporu (PDF)
+Satış Argümanı
+Enerji maliyetleri 2022'den bu yana fabrikalar için birincil gider kalemi haline geldi. Bu modül tek başına yıllık 50.000-200.000 ₺ tasarruf potansiyeli gösterebilir — sistemin tüm maliyetini birkaç haftada amorti eder.
+
+6.6 İSG ve Güvenlik Modülü
+Temel Özellikler
+İş kazası kaydı: tarih, çalışan, yaralanma tipi, kök neden, düzeltici faaliyet
+Ramak kala ve tehlikeli durum bildirimleri: çalışanlar sisteme girebilir
+Risk değerlendirme matrisi: olasılık × şiddet = risk puanı, renk kodlu (3×3 matris)
+İSG eğitim takibi: çalışan bazında geçerli sertifikalar ve yenileme tarihleri
+Süresi dolan eğitim uyarısı: otomatik bildirim
+İSG istatistikleri: kaza sıklık oranı, kaza ağırlık oranı
+SGK bildirimi için yasal formata uygun PDF çıktısı
+ISO 45001 uyumlu yıllık İSG raporu
+Eşsiz Özellik: Önleyici Uyarı Sistemi
+Risk değerlendirmesi 'yüksek' olan bir tehlikenin bulunduğu bölümde yeni bir olay yaşanırsa sistem otomatik olarak 'Bu bölge yüksek riskli olarak işaretlenmiş — acil önlem alınması önerilir' uyarısı çıkarır.
+
+7. Merkezi Bildirim ve Uyarı Motoru
+
+Sistemin en kritik 'tutkal' bileşenidir. Tüm modüllerden gelen verileri izler ve belirlenen koşullar sağlandığında ilgili rollere anlık uyarı gönderir. Bu özellik FDYS'yi pasif bir veri depolama sisteminden aktif bir karar destek platformuna dönüştürür.
+
+7.1 Teknik Uygulama
+Flask-SocketIO ile WebSocket bağlantısı: sayfa yenilemeden anlık bildirim
+bildirim_motoru.py servisi her kritik veritabanı işleminden sonra tetiklenir
+Bildirimler veritabanına kaydedilir — okunmamış bildirim sayısı navbar'da gösterilir
+Rol bazlı filtreleme: teknisyen sadece makine uyarılarını görür
+
+8. Güvenlik Mimarisi
+
+Fabrika operasyonel verisini tutan bir sistemde güvenlik ihmal edilemez. OWASP Top 10 standardını temel alan güvenlik mimarisi tasarım aşamasında planlanmıştır.
+
+9. Geliştirme Takvimi — 6 Sprint
+
+Proje Agile/Scrum metodolojisiyle 6 sprint olarak planlanmıştır. Her sprint teslim edilebilir çalışan yazılım üretir. Sprint 2 sonunda sistem demo'ya hazır olacaktır.
+
+9.1 Sprint 1 — Detaylı Görev Listesi
+
+9.2 Sprint 2 — Detaylı Görev Listesi
+
+10. Test Planı
+
+10.1 Test Seviyeleri
+
+10.2 Kritik Test Senaryoları
+Senaryo 1: Çapraz Modül Veri Tutarlılığı
+Bir çalışan silindiğinde üretim kayıtları korunmalı, vardiya planı kaldırılmalı
+Bir makine devre dışı bırakıldığında yeni üretim girişi yapılamamalı
+Stok çıkışı malzeme miktarından fazla girildiğinde sistem reddetmeli
+
+Senaryo 2: Bildirim Motoru Doğruluğu
+Stok 50 birim eşiğinde iken 45 birim çıkış yapılır → uyarı çıkmalı
+OEE %74 (hedef %85) → dashboard'da sarı uyarı çıkmalı
+Teknisyen 31. dakikada arızaya müdahale etmedi → yöneticiye bildirim
+
+Senaryo 3: Rol Erişim Matrisi
+
+11. Kurulum ve Dağıtım
+
+11.1 Sistem Gereksinimleri
+
+11.2 Kurulum Adımları
+Python 3.11'i python.org'dan indir, 'Add to PATH' seçeneğiyle kur
+Proje klasörünü hedef bilgisayara kopyala (ZIP veya USB)
+Komut satırını proje klasöründe aç: python -m venv venv
+Ortamı etkinleştir: Windows: venv\Scripts\activate / Linux: source venv/bin/activate
+Bağımlılıkları kur: pip install -r requirements.txt
+config.py içindeki SECRET_KEY'i güçlü rastgele değerle değiştir
+Veritabanını başlat: python -c "from app import create_app,db; app=create_app(); ctx=app.app_context(); ctx.push(); db.create_all()"
+Demo verisini yükle: python seed_data.py
+Uygulamayı başlat: python run.py
+Tarayıcıdan http://localhost:5000 adresine git
+İlk admin girişi: kullanıcı adı 'admin', şifre ilk girişte değiştirilmesi istenir
+
+11.3 LAN Erişim Ayarı
+run.py dosyasında host='0.0.0.0' ayarı yapıldıktan sonra aynı ağdaki tüm bilgisayarlar http://[sunucu-ip]:5000 adresinden sisteme bağlanabilir. Sunucu bilgisayarın IP adresi 'ipconfig' (Windows) veya 'ip addr' (Linux) ile öğrenilir.
+
+12. Ticari Boyut
+
+12.1 Fiyatlandırma Modeli
+
+12.2 ROI Hesabı — Müşteriye Sunum
+Her satış görüşmesinde kullanılacak somut değer hesabı:
+Personel modülü: Kayıp çalışma saatlerini %10 azaltır → 50 çalışanlı fabrikada ~150.000 ₺/yıl
+Makine modülü: OEE %5 iyileşme → günde 50 ekstra parça → 200 gün × 50 parça × 30₺ = 300.000 ₺/yıl
+Stok modülü: Acil alım ve fire maliyetini %15 azaltır → ortalama 80.000 ₺/yıl
+Enerji modülü: %8 enerji tasarrufu → 500.000₺ enerji faturası olan fabrikada 40.000 ₺/yıl
+İSG modülü: 1 iş kazasının ortalama maliyeti 50.000₺+ → önlenen kaza = sistem maliyetinin üstünde kazanım
+Toplam potansiyel yıllık fayda: 570.000 ₺+ / Sistem maliyeti: 28.000 ₺ / Geri dönüş süresi: ~18 gün
+
+12.3 Rekabet Avantajları
+SAP/Oracle'ın 1/100 fiyatında, 10 kat daha az karmaşık
+Türkiye'de bu kapsamda, bu fiyatta Türkçe platform yok
+Sunucu gerekmez — kurulum 30 dakika, IT personeli gerekmez
+6 modül tek platformda — 6 ayrı yazılım yerine tek sözleşme
+ISO 9001, ISO 45001, IATF 16949, ISO 50001 uyumlu raporlar
+Fabrika sahipleri aylık abonelik yerine bir kez ödeme yapıyor
+
+13. Risk Yönetimi
+
+
+14. Ürün Yol Haritası
+
+
+
+
+Bu belge gizlidir. İzinsiz çoğaltılması ve dağıtılması yasaktır.
+© 2025 FDYS — Fabrika Dijital Yönetim Sistemi — Tüm Hakları Saklıdır

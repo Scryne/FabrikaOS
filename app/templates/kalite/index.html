@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% block title %}Kalite Kontrol Paneli{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Kalite Kontrol</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-patch-check me-2 text-primary"></i>Kalite Kontrol Paneli</h2>
+        <p class="text-muted mb-0 mt-1">Hata kayıtları, Pareto analizi ve düzeltici faaliyetler</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('rapor.excel_kalite') }}" class="btn btn-outline-success shadow-sm" title="Excel'e Aktar">
+            <i class="bi bi-file-excel me-1"></i><span class="d-none d-md-inline">Excel</span>
+        </a>
+        <a href="{{ url_for('kalite.hata_kaydet') }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i>Hata Kaydı Gir
+        </a>
+        <a href="{{ url_for('kalite.faaliyetler') }}" class="btn btn-outline-secondary shadow-sm">
+            <i class="bi bi-clipboard-check me-1"></i>Düzeltici Faaliyetler
+        </a>
+    </div>
+</div>
+
+<!-- İstatistik Kartları -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0 rounded-3 p-3" style="background:rgba(239,68,68,0.12);">
+                    <i class="bi bi-bug fs-4" style="color:#ef4444;"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-1">Toplam Kayıt</h6>
+                    <h3 class="mb-0 fw-bold text-heading">{{ stats.toplam_kayit }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0 rounded-3 p-3" style="background:rgba(245,158,11,0.12);">
+                    <i class="bi bi-x-octagon fs-4" style="color:#f59e0b;"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-1">Toplam Hatalı Ürün</h6>
+                    <h3 class="mb-0 fw-bold text-danger">{{ "{:,}".format(stats.toplam_hata_adet) }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="flex-shrink-0 rounded-3 p-3" style="background:rgba(59,130,246,0.12);">
+                    <i class="bi bi-clipboard-check fs-4" style="color:#3b82f6;"></i>
+                </div>
+                <div class="flex-grow-1 ms-3">
+                    <h6 class="text-muted small text-uppercase fw-bold mb-1">Açık Faaliyet</h6>
+                    <h3 class="mb-0 fw-bold {% if stats.acik_faaliyetler > 0 %}text-warning{% else %}text-heading{% endif %}">
+                        {{ stats.acik_faaliyetler }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 h-100 border-start border-4 border-danger">
+            <div class="card-body">
+                <h6 class="text-muted small text-uppercase fw-bold mb-1">En Çok Hata Veren</h6>
+                {% if stats.en_hatali_makine %}
+                <h5 class="fw-bold mb-0 text-heading">{{ stats.en_hatali_makine[0] }}</h5>
+                <small class="text-danger">{{ stats.en_hatali_makine[1] }} adet</small>
+                {% else %}
+                <span class="text-muted small">Veri yok</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Pareto Analizi Grafiği -->
+    <div class="col-lg-7">
+        <div class="card border-0 h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-bar-chart me-2 text-primary"></i>Pareto Analizi (Hata Dağılımı)</h5>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="paretoChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Haftalık Hata Trendi -->
+    <div class="col-lg-5">
+        <div class="card border-0 h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-graph-up me-2 text-danger"></i>Haftalık Hata Trendi</h5>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hata Kayıt Tablosu -->
+<div class="card border-0 mt-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-table me-2"></i>Hata Kayıt Günlüğü</h5>
+        <span class="badge bg-secondary">{{ hata_kayitlari.total }} kayıt</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Tarih</th>
+                        <th>Ürün</th>
+                        <th>Makine</th>
+                        <th>Operatör</th>
+                        <th>Hata Türü / Kategori</th>
+                        <th>Adet</th>
+                        <th class="text-end pe-4">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in hata_kayitlari.items %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-medium text-heading small">{{ h.tarih.strftime('%d.%m.%Y') }}</div>
+                            {% if h.vardiya %}
+                            <small class="text-muted text-capitalize">{{ h.vardiya.replace('_', ' ') }}</small>
+                            {% endif %}
+                        </td>
+                        <td><span class="fw-medium text-heading">{{ h.urun_adi }}</span></td>
+                        <td><span class="text-muted">{{ h.makine.ad if h.makine else '—' }}</span></td>
+                        <td><span class="text-muted">{{ h.calisan.ad_soyad if h.calisan else '—' }}</span></td>
+                        <td>
+                            <div class="small text-heading">{{ h.hata_turu }}</div>
+                            <span class="badge bg-secondary small text-capitalize mt-1">
+                                {{ h.hata_kategorisi.replace('_', ' ') if h.hata_kategorisi else '—' }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if h.adet > 5 %}bg-danger{% else %}bg-warning{% endif %} fs-6">
+                                {{ h.adet }}
+                            </span>
+                        </td>
+                        <td class="text-end pe-4">
+                            {% if not h.duzeltici_faaliyet_durumu %}
+                            <a href="{{ url_for('kalite.faaliyet_ekle', hata_id=h.id) }}" 
+                               class="btn btn-sm btn-outline-primary" title="Düzeltici Faaliyet Başlat">
+                                <i class="bi bi-clipboard-plus"></i>
+                            </a>
+                            {% else %}
+                            <span class="badge bg-success-subtle text-success-emphasis border border-success">
+                                <i class="bi bi-check me-1"></i>Faaliyet Mevcut
+                            </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="fdys-empty-state">
+                                <div class="fdys-empty-icon"><i class="bi bi-inbox"></i></div>
+                                <h5>Kayıtlı Hata Bulunamadı</h5>
+                                <p>Henüz kalite hata kaydı girilmemiş.</p>
+                                <a href="{{ url_for('kalite.hata_kaydet') }}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-plus-circle me-1"></i>Hata Kaydı Gir
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if hata_kayitlari.pages > 1 %}
+    <div class="card-footer d-flex justify-content-center py-3">
+        <nav aria-label="Sayfalama">
+            <ul class="pagination pagination-sm mb-0">
+                {% if hata_kayitlari.has_prev %}
+                <li class="page-item"><a class="page-link" href="?sayfa={{ hata_kayitlari.prev_num }}">«</a></li>
+                {% endif %}
+                {% for p in hata_kayitlari.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if p %}
+                    <li class="page-item {% if p == hata_kayitlari.page %}active{% endif %}">
+                        <a class="page-link" href="?sayfa={{ p }}">{{ p }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+                {% if hata_kayitlari.has_next %}
+                <li class="page-item"><a class="page-link" href="?sayfa={{ hata_kayitlari.next_num }}">»</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ── Pareto Analizi Grafiği ──
+    const rawParetoLabels = {{ pareto['labels']|tojson }};
+    FDYS_CHARTS.createParetoChart('paretoChart', {
+        labels: rawParetoLabels.map(l => FDYS_CHARTS.formatSnakeCaseLabel(l)),
+        values: {{ pareto['values']|tojson }}
+    });
+
+    // ── Haftalık Hata Trendi ──
+    FDYS_CHARTS.createLineChart('trendChart', {
+        labels: {{ trend['labels']|tojson }},
+        values: {{ trend['values']|tojson }},
+        label: 'Günlük Hata',
+        lineColor: FDYS_CHARTS.COLORS.danger,
+        gradientTop: FDYS_CHARTS.COLORS.dangerLight,
+        yTitle: 'Hata Sayısı',
+        unit: ' adet',
+        pointRadius: 5
+    });
+});
+</script>
+{% endblock %}

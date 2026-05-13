@@ -1,0 +1,371 @@
+{% extends "base.html" %}
+{% block title %}Gelişmiş Analitik{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='css/style.css') }}?v=4.0" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h2 class="mb-1 fw-bold" style="font-family:'Outfit',sans-serif;">
+            <i class="bi bi-graph-up-arrow me-2" style="color: #06b6d4;"></i>Gelişmiş Analitik & Karar Destek
+        </h2>
+        <p class="text-muted mb-0">Çapraz modül korelasyon, karşılaştırma, KPI hedef takibi ve maliyet analizi</p>
+    </div>
+</div>
+
+<!-- Tab Navigation -->
+<ul class="nav nav-pills anlk-tabs mb-4" id="analitikTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link anlk-tab-btn active" id="tab-korelasyon" data-bs-toggle="pill"
+                data-bs-target="#pane-korelasyon" type="button" role="tab">
+            <i class="bi bi-diagram-3 me-1"></i>Korelasyon
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link anlk-tab-btn" id="tab-karsilastir" data-bs-toggle="pill"
+                data-bs-target="#pane-karsilastir" type="button" role="tab">
+            <i class="bi bi-arrow-left-right me-1"></i>Karşılaştırma
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link anlk-tab-btn" id="tab-kpi" data-bs-toggle="pill"
+                data-bs-target="#pane-kpi" type="button" role="tab">
+            <i class="bi bi-bullseye me-1"></i>KPI Hedefler
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link anlk-tab-btn" id="tab-maliyet" data-bs-toggle="pill"
+                data-bs-target="#pane-maliyet" type="button" role="tab">
+            <i class="bi bi-cash-stack me-1"></i>Maliyet Merkezi
+        </button>
+    </li>
+</ul>
+
+<!-- Tab Content -->
+<div class="tab-content" id="analitikTabContent">
+
+    <!-- ═══════ SEKME 1: KORELASYON ═══════ -->
+    <div class="tab-pane fade show active" id="pane-korelasyon" role="tabpanel">
+        <!-- Akıllı Insight Kartları -->
+        <div id="insightCards" class="row g-3 mb-4"></div>
+
+        <div class="row g-4">
+            <!-- Operatör × Makine Heatmap -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-grid-3x3 me-2 text-info"></i>Operatör × Makine Performans Matrisi</h5>
+                        <select class="form-select form-select-sm" style="width:auto;" id="omGunFiltre" onchange="yukleKorelasyon()">
+                            <option value="7">Son 7 gün</option>
+                            <option value="30" selected>Son 30 gün</option>
+                            <option value="60">Son 60 gün</option>
+                            <option value="90">Son 90 gün</option>
+                        </select>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive" id="omMatrisContainer">
+                            <div class="text-center py-5 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Yükleniyor...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Enerji × Üretim Scatter -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-lightning-charge me-2 text-warning"></i>Enerji Verimliliği (kWh/adet)</h5>
+                    </div>
+                    <div class="card-body" style="height:320px;">
+                        <canvas id="enerjiUretimChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <!-- Hata × Zaman Heatmap -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-danger"></i>Hata Zaman Paterni</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="hataZamanContainer">
+                            <div class="text-center py-5 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Yükleniyor...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════ SEKME 2: KARŞILAŞTIRMA ═══════ -->
+    <div class="tab-pane fade" id="pane-karsilastir" role="tabpanel">
+        <!-- Alt sekmeler -->
+        <ul class="nav nav-tabs mb-4" id="karsilastirAltTab">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#kars-makine">Makine vs Makine</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#kars-donem">Dönem vs Dönem</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#kars-vardiya">Vardiya Karşılaştırma</a></li>
+        </ul>
+        <div class="tab-content">
+            <!-- Makine vs Makine -->
+            <div class="tab-pane fade show active" id="kars-makine">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label">Makine 1</label>
+                                <select class="form-select" id="karsMakine1">
+                                    <option value="">Seçin...</option>
+                                    {% for m in makineler %}
+                                    <option value="{{ m.id }}">{{ m.kod }} — {{ m.ad }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Makine 2</label>
+                                <select class="form-select" id="karsMakine2">
+                                    <option value="">Seçin...</option>
+                                    {% for m in makineler %}
+                                    <option value="{{ m.id }}">{{ m.kod }} — {{ m.ad }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Başlangıç</label>
+                                <input type="date" class="form-control" id="karsBas">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label">Bitiş</label>
+                                <input type="date" class="form-control" id="karsBit">
+                            </div>
+                            <div class="col-md-2">
+                                <button class="btn btn-primary w-100" onclick="makineKarsilastir()">
+                                    <i class="bi bi-arrow-left-right me-1"></i>Karşılaştır
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="makineKarsSonuc"></div>
+            </div>
+            <!-- Dönem vs Dönem -->
+            <div class="tab-pane fade" id="kars-donem">
+                <div class="card border-0 shadow-sm mb-4">
+                    <div class="card-body">
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-2"><label class="form-label">Dönem 1 Baş</label><input type="date" class="form-control" id="d1Bas"></div>
+                            <div class="col-md-2"><label class="form-label">Dönem 1 Bit</label><input type="date" class="form-control" id="d1Bit"></div>
+                            <div class="col-md-2"><label class="form-label">Dönem 2 Baş</label><input type="date" class="form-control" id="d2Bas"></div>
+                            <div class="col-md-2"><label class="form-label">Dönem 2 Bit</label><input type="date" class="form-control" id="d2Bit"></div>
+                            <div class="col-md-2"><button class="btn btn-primary w-100" onclick="donemKarsilastir()"><i class="bi bi-calendar-range me-1"></i>Karşılaştır</button></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="donemKarsSonuc"></div>
+            </div>
+            <!-- Vardiya -->
+            <div class="tab-pane fade" id="kars-vardiya">
+                <div id="vardiyaKarsSonuc">
+                    <div class="text-center py-5 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Yükleniyor...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══════ SEKME 3: KPI HEDEF YÖNETİMİ ═══════ -->
+    <div class="tab-pane fade" id="pane-kpi" role="tabpanel">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="d-flex gap-2">
+                <select class="form-select form-select-sm" style="width:auto;" id="kpiYilFiltre">
+                    <option value="{{ yil }}">{{ yil }}</option>
+                    <option value="{{ yil - 1 }}">{{ yil - 1 }}</option>
+                </select>
+                <select class="form-select form-select-sm" style="width:auto;" id="kpiAyFiltre">
+                    {% for a in range(1, 13) %}
+                    <option value="{{ a }}" {{ 'selected' if a == ay else '' }}>{{ ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'][a-1] }}</option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-sm btn-outline-primary" onclick="yukleKpi()"><i class="bi bi-arrow-repeat"></i></button>
+            </div>
+            <div class="d-flex gap-2">
+                <form method="POST" action="{{ url_for('analitik.kpi_varsayilan_yukle') }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-secondary"><i class="bi bi-download me-1"></i>Varsayılanları Yükle</button>
+                </form>
+                <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#kpiEkleModal"><i class="bi bi-plus-lg me-1"></i>KPI Ekle</button>
+            </div>
+        </div>
+        <div id="kpiSonuclar" class="row g-3"></div>
+    </div>
+
+    <!-- ═══════ SEKME 4: MALİYET MERKEZİ ═══════ -->
+    <div class="tab-pane fade" id="pane-maliyet" role="tabpanel">
+        <div class="row g-4">
+            <!-- TCO Analizi -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-pie-chart me-2 text-primary"></i>TCO — Toplam Sahip Olma Maliyeti</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <select class="form-select" id="tcoMakineSecim" onchange="yukleTco()">
+                                <option value="">Makine seçin...</option>
+                                {% for m in makineler %}
+                                <option value="{{ m.id }}">{{ m.kod }} — {{ m.ad }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="tcoSonuc"></div>
+                    </div>
+                </div>
+            </div>
+            <!-- Birim Maliyet -->
+            <div class="col-lg-6">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-calculator me-2 text-success"></i>Birim Üretim Maliyeti</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="birimMaliyetSonuc">
+                            <div class="text-center py-5 text-muted"><span class="spinner-border spinner-border-sm me-2"></span>Yükleniyor...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- ROI -->
+            <div class="col-12">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header py-3">
+                        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-graph-up me-2" style="color:#8b5cf6;"></i>ROI — Yatırım Geri Dönüş Analizi</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <select class="form-select" id="roiMakineSecim" onchange="yukleRoi()">
+                                <option value="">Makine seçin...</option>
+                                {% for m in makineler %}
+                                <option value="{{ m.id }}">{{ m.kod }} — {{ m.ad }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div id="roiSonuc"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- KPI Ekle Modal -->
+<div class="modal fade" id="kpiEkleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" style="background:var(--bg-card);border:1px solid var(--border-color);">
+            <form method="POST" action="{{ url_for('analitik.kpi_ekle') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header border-bottom" style="border-color:var(--border-color)!important;">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-bullseye me-2 text-primary"></i>Yeni KPI Hedefi</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Modül</label>
+                        <select class="form-select" name="modul" required id="kpiModulSecim" onchange="kpiKodGuncelle()">
+                            <option value="makine">Makine & Üretim</option>
+                            <option value="kalite">Kalite Kontrol</option>
+                            <option value="enerji">Enerji Yönetimi</option>
+                            <option value="isg">İSG</option>
+                            <option value="stok">Stok</option>
+                            <option value="personel">Personel</option>
+                        </select>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">KPI Adı</label>
+                            <input type="text" class="form-control" name="kpi_adi" required placeholder="Ör: Ortalama OEE">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">KPI Kodu</label>
+                            <input type="text" class="form-control" name="kpi_kodu" required placeholder="Ör: ort_oee">
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-4">
+                            <label class="form-label">Hedef Değer</label>
+                            <input type="number" step="0.01" class="form-control" name="hedef_deger" required>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Birim</label>
+                            <input type="text" class="form-control" name="birim" value="%" placeholder="%">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Yön</label>
+                            <select class="form-select" name="yonu">
+                                <option value="yukari">Yüksek İyi ↑</option>
+                                <option value="asagi">Düşük İyi ↓</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-6">
+                            <label class="form-label">Alt Limit (opsiyonel)</label>
+                            <input type="number" step="0.01" class="form-control" name="alt_limit">
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Üst Limit (opsiyonel)</label>
+                            <input type="number" step="0.01" class="form-control" name="ust_limit">
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-4">
+                            <label class="form-label">Periyot</label>
+                            <select class="form-select" name="periyot">
+                                <option value="aylik">Aylık</option>
+                                <option value="ceyreklik">Çeyreklik</option>
+                                <option value="yillik">Yıllık</option>
+                            </select>
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Yıl</label>
+                            <input type="number" class="form-control" name="yil" value="{{ yil }}">
+                        </div>
+                        <div class="col-4">
+                            <label class="form-label">Ay (opsiyonel)</label>
+                            <input type="number" class="form-control" name="ay" min="1" max="12" placeholder="Tümü">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top" style="border-color:var(--border-color)!important;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg me-1"></i>Kaydet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/analitik.js') }}?v=1.0"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    yukleKorelasyon();
+    // Tab lazy-load
+    document.querySelectorAll('#analitikTabs button').forEach(btn => {
+        btn.addEventListener('shown.bs.tab', function(e) {
+            const target = e.target.dataset.bsTarget;
+            if (target === '#pane-karsilastir') yukleVardiya();
+            if (target === '#pane-kpi') yukleKpi();
+            if (target === '#pane-maliyet') yukleBirimMaliyet();
+        });
+    });
+    // Hash-based tab activation
+    if (window.location.hash === '#kpi') {
+        const kpiTab = document.getElementById('tab-kpi');
+        if (kpiTab) new bootstrap.Tab(kpiTab).show();
+    }
+});
+</script>
+{% endblock %}

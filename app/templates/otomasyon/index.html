@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+{% block title %}Otomasyon & Kurallar{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <h2 class="mb-1"><i class="bi bi-robot me-2 text-primary"></i>Otomasyon & Kurallar</h2>
+        <p class="text-muted mb-0">Arka plan otomasyon motoru ve kural yönetim paneli</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary btn-sm" onclick="fetchKurallar()"><i class="bi bi-arrow-clockwise me-1"></i>Yenile</button>
+    </div>
+</div>
+
+<div class="row g-4" id="kurallarContainer">
+    <!-- Spinner -->
+    <div class="col-12 text-center py-5" id="kurallarLoading">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+        <div class="text-muted mt-2">Kurallar yükleniyor...</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+    
+    document.addEventListener('DOMContentLoaded', () => {
+        fetchKurallar();
+    });
+
+    function fetchKurallar() {
+        const container = document.getElementById('kurallarContainer');
+        const loading = document.getElementById('kurallarLoading');
+        
+        loading.style.display = 'block';
+        
+        // Önceki kartları temizle (loading hariç)
+        Array.from(container.children).forEach(child => {
+            if (child.id !== 'kurallarLoading') {
+                child.remove();
+            }
+        });
+
+        fetch("{{ url_for('analitik.api_otomasyon_kurallar') }}")
+            .then(res => res.json())
+            .then(data => {
+                loading.style.display = 'none';
+                
+                // Kuralları UI'a bas
+                for (const [key, details] of Object.entries(data)) {
+                    const card = createKuralCard(key, details);
+                    container.appendChild(card);
+                }
+            })
+            .catch(err => {
+                loading.style.display = 'none';
+                showToast('Hata', 'Kurallar yüklenirken hata oluştu: ' + err, 'danger');
+            });
+    }
+
+    function createKuralCard(kuralKey, details) {
+        const div = document.createElement('div');
+        div.className = 'col-md-6 col-lg-4';
+        
+        const isAktif = details.aktif;
+        const colorClass = isAktif ? 'success' : 'secondary';
+        const statusText = isAktif ? 'Aktif' : 'Pasif';
+        
+        const formatTitle = (key) => {
+            const titles = {
+                'ariza_is_emri': 'Arıza İş Emri',
+                'bakim_is_emri': 'Bakım İş Emri',
+                'egitim_is_emri': 'Eğitim İş Emri',
+                'stok_satin_alma': 'Stok Satın Alma',
+                'vardiya_ozeti': 'Vardiya Özeti'
+            };
+            if (titles[key]) return titles[key];
+            return key.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+        };
+
+        div.innerHTML = `
+            <div class="card h-100 border-0 shadow-sm" style="background: var(--bg-card);">
+                <div class="card-header border-0 bg-transparent pt-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 d-flex align-items-center" style="color:var(--text-heading);">
+                        <i class="bi bi-lightning-charge-fill me-2 text-${colorClass}"></i>
+                        ${formatTitle(kuralKey)}
+                    </h5>
+                    <div class="form-check form-switch fs-4 mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="switch_${kuralKey}" 
+                            ${isAktif ? 'checked' : ''} onchange="toggleKural('${kuralKey}', this.checked)">
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-3">Durum: <span class="badge bg-${colorClass}-subtle text-${colorClass}-emphasis border border-${colorClass}">${statusText}</span></p>
+                    <div class="d-flex justify-content-between align-items-center rounded p-3 mb-2" style="background:var(--bg-body); border: 1px solid var(--border-color);">
+                        <div>
+                            <div class="text-muted small">Çalışma Sayısı</div>
+                            <div class="fw-bold fs-5" style="color:var(--text-heading);">${details.calisma_sayisi || 0}</div>
+                        </div>
+                        <div class="text-end">
+                            <div class="text-muted small">Son Çalışma</div>
+                            <div class="fw-bold small" style="color:var(--text-heading);">${details.son_calisma || 'Hiç çalışmadı'}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        return div;
+    }
+
+    function toggleKural(kuralKey, isAktif) {
+        fetch("{{ url_for('analitik.api_otomasyon_kural_toggle') }}", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF_TOKEN
+            },
+            body: JSON.stringify({ kural: kuralKey, aktif: isAktif })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('Başarılı', 'Kural durumu güncellendi.', 'success');
+                setTimeout(fetchKurallar, 500); // Reload data to show updated state
+            } else {
+                showToast('Hata', data.error || 'Durum güncellenemedi.', 'danger');
+                document.getElementById('switch_' + kuralKey).checked = !isAktif; // Revert switch
+            }
+        })
+        .catch(err => {
+            showToast('Hata', 'Bağlantı hatası.', 'danger');
+            document.getElementById('switch_' + kuralKey).checked = !isAktif;
+        });
+    }
+</script>
+{% endblock %}

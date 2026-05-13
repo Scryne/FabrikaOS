@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Veritabanı Yedekleme — Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    {# Başlık #}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="mb-1"><i class="bi bi-database-down me-2"></i>Veritabanı Yedekleme</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-0">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Admin</a></li>
+                    <li class="breadcrumb-item active">Yedekleme</li>
+                </ol>
+            </nav>
+        </div>
+        <form method="POST" action="{{ url_for('admin.yedekleme_olustur') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="btn btn-success" id="btn-yedekle"
+                    onclick="this.disabled=true; this.innerHTML='<span class=\'spinner-border spinner-border-sm me-1\'></span> Yedekleniyor...'; this.form.submit();">
+                <i class="bi bi-cloud-arrow-up me-1"></i> Yeni Yedek Oluştur
+            </button>
+        </form>
+    </div>
+
+    {# Durum Kartları #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-database fs-1 text-primary"></i>
+                    <h6 class="mt-2 mb-1">Veritabanı Türü</h6>
+                    <span class="badge bg-primary fs-6">{{ db_turu }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-hdd fs-1 text-info"></i>
+                    <h6 class="mt-2 mb-1">Veritabanı Boyutu</h6>
+                    <span class="badge bg-info fs-6">{{ db_boyut }}</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-archive fs-1 text-success"></i>
+                    <h6 class="mt-2 mb-1">Toplam Yedek</h6>
+                    <span class="badge bg-success fs-6">{{ yedekler|length }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Yedek Listesi #}
+    <div class="card border-0 shadow-sm">
+        <div class="card-header">
+            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Mevcut Yedekler</h5>
+        </div>
+        <div class="card-body p-0">
+            {% if yedekler %}
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Dosya Adı</th>
+                            <th>Tür</th>
+                            <th>Boyut</th>
+                            <th>Tarih</th>
+                            <th class="text-end">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for yedek in yedekler %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <i class="bi bi-file-earmark-{{ 'binary' if yedek.tur == 'SQLite' else 'code' }} me-1 text-muted"></i>
+                                <code>{{ yedek.dosya_adi }}</code>
+                            </td>
+                            <td><span class="badge bg-secondary">{{ yedek.tur }}</span></td>
+                            <td>{{ yedek.boyut_str }}</td>
+                            <td>{{ yedek.tarih }}</td>
+                            <td class="text-end">
+                                <a href="{{ url_for('admin.yedekleme_indir', dosya_adi=yedek.dosya_adi) }}"
+                                   class="btn btn-sm btn-outline-primary me-1" title="İndir">
+                                    <i class="bi bi-download"></i>
+                                </a>
+                                <form method="POST" action="{{ url_for('admin.yedekleme_sil', dosya_adi=yedek.dosya_adi) }}"
+                                      class="d-inline" onsubmit="return confirm('Bu yedeği silmek istediğinize emin misiniz?');">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-database-x fs-1 text-muted"></i>
+                <p class="text-muted mt-2 mb-0">Henüz yedek oluşturulmamış.</p>
+                <p class="text-muted small">Yukarıdaki butona tıklayarak ilk yedeğinizi oluşturun.</p>
+            </div>
+            {% endif %}
+        </div>
+        {% if yedekler %}
+        <div class="card-footer text-muted small">
+            <i class="bi bi-info-circle me-1"></i>
+            En fazla 10 yedek saklanır. Yeni yedek oluşturulduğunda eski yedekler otomatik temizlenir.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block title %}Tedarikçi Ekle{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-truck me-2 text-primary"></i>Yeni Tedarikçi Tanımla</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ form.ad.label }}</label>
+                        {{ form.ad(class="form-control", placeholder="Firma Ünvanı") }}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ form.yetkili_kisi.label }}</label>
+                        {% if form.yetkili_kisi.errors %}
+                            {{ form.yetkili_kisi(class="form-control is-invalid") }}
+                            <div class="invalid-feedback">
+                                {% for error in form.yetkili_kisi.errors %}{{ error }}{% endfor %}
+                            </div>
+                        {% else %}
+                            {{ form.yetkili_kisi(class="form-control") }}
+                        {% endif %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.telefon.label }}</label>
+                            {% if form.telefon.errors %}
+                                {{ form.telefon(class="form-control is-invalid", placeholder="0XXX XXX XXXX", type="tel", pattern="0[0-9]{3} [0-9]{3} [0-9]{4}") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.telefon.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.telefon(class="form-control", placeholder="0XXX XXX XXXX", type="tel", pattern="0[0-9]{3} [0-9]{3} [0-9]{4}") }}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.eposta.label }}</label>
+                            {% if form.eposta.errors %}
+                                {{ form.eposta(class="form-control is-invalid", type="email") }}
+                                <div class="invalid-feedback">
+                                    {% for error in form.eposta.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% else %}
+                                {{ form.eposta(class="form-control", type="email") }}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ form.ortalama_teslimat_gun.label }}</label>
+                        {{ form.ortalama_teslimat_gun(class="form-control", type="number") }}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">{{ form.adres.label }}</label>
+                        {{ form.adres(class="form-control", rows="3") }}
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        {{ form.submit(class="btn btn-primary btn-lg shadow-sm") }}
+                        <a href="{{ url_for('stok.tedarikciler') }}" class="btn btn-light">İptal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('telefon');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function (e) {
+            var input = e.target.value.replace(/\D/g, '').substring(0,11);
+            if (input.length === 0) {
+                e.target.value = '';
+                return;
+            }
+            if (input[0] !== '0') {
+                input = '0' + input.substring(0, 10);
+            }
+            
+            var size = input.length;
+            if (size < 5) {
+                e.target.value = input;
+            } else if (size < 8) {
+                e.target.value = input.substring(0, 4) + ' ' + input.substring(4, 7);
+            } else {
+                e.target.value = input.substring(0, 4) + ' ' + input.substring(4, 7) + ' ' + input.substring(7, 11);
+            }
+        });
+    }
+    
+    const yetkiliInput = document.getElementById('yetkili_kisi');
+    if (yetkiliInput) {
+        yetkiliInput.addEventListener('input', function (e) {
+            e.target.value = e.target.value.replace(/[0-9]/g, '');
+        });
+    }
+});
+</script>
+{% endblock %}

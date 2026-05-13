@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}Vardiya Ata - {{ calisan.ad_soyad }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Vardiya Ata</h2>
+            <a href="{{ url_for('personel.vardiya') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Vardiya Planına Dön
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-center mb-4 pb-3 border-bottom">
+                    {% if calisan.fotograf %}
+                        <img src="{{ url_for('static', filename='uploads/' + calisan.fotograf) }}" class="rounded-circle me-3" width="50" height="50" style="object-fit: cover;">
+                    {% else %}
+                        <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 50px; height: 50px;">
+                            {{ calisan.ad_soyad[:2] | upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <h5 class="mb-0">{{ calisan.ad_soyad }}</h5>
+                        <small class="text-muted">{{ calisan.pozisyon }} | {{ calisan.departman }}</small>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.tarih.label }}</label>
+                            {{ form.tarih(class="form-control bg-light", readonly=True) }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.vardiya_turu.label }}</label>
+                            {{ form.vardiya_turu(class="form-select" + (" is-invalid" if form.vardiya_turu.errors else "")) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.baslangic.label }}</label>
+                            {{ form.baslangic(class="form-control" + (" is-invalid" if form.baslangic.errors else ""), type="time") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.bitis.label }}</label>
+                            {{ form.bitis(class="form-control" + (" is-invalid" if form.bitis.errors else ""), type="time") }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.notlar.label }}</label>
+                            {{ form.notlar(class="form-control", rows=2) }}
+                        </div>
+
+                        <div class="col-12 mt-4 text-end">
+                            {% if mevcut %}
+                                <button type="submit" form="sil-form" class="btn btn-outline-danger float-start">
+                                    <i class="bi bi-trash me-1"></i>Sil
+                                </button>
+                            {% endif %}
+                            
+                            <a href="{{ url_for('personel.vardiya') }}" class="btn btn-light me-2">İptal</a>
+                            {{ form.submit(class="btn btn-primary px-4") }}
+                        </div>
+                    </div>
+                </form>
+
+                {% if mevcut %}
+                <form id="sil-form" action="{{ url_for('personel.vardiya_sil', id=mevcut.id) }}" method="POST" onsubmit="return confirm('Bu vardiyayı silmek istediğinize emin misiniz?');">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const turSelect = document.getElementById('vardiya_turu');
+        const baslangic = document.getElementById('baslangic');
+        const bitis = document.getElementById('bitis');
+        
+        function updateTimes() {
+            if (turSelect.value === 'sabah') {
+                baslangic.value = '08:00'; bitis.value = '16:00';
+            } else if (turSelect.value === 'ogleden_sonra') {
+                baslangic.value = '16:00'; bitis.value = '00:00';
+            } else if (turSelect.value === 'gece') {
+                baslangic.value = '00:00'; bitis.value = '08:00';
+            } else if (turSelect.value === 'off') {
+                baslangic.value = '00:00'; bitis.value = '00:00';
+            }
+        }
+        
+        turSelect.addEventListener('change', updateTimes);
+        
+        // Eğer yeni formsa (sayfa yüklendiğinde boşsa) otomatik doldur
+        if (!baslangic.value) {
+            updateTimes();
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+{% block title %}Bildirimler{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 fw-bold" style="color:var(--text-heading); font-family:'Outfit',sans-serif;">Bildirimler</h3>
+        <p class="text-muted mb-0">Tüm sistem bildirimleriniz ve aktiviteleriniz.</p>
+    </div>
+    <div>
+        <button class="btn btn-primary" onclick="window.markAllAsRead()">
+            <i class="bi bi-check-all me-2"></i>Tümünü Okundu İşaretle
+        </button>
+    </div>
+</div>
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+            {% for bildirim in bildirimler.items %}
+            <a href="{{ bildirim.url or '#' }}" class="list-group-item list-group-item-action py-4 px-4 border-bottom {% if not bildirim.okundu_mu %}bg-light-opacity{% endif %}" style="border-color: rgba(255,255,255,0.05) !important;">
+                <div class="d-flex w-100 justify-content-between align-items-start mb-2">
+                    <div class="d-flex align-items-center">
+                        {% if bildirim.seviye == 'kritik' %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 48px; height: 48px; background: rgba(214, 48, 49, 0.1);">
+                            <i class="bi bi-exclamation-octagon text-danger fs-5"></i>
+                        </div>
+                        {% elif bildirim.seviye == 'uyari' %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 48px; height: 48px; background: rgba(253, 203, 110, 0.1);">
+                            <i class="bi bi-exclamation-triangle text-warning fs-5"></i>
+                        </div>
+                        {% elif bildirim.seviye == 'guvenlik' %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 48px; height: 48px; background: rgba(214, 48, 49, 0.1);">
+                            <i class="bi bi-shield-lock text-danger fs-5"></i>
+                        </div>
+                        {% else %}
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3 flex-shrink-0" style="width: 48px; height: 48px; background: rgba(9, 132, 227, 0.1);">
+                            <i class="bi bi-info-circle text-info fs-5"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div>
+                            <h6 class="mb-1 fw-bold {% if not bildirim.okundu_mu %}text-heading{% else %}text-muted{% endif %}">
+                                {{ bildirim.baslik }}
+                                {% if not bildirim.okundu_mu %}
+                                <span class="badge bg-primary ms-2 rounded-pill" style="font-size: 0.65rem;">Yeni</span>
+                                {% endif %}
+                            </h6>
+                            <p class="mb-0 text-muted">{{ bildirim.mesaj }}</p>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ bildirim.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</small>
+                    </div>
+                </div>
+            </a>
+            {% else %}
+            <div class="p-5 text-center text-muted">
+                <i class="bi bi-bell-slash display-1 d-block mb-3 text-secondary opacity-25"></i>
+                <h4 class="fw-bold">Bildirim Bulunmuyor</h4>
+                <p>Şu an için gösterilecek herhangi bir bildiriminiz yok.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    {% if bildirimler.pages > 1 %}
+    <div class="card-footer bg-transparent border-0 pt-4 pb-4">
+        <nav aria-label="Bildirim sayfaları">
+            <ul class="pagination justify-content-center mb-0 custom-pagination">
+                <li class="page-item {% if not bildirimler.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('dashboard.bildirimler', page=bildirimler.prev_num) if bildirimler.has_prev else '#' }}" aria-label="Önceki">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                
+                {% for page_num in bildirimler.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == bildirimler.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('dashboard.bildirimler', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                
+                <li class="page-item {% if not bildirimler.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('dashboard.bildirimler', page=bildirimler.next_num) if bildirimler.has_next else '#' }}" aria-label="Sonraki">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Özel okundu işaretleme fonksiyonu
+    window.markAllAsRead = async () => {
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            if(!csrfToken) {
+                alert("CSRF token bulunamadı.");
+                return;
+            }
+            const res = await fetch('/api/bildirim/okundu', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({id: 'all'})
+            });
+            if (res.ok) {
+                location.reload();
+            }
+        } catch(err) {
+            console.error(err);
+        }
+    };
+    
+    // Tıklanan bildirimi de okundu işaretle (AJAX)
+    document.querySelectorAll('.list-group-item-action').forEach(item => {
+        item.addEventListener('click', async (e) => {
+            // Sadece okunmamışsa api çağrısı yap (görsel olarak badge varsa)
+            const isNew = item.querySelector('.badge.bg-primary');
+            if (isNew) {
+                // Tıklandığında kendi hrefine gitmeden önce okundu yap, ama senkron/bekletme olursa iyi olur.
+                // Basit olması için tıklayınca bir şey yapmıyorum, arka planda notifications.js markAsRead yapıyordu zaten bildirim dropdownında.
+                // Burada detay sayfasına gideceği için arkada markAsRead yapabiliriz ama url varsa yönlenecek.
+            }
+        });
+    });
+</script>
+
+<style>
+    .bg-light-opacity {
+        background-color: rgba(59,130,246,0.03) !important;
+    }
+    .custom-pagination .page-link {
+        background-color: var(--bg-card);
+        border-color: var(--border-color);
+        color: var(--text-secondary);
+        margin: 0 4px;
+        border-radius: 8px;
+    }
+    .custom-pagination .page-item.active .page-link {
+        background-color: var(--accent);
+        border-color: var(--accent);
+        color: white;
+    }
+    .custom-pagination .page-item.disabled .page-link {
+        background-color: transparent;
+        color: var(--text-muted);
+        border-color: transparent;
+    }
+    .custom-pagination .page-link:hover:not(.disabled) {
+        background-color: var(--bg-card-hover);
+        color: var(--text-heading);
+    }
+</style>
+{% endblock %}

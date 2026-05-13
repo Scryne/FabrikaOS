@@ -1,0 +1,154 @@
+{% extends "base.html" %}
+{% block title %}OEE Trend Tahmini — AI Tahminleme{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{{ url_for('tahmin.index') }}">AI Tahminleme</a></li>
+            <li class="breadcrumb-item active">OEE Trend Tahmini</li>
+        </ol>
+    </nav>
+    <h2 class="mb-0 fw-bold"><i class="bi bi-graph-up me-2 text-primary"></i>OEE Trend Tahmini</h2>
+    <p class="text-muted mb-0 mt-1">Son 30 günlük OEE verisinden gelecek 7 günlük tahmin</p>
+</div>
+
+{% if sonuclar %}
+<div class="row g-4">
+    {% for s in sonuclar %}
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold" style="color:var(--text-heading);">
+                    <i class="bi bi-cpu me-1 text-muted"></i>{{ s.makine_ad }}
+                    <small class="text-muted font-monospace">({{ s.makine_kod }})</small>
+                </h6>
+                <div>
+                    <span class="badge bg-{{ 'success' if s.trend >= 0 else 'danger' }}">
+                        Trend: {{ '+' if s.trend >= 0 else '' }}{{ s.trend }}
+                    </span>
+                </div>
+            </div>
+            <div class="card-body">
+                <!-- OEE Grafiği: Geçmiş + Tahmin -->
+                <div style="position: relative; height: 220px; width: 100%;">
+                    <canvas id="oeeChart{{ s.makine_id }}"></canvas>
+                </div>
+
+                <!-- Özet Bilgiler -->
+                <div class="row g-2 mt-3">
+                    <div class="col-4">
+                        <div class="text-center p-2 rounded" style="background:rgba(255,255,255,0.04);">
+                            <small class="text-muted d-block">Mevcut OEE</small>
+                            <span class="fw-bold {% if s.mevcut_oee >= 85 %}text-success{% elif s.mevcut_oee >= 70 %}text-warning{% else %}text-danger{% endif %}">%{{ s.mevcut_oee }}</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-2 rounded" style="background:rgba(255,255,255,0.04);">
+                            <small class="text-muted d-block">Tahmin Ort.</small>
+                            <span class="fw-bold">%{{ s.tahmin_ort }}</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-2 rounded" style="background:rgba(255,255,255,0.04);">
+                            <small class="text-muted d-block">Hedef</small>
+                            <span class="fw-bold text-info">%{{ s.hedef_oee }}</span>
+                        </div>
+                    </div>
+                </div>
+
+                {% if s.uyari %}
+                <div class="alert alert-warning border-0 mt-3 mb-0 py-2 px-3 small">
+                    <i class="bi bi-exclamation-triangle me-1"></i>{{ s.uyari }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-graph-up display-1 text-muted opacity-25"></i>
+    <h4 class="mt-3 text-muted">Yeterli OEE verisi bulunamadı</h4>
+    <p class="text-muted">En az 5 günlük üretim verisi gereklidir.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    {% for s in sonuclar %}
+    (function() {
+        const ctx = document.getElementById('oeeChart{{ s.makine_id }}');
+        if (!ctx) return;
+
+        const gecmisLabels = {{ s.gecmis['labels']|tojson }};
+        const gecmisValues = {{ s.gecmis['values']|tojson }};
+        const tahminLabels = {{ s.tahmin['labels']|tojson }};
+        const tahminValues = {{ s.tahmin['values']|tojson }};
+
+        const tumLabels = gecmisLabels.concat(tahminLabels);
+        const gecmisData = gecmisValues.concat(Array(tahminLabels.length).fill(null));
+        const tahminData = Array(gecmisLabels.length - 1).fill(null).concat([gecmisValues[gecmisValues.length - 1]]).concat(tahminValues);
+        const hedefData = Array(tumLabels.length).fill({{ s.hedef_oee }});
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: tumLabels,
+                datasets: [
+                    {
+                        label: 'Gerçek OEE',
+                        data: gecmisData,
+                        borderColor: '#4f8cff',
+                        backgroundColor: 'rgba(79,140,255,0.1)',
+                        borderWidth: 2.5,
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 3,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'AI Tahmini',
+                        data: tahminData,
+                        borderColor: '#a29bfe',
+                        backgroundColor: 'rgba(162,155,254,0.08)',
+                        borderWidth: 2.5,
+                        borderDash: [8, 4],
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 4,
+                        pointStyle: 'triangle',
+                        pointHoverRadius: 7
+                    },
+                    {
+                        label: 'Hedef',
+                        data: hedefData,
+                        borderColor: 'rgba(255,107,107,0.5)',
+                        borderWidth: 1.5,
+                        borderDash: [4, 4],
+                        pointRadius: 0,
+                        fill: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#9ca3af', usePointStyle: true, padding: 15, font: { size: 11 } } },
+                    tooltip: { backgroundColor: '#1e1e2e', titleColor: '#fff', bodyColor: '#ddd', borderColor: '#333', borderWidth: 1, cornerRadius: 8, padding: 10 }
+                },
+                scales: {
+                    x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', font: { size: 10 } } },
+                    y: { min: 0, max: 100, grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6b7280', callback: v => v + '%' } }
+                }
+            }
+        });
+    })();
+    {% endfor %}
+});
+</script>
+{% endblock %}

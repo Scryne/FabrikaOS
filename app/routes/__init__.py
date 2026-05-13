@@ -1,0 +1,1 @@
+"""FDYS — Rota (Blueprint) Paketi"""

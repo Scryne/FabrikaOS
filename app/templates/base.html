@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="tr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FDYS — Fabrika Dijital Yönetim Sistemi">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>{% block title %}FDYS{% endblock %} — Fabrika Dijital Yönetim Sistemi</title>
+
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link href="{{ url_for('static', filename='css/style.css') }}?v=6.0" rel="stylesheet">
+
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    {% if current_user.is_authenticated %}
+    <!-- Sidebar Overlay (Mobile) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Layout: Sidebar + Content -->
+    <div class="d-flex">
+        <!-- Sidebar -->
+        <nav class="sidebar text-white p-0" id="sidebar">
+            <!-- Brand -->
+            <div class="px-3 py-3 d-flex align-items-center" style="border-bottom: 1px solid var(--border-color);">
+                <i class="bi bi-gear-wide-connected me-2 fs-4 text-primary"></i>
+                <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.2rem;color:var(--text-heading);">FDYS</span>
+            </div>
+
+            <!-- Main Menu -->
+            <div class="sidebar-label">Ana Menü</div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('dashboard.') %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
+                        <i class="bi bi-grid-1x2 me-2"></i>Dashboard
+                    </a>
+                </li>
+                {% if current_user.modul_erisim_var_mi('personel') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('personel.') %}active{% endif %}" href="{{ url_for('personel.index') }}">
+                        <i class="bi bi-people me-2"></i>Personel
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('makine') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('makine.') %}active{% endif %}" href="{{ url_for('makine.index') }}">
+                        <i class="bi bi-cpu me-2"></i>Makine & Üretim
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('stok') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('stok.') %}active{% endif %}" href="{{ url_for('stok.index') }}">
+                        <i class="bi bi-box-seam me-2"></i>Stok
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- Modules -->
+            <div class="sidebar-label">Modüller</div>
+            <ul class="nav flex-column">
+                {% if current_user.modul_erisim_var_mi('makine') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('fabrika_harita.') %}active{% endif %}" href="{{ url_for('fabrika_harita.index') }}">
+                        <i class="bi bi-map me-2"></i>Fabrika Haritası
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('is_emri.') %}active{% endif %}" href="{{ url_for('is_emri.index') }}">
+                        <i class="bi bi-clipboard2-check me-2 si-yellow"></i>İş Emirleri
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('tahmin.') %}active{% endif %}" href="{{ url_for('tahmin.index') }}">
+                        <i class="bi bi-cpu me-2 si-purple"></i>AI Tahminleme
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('analitik.') %}active{% endif %}" href="{{ url_for('analitik.index') }}">
+                        <i class="bi bi-graph-up-arrow me-2 si-cyan"></i>Analitik
+                    </a>
+                </li>
+                {% if current_user.yonetici_mi() %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('otomasyon.') %}active{% endif %}" href="{{ url_for('otomasyon.index') }}">
+                        <i class="bi bi-robot me-2 si-green"></i>Otomasyon & Kurallar
+                    </a>
+                </li>
+                {% endif %}
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('kalite') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('kalite.') %}active{% endif %}" href="{{ url_for('kalite.index') }}">
+                        <i class="bi bi-patch-check me-2"></i>Kalite
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('enerji') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('enerji.') %}active{% endif %}" href="{{ url_for('enerji.index') }}">
+                        <i class="bi bi-lightning me-2"></i>Enerji
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('isg') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('isg.') %}active{% endif %}" href="{{ url_for('isg.index') }}">
+                        <i class="bi bi-shield-check me-2"></i>İSG
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.yonetici_mi() %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('rapor.') %}active{% endif %}" href="{{ url_for('rapor.index') }}">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i>Raporlar
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('takvim.') %}active{% endif %}" href="{{ url_for('takvim.index') }}">
+                        <i class="bi bi-calendar3 me-2 si-yellow"></i>Takvim
+                    </a>
+                </li>
+            </ul>
+
+            {% if current_user.yonetici_mi() %}
+            <!-- General -->
+            <div class="sidebar-label">Genel</div>
+            <ul class="nav flex-column mb-4">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.index' %}active{% endif %}" href="{{ url_for('admin.index') }}">
+                        <i class="bi bi-gear me-2"></i>Ayarlar
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.eposta' %}active{% endif %}" href="{{ url_for('admin.eposta') }}">
+                        <i class="bi bi-envelope-at me-2 si-pink"></i>E-posta Ayarları
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.import_sayfa' %}active{% endif %}" href="{{ url_for('admin.import_sayfa') }}">
+                        <i class="bi bi-cloud-upload me-2 si-indigo"></i>Toplu İçe Aktarma
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.yedekleme' %}active{% endif %}" href="{{ url_for('admin.yedekleme') }}">
+                        <i class="bi bi-database-down me-2"></i>Yedekleme
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.denetim_izleri' %}active{% endif %}" href="{{ url_for('admin.denetim_izleri') }}">
+                        <i class="bi bi-journal-text me-2"></i>Denetim İzleri
+                    </a>
+                </li>
+            </ul>
+            {% endif %}
+
+            <!-- Sidebar Footer Removed -->
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-fill d-flex flex-column" style="min-height:100vh;">
+            <!-- Top Navbar -->
+            <header class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom shadow-sm" style="border-color: var(--border-color) !important; background: var(--bg-sidebar); position: sticky; top: 0; z-index: 1020;">
+                <!-- Left: Hamburger (mobile only) -->
+                <div class="d-flex align-items-center">
+                    <button class="hamburger-btn me-3" id="hamburgerBtn" aria-label="Menü" title="Menü (Esc ile kapat)">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+
+                <!-- Right: Actions -->
+                <div class="d-flex align-items-center gap-3">
+
+
+                    <!-- Notification Bell -->
+                    <div class="dropdown">
+                        <a class="position-relative text-muted btn btn-link p-0 text-decoration-none" href="#" data-bs-toggle="dropdown" id="bildirimDropdown" style="font-size:1.25rem; transition: 0.3s;">
+                            <i class="bi bi-bell"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger d-none border border-dark" id="bildirimSayaci" style="font-size:0.65rem; padding: 0.35em 0.5em;">
+                                0
+                            </span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3 p-0" style="width: 340px; border-radius: 12px; background-color: var(--bg-card); box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;">
+                            <!-- content generated by JS -->
+                        </ul>
+                    </div>
+                    
+                    <!-- User Profile Dropdown -->
+                    <div class="dropdown">
+                        <a class="d-flex align-items-center text-decoration-none" href="#" data-bs-toggle="dropdown" style="gap: 12px;">
+                            <div class="text-end d-none d-sm-block">
+                                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-heading);">{{ current_user.ad_soyad }}</div>
+                                <div class="text-muted" style="font-size: 0.7rem;">{{ current_user.rol | capitalize }}</div>
+                            </div>
+                            <div class="rounded-circle d-flex align-items-center justify-content-center bg-primary text-white shadow-sm" style="width:38px;height:38px;font-size:0.8rem;font-weight:700; transition: transform 0.2s;">
+                                {{ current_user.ad_soyad[:2] | upper }}
+                            </div>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-3" style="border-radius: 12px; background-color: var(--bg-card);">
+                            <li>
+                                <a class="dropdown-item py-2 d-flex align-items-center" href="{{ url_for('auth.profil') }}">
+                                    <i class="bi bi-person-circle me-3 text-muted"></i>Profil
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider border-secondary"></li>
+                            <li>
+                                <a class="dropdown-item py-2 d-flex align-items-center text-danger" href="{{ url_for('auth.logout') }}">
+                                    <i class="bi bi-box-arrow-right me-3"></i>Çıkış Yap
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </header>
+
+            <div class="p-4 flex-grow-1">
+            <!-- Breadcrumb -->
+            {% block breadcrumb %}{% endblock %}
+
+            <!-- Flash Messages (auto-converted to toast) -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            {% for category, message in messages %}
+                                {% set type = category %}
+                                {% if category == 'success' %}{% set title = 'Başarılı' %}
+                                {% elif category == 'danger' %}{% set title = 'Hata' %}
+                                {% elif category == 'warning' %}{% set title = 'Uyarı' %}
+                                {% else %}{% set title = 'Bilgi' %}{% endif %}
+                                setTimeout(function() {
+                                    if (typeof showToast === 'function') {
+                                        showToast("{{ title }}", "{{ message | replace('\"', '\\\"') | replace('\n', ' ') }}", "{{ type }}");
+                                    }
+                                }, 100);
+                            {% endfor %}
+                        });
+                    </script>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+            </div>
+
+
+        </main>
+    </div>
+    {% else %}
+        {% block public_content %}{% endblock %}
+    {% endif %}
+
+    <!-- Modals Block -->
+    {% block modals %}{% endblock %}
+
+    <!-- Oturum Zaman Aşımı Uyarı Modalı -->
+    <div class="modal fade" id="sessionTimeoutModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark border-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Oturum Süresi Doluyor</h5>
+                </div>
+                <div class="modal-body py-4">
+                    <p class="mb-0">Güvenliğiniz için oturumunuz <strong>5 dakika</strong> içinde otomatik olarak sonlandırılacaktır. Çalışmaya devam etmek istiyor musunuz?</p>
+                </div>
+                <div class="modal-footer border-0">
+                    <a href="{{ url_for('auth.logout') }}" class="btn btn-light border">Çıkış Yap</a>
+                    <button type="button" class="btn btn-warning fw-bold px-4" onclick="renewSession()">Oturumu Yenile</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Global Toast Container -->
+    <div id="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+    <!-- Bootstrap 5.3 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/ui_utils.js') }}?v=4.0"></script>
+    <script src="{{ url_for('static', filename='js/notifications.js') }}?v=4.0"></script>
+
+    <!-- Chart.js Profesyonel Tema -->
+    <script src="{{ url_for('static', filename='js/charts.js') }}?v=3.1"></script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

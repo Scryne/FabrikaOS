@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Denetim İzleri{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-journal-text me-2"></i>Denetim İzleri (Loglar)</h2>
+    <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Sistem Ayarlarına Dön
+    </a>
+</div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Tarih/Saat</th>
+                        <th>Kullanıcı</th>
+                        <th>İşlem (Eylem)</th>
+                        <th>Detay</th>
+                        <th>IP Adresi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for log in loglar.items %}
+                    <tr>
+                        <td class="text-muted"><small>{{ log.tarih.strftime('%d.%m.%Y %H:%M:%S') }}</small></td>
+                        <td>
+                            {% if log.kullanici %}
+                                <span class="fw-medium">{{ log.kullanici.ad_soyad }}</span>
+                                <small class="text-muted d-block">{{ log.kullanici.kullanici_adi }}</small>
+                            {% else %}
+                                <span class="text-muted">Sistem / Anonim</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge bg-secondary">{{ log.islem }}</span></td>
+                        <td><small>{{ log.detay or '-' }}</small></td>
+                        <td><small class="font-monospace text-muted">{{ log.ip_adresi }}</small></td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-4 text-muted">Log kaydı bulunamadı.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    {% if loglar.pages > 1 %}
+    <div class="card-footer bg-white border-top-0 pt-3">
+        <nav>
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item {% if not loglar.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin.denetim_izleri', page=loglar.prev_num) }}">Önceki</a>
+                </li>
+                {% for page_num in loglar.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == loglar.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('admin.denetim_izleri', page=page_num) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not loglar.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin.denetim_izleri', page=loglar.next_num) }}">Sonraki</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

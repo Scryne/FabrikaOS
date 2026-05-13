@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+{% block title %}Anomali Tespiti — AI Tahminleme{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-1">
+            <li class="breadcrumb-item"><a href="{{ url_for('tahmin.index') }}">AI Tahminleme</a></li>
+            <li class="breadcrumb-item active">Anomali Tespiti</li>
+        </ol>
+    </nav>
+    <h2 class="mb-0 fw-bold"><i class="bi bi-activity me-2" style="color:#a29bfe;"></i>Anomali Tespiti</h2>
+    <p class="text-muted mb-0 mt-1">Enerji tüketimi ve kalite verilerinde istatistiksel sapma analizi (Z-Score / IQR)</p>
+</div>
+
+{% if sonuclar %}
+<!-- Anomali Türü Filtreleri -->
+<div class="d-flex gap-2 mb-4">
+    <button class="btn btn-sm btn-outline-secondary active" onclick="filterAnomali('all', this)">
+        <i class="bi bi-grid me-1"></i>Tümü ({{ sonuclar|length }})
+    </button>
+    <button class="btn btn-sm btn-outline-warning" onclick="filterAnomali('enerji', this)">
+        <i class="bi bi-lightning-charge me-1"></i>Enerji ({{ sonuclar|selectattr('tip', 'equalto', 'enerji')|list|length }})
+    </button>
+    <button class="btn btn-sm btn-outline-danger" onclick="filterAnomali('kalite', this)">
+        <i class="bi bi-bug me-1"></i>Kalite ({{ sonuclar|selectattr('tip', 'equalto', 'kalite')|list|length }})
+    </button>
+</div>
+
+<!-- Anomali Kartları -->
+<div class="row g-3" id="anomaliContainer">
+    {% for s in sonuclar %}
+    <div class="col-lg-6 anomali-card" data-tip="{{ s.tip }}">
+        <div class="card border-0 shadow-sm h-100 {% if s.risk_skoru >= 75 %}border-start border-4 border-danger{% elif s.risk_skoru >= 50 %}border-start border-4 border-warning{% endif %}">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center"
+                             style="width:40px;height:40px;background:{{ 'linear-gradient(135deg,#fdcb6e,#e17055)' if s.tip == 'enerji' else 'linear-gradient(135deg,#ff7675,#d63031)' }};">
+                            <i class="bi bi-{{ 'lightning-charge' if s.tip == 'enerji' else 'bug' }} text-white"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 fw-bold" style="color:var(--text-heading);">{{ s.baslik }}</h6>
+                            <small class="text-muted">{{ s.tarih }}</small>
+                        </div>
+                    </div>
+                    <span class="badge bg-{{ 'danger' if s.risk_skoru >= 75 else 'warning text-dark' if s.risk_skoru >= 50 else 'info' }}">
+                        Risk: %{{ s.risk_skoru }}
+                    </span>
+                </div>
+
+                <p class="text-muted small mb-3">{{ s.aciklama }}</p>
+
+                <div class="row g-2">
+                    <div class="col-4">
+                        <div class="text-center p-2 rounded" style="background:rgba(255,255,255,0.04);">
+                            <small class="text-muted d-block">Değer</small>
+                            <span class="fw-bold text-danger">{{ s.deger }} {{ s.birim }}</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-2 rounded" style="background:rgba(255,255,255,0.04);">
+                            <small class="text-muted d-block">Ortalama</small>
+                            <span class="fw-bold">{{ s.ortalama }} {{ s.birim }}</span>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-center p-2 rounded" style="background:rgba(255,255,255,0.04);">
+                            <small class="text-muted d-block">Sapma</small>
+                            <span class="fw-bold text-{{ 'danger' if s.sapma_yuzde > 0 else 'success' }}">
+                                {{ '+' if s.sapma_yuzde > 0 else '' }}%{{ s.sapma_yuzde }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-check-circle display-1 text-success opacity-25"></i>
+    <h4 class="mt-3 text-muted">Anomali tespit edilmedi</h4>
+    <p class="text-muted">Tüm enerji ve kalite verileri normal aralıkta.</p>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function filterAnomali(tip, btn) {
+    document.querySelectorAll('.anomali-card').forEach(card => {
+        if (tip === 'all' || card.dataset.tip === tip) {
+            card.style.display = '';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+    // Buton aktif durumu
+    btn.closest('.d-flex').querySelectorAll('.btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+}
+</script>
+{% endblock %}

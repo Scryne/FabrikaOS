@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+{% block title %}Teknisyen Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="welcome-section">
+        <h2>Kolay gelsin, {{ current_user.ad_soyad }} 🛠️</h2>
+        <p class="text-muted mb-0">Makine bakım ve arıza takip ekranı</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Müdahale Süresi KPI -->
+    <div class="col-lg-4">
+        <div class="card border-0 mb-4 h-100 shadow-sm">
+            <div class="card-body text-center d-flex flex-column justify-content-center py-5">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-3" 
+                     style="width:80px;height:80px;background:linear-gradient(135deg,#00b894,#55efc4);box-shadow: 0 10px 20px rgba(0,184,148,0.2);">
+                    <i class="bi bi-stopwatch text-white" style="font-size:2.5rem;"></i>
+                </div>
+                <h2 class="fw-bold mb-2" style="font-family:'Outfit',sans-serif;color:var(--text-heading);">{{ ort_mudahale }} dk</h2>
+                <span class="text-muted">Son 30 Gün Ortalama Müdahale Süresi</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Atanan Arızalar -->
+    <div class="col-lg-8">
+        <div class="card border-0 mb-4 h-100 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-lightning-charge text-danger me-2"></i>Atanan Açık Arızalar</h5>
+                <span class="badge bg-danger rounded-pill">{{ atanan_arizalar|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for ariza in atanan_arizalar %}
+                    <a href="{{ url_for('makine.index') }}" class="list-group-item list-group-item-action p-4 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0 fw-bold 
+                                {% if ariza.oncelik == 'kiritik' %}text-danger
+                                {% elif ariza.oncelik == 'yuksek' %}text-warning
+                                {% endif %}" style="font-size: 1.1rem;">
+                                {{ ariza.makine.kod }} - {{ ariza.ariza_turu }}
+                            </h6>
+                            <span class="badge 
+                                {% if ariza.oncelik == 'kiritik' %}bg-danger
+                                {% elif ariza.oncelik == 'yuksek' %}bg-warning text-dark
+                                {% else %}bg-secondary{% endif %} py-2 px-3">
+                                {{ ariza.oncelik | upper }}
+                            </span>
+                        </div>
+                        <div class="d-flex text-muted small mt-2">
+                            <span class="me-3"><i class="bi bi-clock me-1"></i>{{ ariza.baslangic_zamani.strftime('%d.%m.%Y %H:%M') }}</span>
+                            <span><i class="bi bi-person me-1"></i>Bildiren: {{ ariza.bildiren.ad_soyad }}</span>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-check-circle display-4 d-block mb-3 text-success opacity-50"></i>
+                        <p class="mb-0 fs-5">Size atanmış açık arıza bulunmuyor. Harika iş!</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bakım Takvimi -->
+<div class="row g-4 mt-2">
+    <div class="col-lg-8">
+        <div class="card border-0 mb-4 shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-tools text-info me-2"></i>Bugünkü Bakım Takvimi (Gelen/Geciken Bakımlar)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Makine</th>
+                                <th>Lokasyon</th>
+                                <th>Son Bakım</th>
+                                <th>Planlanan Bakım</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for makine in bakimi_gelen_makineler %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">
+                                            <i class="bi bi-cpu text-primary"></i>
+                                        </div>
+                                        <div>
+                                            <strong>{{ makine.kod }}</strong> <br> 
+                                            <small class="text-muted">{{ makine.ad }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>{{ makine.lokasyon or '-' }}</td>
+                                <td><span class="text-muted"><i class="bi bi-calendar-check me-1"></i>{{ makine.son_bakim_tarihi.strftime('%d.%m.%Y') if makine.son_bakim_tarihi else '-' }}</span></td>
+                                <td><span class="fw-bold"><i class="bi bi-calendar-event me-1"></i>{{ makine.sonraki_bakim_tarihi.strftime('%d.%m.%Y') }}</span></td>
+                                <td>
+                                    {% if makine.bakim_gecikti_mi %}
+                                        <span class="badge bg-danger py-2 px-3"><i class="bi bi-exclamation-triangle-fill me-1"></i>Gecikti</span>
+                                    {% else %}
+                                        <span class="badge bg-warning text-dark py-2 px-3"><i class="bi bi-bell-fill me-1"></i>Bugün</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">
+                                    <i class="bi bi-calendar-x display-4 d-block mb-3 opacity-50"></i>
+                                    Bugün için planlanan periyodik bakım yok.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performans İstatistikleri & Yaklaşan Bakımlar -->
+    <div class="col-lg-4">
+        <!-- Performans Özeti -->
+        <div class="card border-0 mb-4 shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-trophy text-warning me-2"></i>Performans Özeti</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <div>
+                        <div class="text-muted small">Toplam Çözülen Arıza</div>
+                        <div class="fw-bold fs-5" style="color:var(--text-heading);">{{ toplam_cozulen }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width:48px;height:48px;background:rgba(16,185,129,0.1);">
+                        <i class="bi bi-check-circle text-success" style="font-size:1.3rem;"></i>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                    <div>
+                        <div class="text-muted small">Son 30 Gün</div>
+                        <div class="fw-bold fs-5" style="color:var(--text-heading);">{{ son_30_cozulen }}</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width:48px;height:48px;background:rgba(59,130,246,0.1);">
+                        <i class="bi bi-calendar-check text-primary" style="font-size:1.3rem;"></i>
+                    </div>
+                </div>
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Ort. Müdahale Süresi</div>
+                        <div class="fw-bold fs-5" style="color:var(--text-heading);">{{ ort_mudahale }} dk</div>
+                    </div>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
+                         style="width:48px;height:48px;background:rgba(245,158,11,0.1);">
+                        <i class="bi bi-stopwatch text-warning" style="font-size:1.3rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Yaklaşan Bakımlar (7 Gün) -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-calendar-week text-primary me-2"></i>Yaklaşan Bakımlar</h5>
+                <span class="badge bg-primary rounded-pill">{{ yaklasan_bakimlar|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for makine in yaklasan_bakimlar %}
+                    <div class="list-group-item px-4 py-3 border-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold" style="font-size:0.9rem;">{{ makine.kod }} — {{ makine.ad }}</h6>
+                                <small class="text-muted">
+                                    <i class="bi bi-calendar-event me-1"></i>{{ makine.sonraki_bakim_tarihi.strftime('%d.%m.%Y') }}
+                                    {% if makine.lokasyon %} · <i class="bi bi-geo-alt me-1"></i>{{ makine.lokasyon }}{% endif %}
+                                </small>
+                            </div>
+                            <span class="badge bg-info-subtle text-info-emphasis py-1 px-2">
+                                {{ (makine.sonraki_bakim_tarihi - now().date()).days if now is defined else '?' }} gün
+                            </span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-check-circle display-5 d-block mb-2 text-success opacity-50"></i>
+                        <p class="mb-0 small">7 gün içinde planlanan bakım yok.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

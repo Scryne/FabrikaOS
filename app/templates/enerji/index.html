@@ -1,0 +1,293 @@
+{% extends "base.html" %}
+{% block title %}Enerji Takip Modülü{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Enerji Takibi</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-lightning-charge me-2 text-warning"></i>Enerji ve Maliyet Takibi</h2>
+        <p class="text-muted mb-0 mt-1">Tüketim analizi, maliyet optimizasyonu ve hedef karşılaştırma</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('rapor.excel_enerji') }}" class="btn btn-outline-success shadow-sm" title="Excel'e Aktar">
+            <i class="bi bi-file-excel me-1"></i><span class="d-none d-md-inline">Excel</span>
+        </a>
+        <a href="{{ url_for('enerji.kaydet') }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i>Tüketim Kaydı Gir
+        </a>
+    </div>
+</div>
+
+<!-- Özet Kartları -->
+<div class="row g-3 mb-4">
+    <div class="col-lg-4">
+        <div class="card border-0 h-100" style="background: var(--bg-card); border: 1px solid var(--border-color) !important;">
+            <div class="card-body py-4">
+                <h6 class="text-muted small text-uppercase fw-bold">Toplam Enerji Maliyeti</h6>
+                <h2 class="display-6 fw-bold mb-1" style="color:var(--text-heading);">{{ "{:,.2f}".format(toplam_maliyet) }} ₺</h2>
+                <small class="text-muted">{{ toplam_kayit }} kayıt</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card border-0 h-100">
+            <div class="card-body py-3">
+                <div class="row text-center h-100 align-items-center">
+                    <div class="col-4 border-end border-dark">
+                        <div class="rounded-3 p-2 d-inline-block mb-2" style="background:rgba(59,130,246,0.12);">
+                            <i class="bi bi-plug-fill fs-5" style="color:#3b82f6;"></i>
+                        </div>
+                        <h6 class="text-muted small fw-bold">Elektrik</h6>
+                        <h4 class="fw-bold mb-0 text-heading">
+                            {{ "{:,.0f}".format(tur_ozet.get('elektrik', {}).get('miktar', 0)) }}
+                            <small class="text-muted fs-6">kWh</small>
+                        </h4>
+                        <small class="text-primary">{{ "{:,.0f}".format(tur_ozet.get('elektrik', {}).get('maliyet', 0)) }} ₺</small>
+                    </div>
+                    <div class="col-4 border-end border-dark">
+                        <div class="rounded-3 p-2 d-inline-block mb-2" style="background:rgba(239,68,68,0.12);">
+                            <i class="bi bi-fire fs-5" style="color:#ef4444;"></i>
+                        </div>
+                        <h6 class="text-muted small fw-bold">Doğalgaz</h6>
+                        <h4 class="fw-bold mb-0 text-heading">
+                            {{ "{:,.0f}".format(tur_ozet.get('dogalgaz', {}).get('miktar', 0)) }}
+                            <small class="text-muted fs-6">m³</small>
+                        </h4>
+                        <small class="text-danger">{{ "{:,.0f}".format(tur_ozet.get('dogalgaz', {}).get('maliyet', 0)) }} ₺</small>
+                    </div>
+                    <div class="col-4">
+                        <div class="rounded-3 p-2 d-inline-block mb-2" style="background:rgba(16,185,129,0.12);">
+                            <i class="bi bi-droplet-fill fs-5" style="color:#10b981;"></i>
+                        </div>
+                        <h6 class="text-muted small fw-bold">Su</h6>
+                        <h4 class="fw-bold mb-0 text-heading">
+                            {{ "{:,.0f}".format(tur_ozet.get('su', {}).get('miktar', 0)) }}
+                            <small class="text-muted fs-6">m³</small>
+                        </h4>
+                        <small class="text-success">{{ "{:,.0f}".format(tur_ozet.get('su', {}).get('maliyet', 0)) }} ₺</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Grafikler -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-8">
+        <div class="card border-0 h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-graph-up me-2 text-primary"></i>Aylık Tüketim Karşılaştırması (Son 6 Ay)</h5>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card border-0 h-100">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-pie-chart me-2 text-warning"></i>Maliyet Dağılımı</h5>
+            </div>
+            <div class="card-body">
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="maliyetChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tüketim Tablosu -->
+<div class="card border-0">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0 fw-bold"><i class="bi bi-table me-2"></i>Tüketim Kayıtları</h5>
+        <span class="badge bg-secondary">{{ tuketimler.total }} kayıt</span>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Dönem</th>
+                        <th>Tür</th>
+                        <th>Miktar</th>
+                        <th>Birim Fiyat</th>
+                        <th>Toplam Maliyet</th>
+                        <th>Hedef</th>
+                        <th class="pe-4">İlgili Birim</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tuketimler.items %}
+                    <tr>
+                        <td class="ps-4">
+                            <div class="fw-medium text-heading small">{{ t.donem_baslangic.strftime('%d.%m.%Y') }}</div>
+                            <small class="text-muted">{{ t.donem_bitis.strftime('%d.%m.%Y') }}</small>
+                        </td>
+                        <td>
+                            {% if t.enerji_turu == 'elektrik' %}
+                                <span class="badge bg-primary-subtle text-primary-emphasis border border-primary"><i class="bi bi-plug-fill me-1"></i>Elektrik</span>
+                            {% elif t.enerji_turu == 'dogalgaz' %}
+                                <span class="badge bg-danger-subtle text-danger-emphasis border border-danger"><i class="bi bi-fire me-1"></i>Doğalgaz</span>
+                            {% else %}
+                                <span class="badge bg-info-subtle text-info-emphasis border border-info"><i class="bi bi-droplet-fill me-1"></i>Su</span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold text-heading">{{ "{:,.2f}".format(t.miktar) }} <span class="text-muted fw-normal fs-6">{{ t.birim_goster }}</span></td>
+                        <td><span class="text-muted">{{ "{:,.4f}".format(t.birim_fiyat) if t.birim_fiyat else '—' }} ₺</span></td>
+                        <td class="fw-bold text-heading">{{ "{:,.2f}".format(t.toplam_maliyet) if t.toplam_maliyet else '—' }} <span class="text-muted fw-normal fs-6">₺</span></td>
+                        <td>
+                            {% if t.hedef_sapma_yuzde is not none %}
+                                {% if t.hedef_sapma_yuzde > 0 %}
+                                    <span class="text-danger small fw-bold">
+                                        <i class="bi bi-arrow-up"></i>+{{ t.hedef_sapma_yuzde }}%
+                                    </span>
+                                {% elif t.hedef_sapma_yuzde < 0 %}
+                                    <span class="text-success small fw-bold">
+                                        <i class="bi bi-arrow-down"></i>{{ t.hedef_sapma_yuzde }}%
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted small">Hedefte</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="pe-4">
+                            <span class="text-muted">{{ t.makine.ad if t.makine_id and t.makine else 'Genel Fabrika' }}</span>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="fdys-empty-state">
+                                <div class="fdys-empty-icon"><i class="bi bi-lightning-charge"></i></div>
+                                <h5>Kayıtlı Tüketim Bulunamadı</h5>
+                                <p>Henüz enerji tüketim kaydı girilmemiş.</p>
+                                <a href="{{ url_for('enerji.ekle') }}" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-plus-circle me-1"></i>Tüketim Kaydet
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if tuketimler.pages > 1 %}
+    <div class="card-footer d-flex justify-content-center py-3">
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                {% if tuketimler.has_prev %}
+                <li class="page-item"><a class="page-link" href="?sayfa={{ tuketimler.prev_num }}">«</a></li>
+                {% endif %}
+                {% for p in tuketimler.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if p %}
+                    <li class="page-item {% if p == tuketimler.page %}active{% endif %}">
+                        <a class="page-link" href="?sayfa={{ p }}">{{ p }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                    {% endif %}
+                {% endfor %}
+                {% if tuketimler.has_next %}
+                <li class="page-item"><a class="page-link" href="?sayfa={{ tuketimler.next_num }}">»</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ── Aylık Tüketim Trendi ──
+    const rawLabels = {{ trend_chart['labels']|tojson }};
+    const readableLabels = rawLabels.map(l => FDYS_CHARTS.formatMonthLabel(l));
+
+    FDYS_CHARTS.createGroupedBarChart('trendChart', {
+        labels: readableLabels,
+        yTitle: 'Elektrik (kWh)',
+        y1Title: 'Doğalgaz / Su (m³)',
+        datasets: [
+            {
+                label: 'Elektrik',
+                data: {{ trend_chart.elektrik|tojson }},
+                color: FDYS_CHARTS.COLORS.series[0],
+                unit: 'kWh',
+                yAxisID: 'y'
+            },
+            {
+                label: 'Doğalgaz',
+                data: {{ trend_chart.dogalgaz|tojson }},
+                color: FDYS_CHARTS.COLORS.series[1],
+                unit: 'm³',
+                yAxisID: 'y1'
+            },
+            {
+                label: 'Su',
+                data: {{ trend_chart.su|tojson }},
+                color: FDYS_CHARTS.COLORS.series[2],
+                unit: 'm³',
+                yAxisID: 'y1'
+            }
+        ]
+    });
+
+    // ── Maliyet Dağılımı (Doughnut) ──
+    let maliyetRawLabels = {{ maliyet_chart['labels']|tojson }};
+    let maliyetRawValues = {{ maliyet_chart['values']|tojson }};
+    
+    // Su (Yeşil) verisi yoksa sıfır değeriyle ekle
+    if (!maliyetRawLabels.includes('su')) {
+        maliyetRawLabels.push('su');
+        maliyetRawValues.push(0);
+    }
+    
+    // Verileri birleştirip büyükten küçüğe sırala
+    let maliyetData = maliyetRawLabels.map((lbl, idx) => ({
+        key: lbl,
+        value: maliyetRawValues[idx]
+    }));
+    
+    maliyetData.sort((a, b) => b.value - a.value);
+
+    const labelMap = {
+        'elektrik': 'Elektrik', 'dogalgaz': 'Doğalgaz', 'su': 'Su',
+        'buhar': 'Buhar', 'basincli_hava': 'Basınçlı Hava'
+    };
+    
+    // Aynı renklerin atanması için haritalama
+    const colorMap = {
+        'elektrik': FDYS_CHARTS.COLORS.series[0], // Mavi
+        'dogalgaz': FDYS_CHARTS.COLORS.series[1], // Kırmızı
+        'su': FDYS_CHARTS.COLORS.series[2],       // Yeşil
+        'buhar': FDYS_CHARTS.COLORS.series[3],
+        'basincli_hava': FDYS_CHARTS.COLORS.series[4]
+    };
+    
+    FDYS_CHARTS.createDoughnutChart('maliyetChart', {
+        labels: maliyetData.map(item => labelMap[item.key] || FDYS_CHARTS.formatSnakeCaseLabel(item.key)),
+        values: maliyetData.map(item => item.value),
+        colors: maliyetData.map(item => colorMap[item.key] || FDYS_CHARTS.COLORS.series[5]),
+        unit: ' ₺',
+        centerText: 'Toplam Maliyet',
+        centerFormat: (total) => total.toLocaleString('tr-TR', {maximumFractionDigits: 0}) + ' ₺'
+    });
+});
+</script>
+{% endblock %}

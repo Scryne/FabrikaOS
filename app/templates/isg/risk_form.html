@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Risk Değerlendirme Kaydı{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card shadow-sm border-0 border-top border-4 border-warning">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-exclamation-triangle-fill me-2 text-warning"></i>Kurumsal Risk Değerlendirmesi</h5>
+                <small class="text-muted">L Tipi 5×5 Risk Matrisi (Olasılık × Şiddet)</small>
+            </div>
+            <div class="card-body">
+                <!-- 5x5 Risk Matrisi Görseli -->
+                <div class="bg-light rounded p-3 mb-4">
+                    <h6 class="text-center fw-bold mb-3 small text-muted">L Tipi 5x5 Matris Referansı</h6>
+                    <table class="table table-sm table-bordered mb-0 text-center" style="max-width: 400px; margin: 0 auto; font-size: 0.75rem;">
+                        <thead class="bg-white">
+                            <tr>
+                                <th>Olasılık \ Şiddet</th>
+                                <th>Çok Hafif (1)</th>
+                                <th>Hafif (2)</th>
+                                <th>Orta (3)</th>
+                                <th>Ciddi (4)</th>
+                                <th>Çok Ciddi (5)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-bold">Çok Yüksek (5)</td>
+                                <td class="bg-success-subtle">5</td>
+                                <td class="bg-warning-subtle">10</td>
+                                <td class="bg-danger-subtle">15</td>
+                                <td class="bg-danger text-white">20</td>
+                                <td class="bg-dark text-white">25</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Yüksek (4)</td>
+                                <td class="bg-success-subtle">4</td>
+                                <td class="bg-warning-subtle">8</td>
+                                <td class="bg-warning-subtle">12</td>
+                                <td class="bg-danger-subtle">16</td>
+                                <td class="bg-danger text-white">20</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Orta (3)</td>
+                                <td class="bg-success-subtle">3</td>
+                                <td class="bg-success-subtle">6</td>
+                                <td class="bg-warning-subtle">9</td>
+                                <td class="bg-warning-subtle">12</td>
+                                <td class="bg-danger-subtle">15</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Küçük (2)</td>
+                                <td class="bg-success-subtle">2</td>
+                                <td class="bg-success-subtle">4</td>
+                                <td class="bg-success-subtle">6</td>
+                                <td class="bg-warning-subtle">8</td>
+                                <td class="bg-warning-subtle">10</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-bold">Çok Küçük (1)</td>
+                                <td class="bg-success-subtle">1</td>
+                                <td class="bg-success-subtle">2</td>
+                                <td class="bg-success-subtle">3</td>
+                                <td class="bg-success-subtle">4</td>
+                                <td class="bg-success-subtle">5</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="text-center mt-3">
+                        <span class="badge bg-success me-1">1-6 Düşük</span>
+                        <span class="badge bg-warning text-dark me-1">8-12 Orta</span>
+                        <span class="badge bg-danger me-1">15-20 Yüksek</span>
+                        <span class="badge bg-dark">25 Kritik</span>
+                    </div>
+                </div>
+
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.bolum.label }}</label>
+                            {{ form.bolum(class="form-control" + (" is-invalid" if form.bolum.errors else ""), placeholder="Örn: Üretim Hattı, Depo") }}
+                            {% for error in form.bolum.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.faaliyet.label }}</label>
+                            {{ form.faaliyet(class="form-control", placeholder="Hangi işi/görevi yaparken?") }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.tehlike.label }}</label>
+                            {{ form.tehlike(class="form-control" + (" is-invalid" if form.tehlike.errors else ""), rows="2", placeholder="Tehlike kaynağı nedir? (Örn: Açık kablolar, yüksek gürültü)") }}
+                            {% for error in form.tehlike.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.risk.label }}</label>
+                            {{ form.risk(class="form-control", rows="2", placeholder="Tehlikenin neden olabileceği risk (Örn: Elektrik çarpması, işitme kaybı)") }}
+                        </div>
+
+                        <h6 class="text-warning border-bottom pb-2 mb-3 mt-4"><i class="bi bi-calculator me-2"></i>Risk Skoru (Matris)</h6>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.olasilik.label }}</label>
+                            {{ form.olasilik(class="form-select") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.siddet.label }}</label>
+                            {{ form.siddet(class="form-select") }}
+                        </div>
+
+                        <h6 class="text-warning border-bottom pb-2 mb-3 mt-4"><i class="bi bi-shield-check me-2"></i>Önlemler ve Sorumluluk</h6>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.mevcut_onlem.label }}</label>
+                            {{ form.mevcut_onlem(class="form-control", rows="2", placeholder="Hali hazırda alınmış olan önlemler") }}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.ek_onlem.label }}</label>
+                            {{ form.ek_onlem(class="form-control", rows="2", placeholder="Riski azaltmak için alınması gereken İLAVE aksiyonlar") }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.sorumlu.label }}</label>
+                            {{ form.sorumlu(class="form-control", placeholder="Aksiyon sorumlusu / Birim") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.hedef_tarih.label }}</label>
+                            {{ form.hedef_tarih(class="form-control", type="date") }}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-warning btn-lg shadow-sm fw-bold") }}
+                                <a href="{{ url_for('isg.index') }}" class="btn btn-light">İptal</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

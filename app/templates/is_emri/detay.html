@@ -1,0 +1,290 @@
+{% extends "base.html" %}
+{% block title %}{{ ie.is_emri_no }} — İş Emri Detay{% endblock %}
+
+{% block content %}
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0" style="font-size:0.85rem;">
+        <li class="breadcrumb-item"><a href="{{ url_for('is_emri.index') }}">İş Emirleri</a></li>
+        <li class="breadcrumb-item active">{{ ie.is_emri_no }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- Sol Panel — İş Emri Bilgileri -->
+    <div class="col-lg-8">
+        <!-- Header Card -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-start">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-{{ ie.oncelik_sinif }}">{{ ie.oncelik_etiket }}</span>
+                        <span class="badge bg-{{ ie.durum_sinif }}-subtle text-{{ ie.durum_sinif }}-emphasis">{{ ie.durum_etiket }}</span>
+                        <span class="badge bg-secondary">{{ ie.kategori_etiket }}</span>
+                        {% if ie.sla_asildi_mi %}
+                        <span class="badge bg-danger ie-pulse-badge"><i class="bi bi-exclamation-triangle-fill me-1"></i>SLA Aşıldı</span>
+                        {% endif %}
+                    </div>
+                    <h4 class="mb-1">{{ ie.baslik }}</h4>
+                    <small class="text-muted">{{ ie.is_emri_no }} · {{ ie.kaynak_modul_etiket }} · {{ ie.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</small>
+                </div>
+                {% if current_user.yonetici_mi() and ie.durum not in ('onaylandi', 'iptal') %}
+                <form method="post" action="{{ url_for('is_emri.sil', id=ie.id) }}" onsubmit="return confirm('Bu iş emrini iptal etmek istediğinize emin misiniz?')">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-sm btn-outline-danger" title="İptal Et"><i class="bi bi-x-lg"></i></button>
+                </form>
+                {% endif %}
+            </div>
+            <div class="card-body">
+                {% if ie.aciklama %}
+                <h6 class="text-muted mb-2"><i class="bi bi-text-left me-1"></i>Açıklama</h6>
+                <div class="p-3 rounded mb-4" style="background:var(--bg-card-hover); white-space:pre-wrap; font-size:0.9rem;">{{ ie.aciklama }}</div>
+                {% endif %}
+
+                {% if ie.cozum_notu %}
+                <h6 class="text-success mb-2"><i class="bi bi-check-circle me-1"></i>Çözüm Notu</h6>
+                <div class="p-3 rounded mb-4" style="background:rgba(16,185,129,0.08); border-left:3px solid #10b981; white-space:pre-wrap; font-size:0.9rem;">{{ ie.cozum_notu }}</div>
+                {% endif %}
+
+                <!-- Detay Bilgileri -->
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <div class="ie-detail-item">
+                            <span class="ie-detail-label">Oluşturan</span>
+                            <span class="ie-detail-value">{{ ie.olusturan.ad_soyad if ie.olusturan else 'Sistem (Otomatik)' }}</span>
+                        </div>
+                    </div>
+                    <div class="col-sm-6">
+                        <div class="ie-detail-item">
+                            <span class="ie-detail-label">Atanan</span>
+                            <span class="ie-detail-value">{{ ie.atanan.ad_soyad if ie.atanan else '— Atanmadı —' }}</span>
+                        </div>
+                    </div>
+                    {% if ie.gercek_sure_dk %}
+                    <div class="col-sm-6">
+                        <div class="ie-detail-item">
+                            <span class="ie-detail-label">Gerçek Süre</span>
+                            <span class="ie-detail-value">
+                                {% if ie.gercek_sure_dk >= 60 %}
+                                    {{ (ie.gercek_sure_dk / 60)|round(1) }} saat
+                                {% else %}
+                                    {{ ie.gercek_sure_dk }} dakika
+                                {% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if ie.onaylayan %}
+                    <div class="col-sm-6">
+                        <div class="ie-detail-item">
+                            <span class="ie-detail-label">Onaylayan</span>
+                            <span class="ie-detail-value">{{ ie.onaylayan.ad_soyad }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Durum Güncelleme -->
+        {% if ie.durum not in ('onaylandi', 'iptal') %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-arrow-right-circle me-2"></i>Durum Güncelle</h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{{ url_for('is_emri.guncelle', id=ie.id) }}">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label">Yeni Durum</label>
+                            <select name="durum" class="form-select" required>
+                                {% if ie.durum == 'acik' %}
+                                <option value="atandi">Atandı</option>
+                                <option value="devam">Devam Ediyor</option>
+                                <option value="iptal">İptal</option>
+                                {% elif ie.durum == 'atandi' %}
+                                <option value="devam">Devam Ediyor</option>
+                                <option value="iptal">İptal</option>
+                                {% elif ie.durum == 'devam' %}
+                                <option value="tamamlandi">Tamamlandı</option>
+                                <option value="iptal">İptal</option>
+                                {% elif ie.durum == 'tamamlandi' %}
+                                <option value="onaylandi">Onaylandı</option>
+                                <option value="devam">Geri Gönder (Devam)</option>
+                                {% endif %}
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label">Çözüm / Açıklama Notu</label>
+                            <textarea name="cozum_notu" class="form-control" rows="2" placeholder="İsteğe bağlı not..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-3"><i class="bi bi-check-lg me-1"></i>Durumu Güncelle</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Yorumlar -->
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-chat-dots me-2"></i>Aktivite & Yorumlar ({{ yorumlar|length }})</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if yorumlar %}
+                <div class="ie-comments-list">
+                    {% for yorum in yorumlar %}
+                    <div class="ie-comment">
+                        <div class="ie-comment-avatar">{{ yorum.kullanici.ad_soyad[:2]|upper }}</div>
+                        <div class="ie-comment-body">
+                            <div class="ie-comment-header">
+                                <strong>{{ yorum.kullanici.ad_soyad }}</strong>
+                                <span class="text-muted">{{ yorum.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</span>
+                            </div>
+                            <div class="ie-comment-text">{{ yorum.icerik }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center text-muted py-4">
+                    <i class="bi bi-chat d-block mb-1" style="font-size:1.5rem;"></i>
+                    Henüz yorum yok
+                </div>
+                {% endif %}
+
+                <!-- Yorum Ekleme Formu -->
+                <div class="border-top p-3" style="border-color:var(--border-color) !important;">
+                    <form method="post" action="{{ url_for('is_emri.yorum_ekle', id=ie.id) }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="d-flex gap-2">
+                            <textarea name="icerik" class="form-control form-control-sm" placeholder="Yorum yazın..." rows="1" required style="resize:none;"></textarea>
+                            <button type="submit" class="btn btn-sm btn-primary"><i class="bi bi-send"></i></button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dosya Ekleri Bileşeni -->
+        {% set kaynak_tablo = 'is_emri' %}
+        {% set kaynak_id = ie.id %}
+        {% include 'components/dosya_eki.html' %}
+    </div>
+
+    <!-- Sağ Panel — Timeline + SLA + Atama -->
+    <div class="col-lg-4">
+        <!-- SLA Göstergesi -->
+        <div class="card mb-4">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-speedometer me-2"></i>SLA Durumu</h6></div>
+            <div class="card-body">
+                {% if ie.sla_bitis %}
+                    {% set kalan = ie.sla_kalan_dk %}
+                    {% set yuzde = ie.sla_yuzde %}
+                    <div class="text-center mb-3">
+                        {% if ie.durum in ('tamamlandi', 'onaylandi') %}
+                            <div class="ie-sla-big text-success"><i class="bi bi-check-circle-fill"></i></div>
+                            <div class="fw-bold text-success">Tamamlandı</div>
+                        {% elif ie.sla_asildi_mi or (kalan is not none and kalan < 0) %}
+                            <div class="ie-sla-big text-danger ie-pulse-badge"><i class="bi bi-exclamation-triangle-fill"></i></div>
+                            <div class="fw-bold text-danger">SLA Aşıldı!</div>
+                        {% elif kalan is not none and kalan < 60 %}
+                            <div class="ie-sla-big text-warning"><i class="bi bi-clock-fill"></i></div>
+                            <div class="fw-bold text-warning">{{ kalan }} dakika kaldı</div>
+                        {% else %}
+                            <div class="ie-sla-big text-info"><i class="bi bi-clock"></i></div>
+                            <div class="fw-bold">{{ ((kalan or 0) / 60)|round(1) }} saat kaldı</div>
+                        {% endif %}
+                    </div>
+                    <div class="ie-sla-bar">
+                        <div class="ie-sla-fill {% if yuzde >= 100 %}bg-danger{% elif yuzde >= 75 %}bg-warning{% else %}bg-info{% endif %}"
+                             style="width:{{ [yuzde, 100]|min }}%;"></div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2" style="font-size:0.75rem;">
+                        <span class="text-muted">SLA: {{ ie.sla_saat }} saat</span>
+                        <span class="text-muted">{{ ie.sla_bitis.strftime('%d.%m %H:%M') }}</span>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-3">SLA tanımlı değil</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Durum Timeline -->
+        <div class="card mb-4">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-diagram-3 me-2"></i>Süreç Akışı</h6></div>
+            <div class="card-body p-3">
+                <div class="ie-timeline">
+                    <!-- Oluşturuldu -->
+                    <div class="ie-timeline-item ie-timeline-done">
+                        <div class="ie-timeline-dot"></div>
+                        <div class="ie-timeline-content">
+                            <div class="ie-timeline-title">Oluşturuldu</div>
+                            <div class="ie-timeline-sub">{{ ie.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</div>
+                        </div>
+                    </div>
+
+                    <!-- Atandı -->
+                    <div class="ie-timeline-item {% if ie.durum not in ('acik',) %}ie-timeline-done{% endif %}">
+                        <div class="ie-timeline-dot"></div>
+                        <div class="ie-timeline-content">
+                            <div class="ie-timeline-title">Atandı</div>
+                            {% if ie.atanan %}
+                            <div class="ie-timeline-sub">{{ ie.atanan.ad_soyad }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Devam Ediyor -->
+                    <div class="ie-timeline-item {% if ie.durum in ('devam', 'tamamlandi', 'onaylandi') %}ie-timeline-done{% endif %}">
+                        <div class="ie-timeline-dot"></div>
+                        <div class="ie-timeline-content">
+                            <div class="ie-timeline-title">Devam Ediyor</div>
+                            {% if ie.baslama_zamani %}
+                            <div class="ie-timeline-sub">{{ ie.baslama_zamani.strftime('%d.%m.%Y %H:%M') }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Tamamlandı -->
+                    <div class="ie-timeline-item {% if ie.durum in ('tamamlandi', 'onaylandi') %}ie-timeline-done{% endif %}">
+                        <div class="ie-timeline-dot"></div>
+                        <div class="ie-timeline-content">
+                            <div class="ie-timeline-title">Tamamlandı</div>
+                            {% if ie.tamamlanma_zamani %}
+                            <div class="ie-timeline-sub">{{ ie.tamamlanma_zamani.strftime('%d.%m.%Y %H:%M') }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Onaylandı -->
+                    <div class="ie-timeline-item {% if ie.durum == 'onaylandi' %}ie-timeline-done{% endif %}">
+                        <div class="ie-timeline-dot"></div>
+                        <div class="ie-timeline-content">
+                            <div class="ie-timeline-title">Onaylandı</div>
+                            {% if ie.onay_zamani %}
+                            <div class="ie-timeline-sub">{{ ie.onay_zamani.strftime('%d.%m.%Y %H:%M') }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Atanan Kişi Kartı -->
+        {% if ie.atanan %}
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-person me-2"></i>Sorumlu</h6></div>
+            <div class="card-body text-center">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center bg-primary text-white mx-auto mb-2" style="width:56px;height:56px;font-size:1.1rem;font-weight:700;">
+                    {{ ie.atanan.ad_soyad[:2]|upper }}
+                </div>
+                <h6 class="mb-0">{{ ie.atanan.ad_soyad }}</h6>
+                <small class="text-muted">{{ ie.atanan.rol|capitalize }}</small>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

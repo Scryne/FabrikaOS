@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>{{ title }}</h2>
+            <a href="{{ url_for('personel.index') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Listeye Dön
+            </a>
+        </div>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">{{ form.sicil_no.label }}</label>
+                            {{ form.sicil_no(class="form-control" + (" is-invalid" if form.sicil_no.errors else "")) }}
+                            {% for error in form.sicil_no.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-medium">{{ form.ad_soyad.label }}</label>
+                            {{ form.ad_soyad(class="form-control" + (" is-invalid" if form.ad_soyad.errors else "")) }}
+                            {% for error in form.ad_soyad.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.departman.label }}</label>
+                            {{ form.departman(class="form-control" + (" is-invalid" if form.departman.errors else "")) }}
+                            {% for error in form.departman.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.pozisyon.label }}</label>
+                            {{ form.pozisyon(class="form-control" + (" is-invalid" if form.pozisyon.errors else "")) }}
+                            {% for error in form.pozisyon.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.telefon.label }}</label>
+                            {{ form.telefon(class="form-control" + (" is-invalid" if form.telefon.errors else ""), type="tel", pattern="0[0-9]{3} [0-9]{3} [0-9]{4}", placeholder="0XXX XXX XXXX") }}
+                            {% for error in form.telefon.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.eposta.label }}</label>
+                            {{ form.eposta(class="form-control" + (" is-invalid" if form.eposta.errors else ""), type="email") }}
+                            {% for error in form.eposta.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.ise_baslama.label }}</label>
+                            {{ form.ise_baslama(class="form-control" + (" is-invalid" if form.ise_baslama.errors else ""), type="date") }}
+                            {% for error in form.ise_baslama.errors %}
+                                <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">{{ form.ucret.label }}</label>
+                            <div class="input-group">
+                                {{ form.ucret(class="form-control" + (" is-invalid" if form.ucret.errors else "")) }}
+                                <span class="input-group-text">₺</span>
+                                {% for error in form.ucret.errors %}
+                                    <div class="invalid-feedback">{{ error }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Profil Fotoğrafı</label>
+                            <input type="file" name="fotograf" class="form-control" accept=".jpg,.jpeg,.png">
+                            <div class="form-text">Maksimum 2MB, sadece JPG/PNG.</div>
+                            
+                            {% if calisan and calisan.fotograf %}
+                            <div class="mt-2">
+                                <span class="text-muted small">Mevcut fotoğraf:</span><br>
+                                <img src="{{ url_for('static', filename='uploads/' + calisan.fotograf) }}" width="60" height="60" class="rounded-circle object-fit-cover mt-1">
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12 mt-4 text-end">
+                            <a href="{{ url_for('personel.index') }}" class="btn btn-light me-2">İptal</a>
+                            {{ form.submit(class="btn btn-primary px-4") }}
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const phoneInput = document.getElementById('telefon');
+    if (phoneInput) {
+        phoneInput.addEventListener('input', function (e) {
+            var input = e.target.value.replace(/\D/g, '').substring(0,11);
+            if (input.length === 0) {
+                e.target.value = '';
+                return;
+            }
+            if (input[0] !== '0') {
+                input = '0' + input.substring(0, 10);
+            }
+            
+            var size = input.length;
+            if (size < 5) {
+                e.target.value = input;
+            } else if (size < 8) {
+                e.target.value = input.substring(0, 4) + ' ' + input.substring(4, 7);
+            } else {
+                e.target.value = input.substring(0, 4) + ' ' + input.substring(4, 7) + ' ' + input.substring(7, 11);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

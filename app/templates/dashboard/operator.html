@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% block title %}Operatör Dashboard{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="welcome-section">
+        <h2>Hoş geldin, {{ current_user.ad_soyad }} 👋</h2>
+        <p class="text-muted mb-0">Bugünkü görevlerin ve üretim durumu</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- İzin Bakiyesi Kartı -->
+    <div class="col-lg-4">
+        <div class="card border-0 h-100 shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-calendar-heart text-info me-2"></i>İzin Bakiyesi</h5>
+            </div>
+            <div class="card-body text-center py-4">
+                <div class="position-relative d-inline-block mb-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto"
+                         style="width:100px;height:100px;background:rgba(6,182,212,0.1);border:3px solid #06b6d4;">
+                        <div>
+                            <div class="h3 fw-bold mb-0" style="color:#06b6d4;">{{ izin_bakiye.kalan }}</div>
+                            <small class="text-muted" style="font-size:0.7rem;">gün kaldı</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="progress mb-2" style="height:8px;">
+                    <div class="progress-bar bg-info" style="width:{{ izin_bakiye.yuzde }}%"></div>
+                </div>
+                <small class="text-muted">{{ izin_bakiye.kullanilan }} / {{ izin_bakiye.toplam }} gün kullanıldı</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bugünkü Vardiya -->
+    <div class="col-lg-4">
+        <div class="card border-0 h-100 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-calendar2-check text-primary me-2"></i>Bugünkü Vardiya</h5>
+                <a href="{{ url_for('makine.index') }}" class="btn btn-sm btn-primary">Üretim Girişi</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for vardiya in vardiyalar %}
+                    <div class="list-group-item p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h6 class="mb-0 fw-bold">{{ vardiya.vardiya_turu | capitalize }} Vardiyası</h6>
+                            <span class="badge bg-primary fs-6 px-3 py-2">{{ vardiya.baslangic.strftime('%H:%M') }} - {{ vardiya.bitis.strftime('%H:%M') }}</span>
+                        </div>
+                        <p class="text-muted small mb-0 mt-3"><i class="bi bi-info-circle me-1"></i>{{ vardiya.notlar or 'Ek not yok.' }}</p>
+                    </div>
+                    {% else %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-cup-hot display-4 d-block mb-3 text-secondary opacity-50"></i>
+                        <p class="mb-0">Bugün için planlanmış bir vardiyanız bulunmuyor.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Haftalık Vardiya Takvimi -->
+    <div class="col-lg-4">
+        <div class="card border-0 h-100 shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-calendar-week text-warning me-2"></i>Haftalık Program</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for gun in haftalik_program %}
+                    <div class="list-group-item px-3 py-2 d-flex justify-content-between align-items-center {{ 'bg-primary bg-opacity-10' if gun.bugun else '' }}">
+                        <div>
+                            <small class="fw-bold {{ 'text-primary' if gun.bugun else '' }}">{{ gun.gun_adi }}</small>
+                            <small class="text-muted ms-1">{{ gun.tarih }}</small>
+                        </div>
+                        {% if gun.vardiya %}
+                        <span class="badge rounded-pill" style="background:{{ gun.renk }};font-size:0.7rem;">{{ gun.vardiya }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-pill" style="font-size:0.7rem;">—</span>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mt-2">
+    <!-- İzin Durumu ve Self-Service Talep -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-clock-history text-success me-2"></i>İzin Taleplerim</h5>
+                <button class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#izinTalebiModal">
+                    <i class="bi bi-plus-lg me-1"></i>Yeni İzin İste
+                </button>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for izin in izinler %}
+                    <div class="list-group-item p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">{{ izin.tur | capitalize }} İzni</h6>
+                                <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ izin.baslangic_tarihi.strftime('%d.%m.%Y') }} - {{ izin.bitis_tarihi.strftime('%d.%m.%Y') }}</small>
+                            </div>
+                            {% if izin.durum == 'onaylandi' %}
+                            <span class="badge bg-success py-2 px-3">Onaylandı</span>
+                            {% elif izin.durum == 'reddedildi' %}
+                            <span class="badge bg-danger py-2 px-3">Reddedildi</span>
+                            {% else %}
+                            <span class="badge bg-warning text-dark py-2 px-3">Bekliyor</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-calendar-x display-5 d-block mb-2 text-secondary opacity-50"></i>
+                        <p class="mb-0 small">Henüz izin talebiniz yok.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Atanan İş Emirleri -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-clipboard2-check text-warning me-2"></i>Atanan İş Emirleri</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for ie in is_emirleri %}
+                    <a href="{{ url_for('is_emri.detay', id=ie.id) }}" class="list-group-item list-group-item-action p-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold">{{ ie.baslik }}</h6>
+                                <small class="text-muted"><i class="bi bi-hash me-1"></i>{{ ie.is_emri_no }}</small>
+                            </div>
+                            <span class="badge {% if ie.durum == 'acik' %}bg-primary{% elif ie.durum == 'devam' %}bg-warning text-dark{% else %}bg-success{% endif %} py-1 px-2">{{ ie.durum | capitalize }}</span>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-check-circle display-5 d-block mb-2 text-success opacity-50"></i>
+                        <p class="mb-0 small">Atanmış iş emri bulunmuyor.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- İzin Talebi Modal -->
+<div class="modal fade" id="izinTalebiModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{{ url_for('personel.izin_self_talep') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-calendar-plus me-2 text-success"></i>İzin Talebi Oluştur</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">İzin Türü</label>
+                        <select name="tur" class="form-select" required>
+                            <option value="yillik">Yıllık İzin</option>
+                            <option value="mazeret">Mazeret İzni</option>
+                            <option value="saglik">Sağlık İzni</option>
+                            <option value="ucretsiz">Ücretsiz İzin</option>
+                        </select>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label class="form-label">Başlangıç</label>
+                            <input type="date" name="baslangic_tarihi" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label">Bitiş</label>
+                            <input type="date" name="bitis_tarihi" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3 mt-3">
+                        <label class="form-label">Açıklama</label>
+                        <textarea name="aciklama" class="form-control" rows="2" placeholder="İzin nedeninizi kısaca belirtin..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success"><i class="bi bi-send me-1"></i>Gönder</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

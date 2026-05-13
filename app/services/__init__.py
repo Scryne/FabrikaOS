@@ -1,0 +1,1 @@
+"""FDYS — Servis Katmanı Paketi"""
