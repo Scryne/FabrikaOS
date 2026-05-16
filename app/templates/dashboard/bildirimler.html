@@ -103,7 +103,7 @@
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
             if(!csrfToken) {
-                alert("CSRF token bulunamadı.");
+                showToast("Hata", "CSRF token bulunamadı.", "danger");
                 return;
             }
             const res = await fetch('/api/bildirim/okundu', {

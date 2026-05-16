@@ -11,6 +11,7 @@ const DashboardWidgets = {
         this.csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || '';
         this._startAutoRefresh();
         this._initDragDrop();
+        this._initSocketIO();
     },
 
     /* ── OEE Gauge ── */
@@ -96,20 +97,41 @@ const DashboardWidgets = {
             const resp = await fetch('/api/dashboard/realtime');
             if (!resp.ok) return;
             const data = await resp.json();
-
-            if (data.bugun_uretim !== undefined) {
-                this.animateCounter('canliUretimSayaci', data.bugun_uretim);
-            }
-            if (data.ort_oee !== undefined) {
-                const gaugeEl = document.getElementById('oeeGaugeValue');
-                if (gaugeEl) gaugeEl.textContent = `%${data.ort_oee}`;
-            }
-            if (data.acik_ariza !== undefined) {
-                const el = document.getElementById('canliAcikAriza');
-                if (el) el.textContent = data.acik_ariza;
-            }
+            this.updateLiveStats(data);
         } catch (err) {
             // Sessizce devam et
+        }
+    },
+
+    updateLiveStats(data) {
+        if (data.bugun_uretim !== undefined) {
+            this.animateCounter('canliUretimSayaci', data.bugun_uretim);
+        }
+        if (data.ort_oee !== undefined) {
+            const gaugeEl = document.getElementById('oeeGaugeValue');
+            if (gaugeEl) gaugeEl.textContent = `%${data.ort_oee}`;
+            // Also update chart if exists (optional but nice)
+        }
+        if (data.acik_ariza !== undefined) {
+            const el = document.getElementById('canliAcikAriza');
+            if (el) el.textContent = data.acik_ariza;
+        }
+    },
+
+    /* ── Socket.IO Realtime Updates ── */
+    _initSocketIO() {
+        if (typeof io !== 'undefined') {
+            const socket = io();
+            socket.on('canli_veri_guncelle', (data) => {
+                this.updateLiveStats(data);
+                
+                // Animasyon hissini arttırmak için ufak bir yeşil glow
+                const sayacEl = document.getElementById('canliUretimSayaci');
+                if (sayacEl) {
+                    sayacEl.style.textShadow = "0 0 10px rgba(16, 185, 129, 0.8)";
+                    setTimeout(() => { sayacEl.style.textShadow = "none"; }, 500);
+                }
+            });
         }
     },
 

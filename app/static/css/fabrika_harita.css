@@ -33,15 +33,30 @@
 .harita-kpi-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 500; }
 
 /* ── Map Container ── */
-.harita-container-card { border-radius: 1rem; overflow: hidden; }
-.harita-container-card .card-body { background: #111111; position: relative; }
+.harita-container-card { border-radius: 1rem; overflow: hidden; background: #0a0a0a; border: 1px solid #1a1a1a; box-shadow: 0 15px 35px rgba(0,0,0,0.3); }
+.harita-container-card .card-body { position: relative; padding: 1.5rem; overflow: auto; background: radial-gradient(circle at center, #1a1a1a 0%, #050505 100%); }
 
 /* ── Viewport ── */
 .harita-viewport {
-    width: 100%; overflow: hidden;
+    width: 100%; min-width: 900px;
     position: relative; user-select: none;
+    margin: 0 auto;
 }
-.harita-svg { width: 100%; height: auto; display: block; }
+
+.harita-svg {
+    width: 100%; height: auto; display: block;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+    background: #0a0a0a;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    transition: all 0.3s ease;
+}
+
+/* Edit mode */
+.harita-svg.edit-mode-active {
+    box-shadow: 0 0 0 2px rgba(59,130,246,0.5);
+}
+
 
 /* ── Edit Mode Banner ── */
 .edit-mode-banner {
@@ -51,42 +66,24 @@
     display: flex; align-items: center;
 }
 
-/* ── Machine Nodes ── */
-.machine-node { cursor: pointer; }
-.machine-node.is-editing { cursor: move; }
-.machine-node.is-dragging { opacity: 0.6; }
+/* ── Glow Effect on Hover/Active ── */
+.machine-node { cursor: pointer; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.machine-wrapper:hover .machine-node { transform: translateY(-4px); }
+.machine-wrapper.is-editing, .machine-wrapper.is-editing .machine-node { cursor: move; }
+.machine-wrapper.is-dragging { opacity: 0.6; }
 
-/* ── Popup — Flat, matching app theme ── */
-.makine-popup {
-    position: fixed; z-index: 2000; width: 300px;
-    background: #1a1a1a;
-    border: 1px solid #2a2a2a; border-radius: 12px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.03);
-    pointer-events: auto; font-size: 0.85rem; overflow: hidden;
-    opacity: 0; transform: translateY(6px);
-    transition: opacity 0.18s ease, transform 0.18s ease;
+/* Pulse animation for faults */
+@keyframes pulseGlowRed {
+    0%, 100% { filter: drop-shadow(0 0 5px rgba(239, 68, 68, 0.2)); }
+    50% { filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.8)); }
 }
-.makine-popup.is-visible { opacity: 1; transform: translateY(0); }
+.machine-node-arizali { animation: pulseGlowRed 1.5s infinite alternate; }
 
-.popup-header {
-    display: flex; align-items: center; gap: 10px;
-    padding: 0.9rem 1.1rem 0.6rem;
+@keyframes pulseGlowGreen {
+    0%, 100% { filter: drop-shadow(0 0 2px rgba(16, 185, 129, 0.1)); }
+    50% { filter: drop-shadow(0 0 10px rgba(16, 185, 129, 0.5)); }
 }
-.popup-status-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-.popup-title { font-family: 'Outfit', sans-serif; font-weight: 700; font-size: 0.95rem; color: #e5e5e5; line-height: 1.3; }
-.popup-subtitle { font-size: 0.72rem; color: #737373; margin-top: 1px; }
-.popup-divider { height: 1px; background: #262626; margin: 0; }
-.popup-body { padding: 0.65rem 1.1rem; }
-.popup-row { display: flex; justify-content: space-between; align-items: center; padding: 0.3rem 0; gap: 8px; }
-.popup-label { color: #737373; font-size: 0.78rem; display: flex; align-items: center; gap: 4px; white-space: nowrap; }
-.popup-value { color: #e5e5e5; font-weight: 600; font-size: 0.82rem; text-align: right; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-.popup-trend-container { padding: 0.4rem 0; margin-top: 0.3rem; border-top: 1px solid #262626; border-bottom: 1px solid #262626; }
-.popup-trend-label { font-size: 0.7rem; color: #737373; margin-bottom: 0.3rem; }
-.popup-sparkline { width: 100%; height: 30px; overflow: visible; }
-
-.popup-footer { padding: 0.5rem 1.1rem 0.85rem; }
-.popup-footer .btn { border-radius: 8px; font-size: 0.82rem; font-weight: 600; }
+.machine-node-aktif { animation: pulseGlowGreen 2.5s infinite alternate; }
 
 /* ── Unplaced Chips ── */
 .unplaced-chip {

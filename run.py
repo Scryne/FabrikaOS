@@ -35,6 +35,14 @@ if __name__ == '__main__':
     +------------------------------------------------------+
     """)
 
+    # Yaşayan Demo - Mock Data Engine'i Başlat
+    try:
+        from app.services.mock_engine import MockDataEngine
+        mock_engine = MockDataEngine(app)
+        mock_engine.start()
+    except ImportError:
+        pass
+
     socketio.run(
         app,
         host=host,

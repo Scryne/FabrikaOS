@@ -1,6 +1,6 @@
 """
 FabrikaOS — Üretim, Arıza, Bakım, Duruş Demo Verisi
-Senaryo: AnadoluTech Metal Sanayi — 30 günlük gerçekçi üretim verileri
+Senaryo: AnadoluTech Metal Sanayi — 6 aylık (180 günlük) gerçekçi üretim verileri
 
 - Üretim verileri: Makine bazlı, vardiya bazlı, OEE hesaplamalı
 - Arıza kayıtları: Çözülmüş + açık arızalar
@@ -28,66 +28,70 @@ def seed():
     bugun = date.today()
     vardiyalar = ['sabah', 'ogleden_sonra', 'gece']
 
-    # ── SON 30 GÜN ÜRETİM VERİSİ ──
-    # Her makine her iş gününde en az 1 vardiya çalışır
+    # ── SON 6 AY (180 GÜN) ÜRETİM VERİSİ ──
     makine_operator_map = {}
     for m in makineler:
-        # Her makineye uygun operatör ata
         uygun = [c for c in uretim_operatorleri if c.beceri_json and
                  any(b.get('makine_id') == m.id for b in (c.beceri_json or []))]
         if not uygun:
             uygun = uretim_operatorleri
         makine_operator_map[m.id] = uygun
 
-    for gun_offset in range(30, 0, -1):
+    for gun_offset in range(180, 0, -1):
         tarih = bugun - timedelta(days=gun_offset)
-        # Pazar günü üretim yok
-        if tarih.weekday() == 6:
+        gun_index = tarih.weekday()
+
+        if gun_index == 6:  # Pazar
             continue
-        # Cumartesi sadece sabah vardiyası
-        gunun_vardiyalari = ['sabah'] if tarih.weekday() == 5 else vardiyalar
+        gunun_vardiyalari = ['sabah'] if gun_index == 5 else vardiyalar
+
+        # Haftanın gününe göre temel performans çarpanı (Organik Eğri)
+        # Pts: %95, Sal: %100, Çar: %100, Per: %98, Cum: %92, Cts: %85
+        gun_performans_carpani = {0: 0.95, 1: 1.0, 2: 1.0, 3: 0.98, 4: 0.92, 5: 0.85}[gun_index]
 
         for makine in makineler:
-            # Arızalı makine son 3 gün çalışmaz
             if makine.durum == 'arizali' and gun_offset < 3:
                 continue
 
             for vardiya in gunun_vardiyalari:
-                # Her vardiya her makine çalışmaz — %75 olasılık
                 if random.random() > 0.75 and len(gunun_vardiyalari) > 1:
                     continue
 
                 uygun_ops = makine_operator_map.get(makine.id, uretim_operatorleri)
                 calisan = random.choice(uygun_ops)
 
-                # Vardiya süreleri (dakika)
-                if vardiya == 'sabah':
-                    planlanan = 480  # 06:00-14:00
-                elif vardiya == 'ogleden_sonra':
-                    planlanan = 480  # 14:00-22:00
-                else:
-                    planlanan = 480  # 22:00-06:00
-
-                # Gerçek çalışma: planlı duruşlar çıkarılır
+                planlanan = 480
                 kayip_dk = random.randint(15, 75)
                 gercek = planlanan - kayip_dk
 
                 kapasite = makine.teorik_kapasite
-                # Üretim miktarı = kapasite × çalışma saati × performans katsayısı
-                performans_katsayi = random.uniform(0.78, 0.97)
+
+                # Vardiyaya göre performans çarpanı
+                vardiya_perf_carpani = {'sabah': 1.0, 'ogleden_sonra': 0.95, 'gece': 0.88}[vardiya]
+                
+                # Temel performans (0.85 - 0.95 arası) * gün * vardiya
+                baz_perf = random.uniform(0.85, 0.95)
+                performans_katsayi = baz_perf * gun_performans_carpani * vardiya_perf_carpani
+                # Sınırlandırma
+                performans_katsayi = min(max(performans_katsayi, 0.50), 0.99)
+
                 uretim = int(kapasite * (gercek / 60) * performans_katsayi)
 
-                # Hatalı üretim: genelde %1-4 arası
-                hata_orani = random.uniform(0.005, 0.04)
+                # Vardiyaya göre hata oranı eğrisi
+                vardiya_hata_carpani = {'sabah': 1.0, 'ogleden_sonra': 1.2, 'gece': 1.8}[vardiya]
+                baz_hata = random.uniform(0.005, 0.02)
+                hata_orani = baz_hata * vardiya_hata_carpani * (2.0 if gun_index in [0, 4, 5] else 1.0)
+                hata_orani = min(hata_orani, 0.15) # En fazla %15
+
                 hatali = max(0, int(uretim * hata_orani))
 
                 notlar_listesi = [
-                    None, None, None,  # Çoğunlukla not yok
+                    None, None, None,
                     'Normal üretim akışı',
-                    'Kalıp değişimi sonrası ilk parça onayı alındı',
+                    'Kalıp/takım değişimi sonrası ilk parça onayı alındı',
                     'Hammadde parti değişikliği yapıldı',
-                    'Soğutma sıvısı seviyesi kontrol edildi',
-                    'Takım ömrü doldu, değişim yapıldı',
+                    'Soğutma sıvısı/su debisi kontrol edildi',
+                    'Takım/kalıp ömrü doldu, değişim yapıldı',
                     'Müşteri acil siparişi önceliklendirildi',
                 ]
 
@@ -106,103 +110,28 @@ def seed():
                 db.session.add(uv)
 
     db.session.flush()
-    print('  + 30 günlük çok vardiyalı üretim verisi oluşturuldu')
+    print('  + 6 aylık (180 günlük) çok vardiyalı üretim verisi oluşturuldu')
 
     # ── ARIZA KAYITLARI ──
     print('[4/12] Arıza kayıtları...')
 
-    arizalar = [
-        # Açık arızalar (şu an devam eden)
-        {
-            'makine_kod': 'PRS-001',
-            'ariza_turu': 'mekanik',
-            'oncelik': 'yuksek',
-            'aciklama': 'Hidrolik silindir rod keçesinden yağ sızıntısı başladı. '
-                        'Basınç 180 bar yerine 145 bara düştü. Üretim durdu.',
-            'durum': 'acik',
-            'gun_once': 2,
-        },
-        {
-            'makine_kod': 'ENJ-001',
-            'ariza_turu': 'mekanik',
-            'oncelik': 'kritik',
-            'aciklama': 'Kalıp kilitleme ünitesinde toggle mekanizması aşınması. '
-                        'Kilitleme kuvveti yetersiz, ürünlerde çapak oluşuyor.',
-            'durum': 'acik',
-            'gun_once': 1,
-        },
+    # Makine kodlarını al
+    m_kodlari = [m.kod for m in makineler]
+    # Kodları rastgele eşleştir, ama belirli arızalar için var olan kodlardan seç.
+    def m_sec(idx):
+        return m_kodlari[idx % len(m_kodlari)] if m_kodlari else 'BİLİNMEYEN'
 
-        # Çözülmüş arızalar (geçmiş)
-        {
-            'makine_kod': 'CNC-001',
-            'ariza_turu': 'elektrik',
-            'oncelik': 'normal',
-            'aciklama': 'X ekseni servo motor sürücüsünde E-07 (aşırı akım) hatası. '
-                        'Makine acil duruma geçti.',
-            'cozum': 'Servo sürücü fan motoru arızalıydı. Fan değiştirildi, '
-                     'sürücü soğutma hattı temizlendi. Parametre sıfırlaması yapıldı.',
-            'durum': 'cozuldu',
-            'gun_once': 12,
-            'sure': 145,
-        },
-        {
-            'makine_kod': 'CNC-002',
-            'ariza_turu': 'yazilim',
-            'oncelik': 'dusuk',
-            'aciklama': 'FANUC 0i-MF kontrol ünitesinde G43 tool length offset komutu '
-                        'yanlış değer okuyor. Parça yüksekliği hatalı çıkıyor.',
-            'cozum': 'Tool offset tablosu sıfırlandı ve kalibrasyon yapıldı. '
-                     'FANUC firmware 30iB+ sürümüne güncellendi.',
-            'durum': 'cozuldu',
-            'gun_once': 18,
-            'sure': 55,
-        },
-        {
-            'makine_kod': 'KYN-001',
-            'ariza_turu': 'elektrik',
-            'oncelik': 'normal',
-            'aciklama': 'Robot 4. eksen (wrist) servo motor alarm: SRVO-023 (aşırı '
-                        'akım). Kaynak sırasında pozisyon kaybı yaşanıyor.',
-            'cozum': 'Kablo tesisatı kontrol edildi, J4 eksen kablosu ezilme tespit '
-                     'edildi. Kablo yenilendi, torç ucu değiştirildi.',
-            'durum': 'cozuldu',
-            'gun_once': 22,
-            'sure': 95,
-        },
-        {
-            'makine_kod': 'TSL-001',
-            'ariza_turu': 'mekanik',
-            'oncelik': 'normal',
-            'aciklama': 'Taşlama taşı dinamik dengesizlik tespit edildi. '
-                        'Yüzey pürüzlülüğü Ra 0.8 yerine Ra 1.6 çıkıyor.',
-            'cozum': 'Taşlama taşı balans ayarı yapıldı. Mil rulmanı muayene edildi, '
-                     'gres değişimi uygulandı.',
-            'durum': 'cozuldu',
-            'gun_once': 9,
-            'sure': 70,
-        },
-        {
-            'makine_kod': 'CNC-001',
-            'ariza_turu': 'mekanik',
-            'oncelik': 'normal',
-            'aciklama': 'Talaş konveyörü zincir kopması. Talaş tahliye durdu.',
-            'cozum': 'Konveyör zinciri 3 bakla değiştirildi, gerginlik ayarı yapıldı.',
-            'durum': 'cozuldu',
-            'gun_once': 25,
-            'sure': 40,
-        },
-        {
-            'makine_kod': 'ENJ-001',
-            'ariza_turu': 'elektrik',
-            'oncelik': 'normal',
-            'aciklama': 'Kovan ısıtıcı band 3. bölge arızası. Eriyik sıcaklığı hedefin '
-                        'altında kalıyor.',
-            'cozum': 'Isıtıcı band değiştirildi (800W seramik tip). '
-                     'Termocouple kalibrasyonu yapıldı.',
-            'durum': 'cozuldu',
-            'gun_once': 15,
-            'sure': 60,
-        },
+    arizalar = [
+        # Açık arızalar
+        {'makine_kod': m_sec(3), 'ariza_turu': 'mekanik', 'oncelik': 'yuksek', 'aciklama': 'Yağ sızıntısı başladı. Üretim durdu.', 'durum': 'acik', 'gun_once': 2},
+        {'makine_kod': m_sec(2), 'ariza_turu': 'mekanik', 'oncelik': 'kritik', 'aciklama': 'Kilitleme ünitesinde aşınma. Kuvvet yetersiz.', 'durum': 'acik', 'gun_once': 1},
+        # Çözülmüş arızalar
+        {'makine_kod': m_sec(0), 'ariza_turu': 'elektrik', 'oncelik': 'normal', 'aciklama': 'Servo motor sürücüsünde aşırı akım hatası.', 'cozum': 'Servo fanı değiştirildi.', 'durum': 'cozuldu', 'gun_once': 12, 'sure': 145},
+        {'makine_kod': m_sec(1), 'ariza_turu': 'yazilim', 'oncelik': 'dusuk', 'aciklama': 'Kontrol ünitesinde offset komutu yanlış değer okuyor.', 'cozum': 'Offset tablosu sıfırlandı.', 'durum': 'cozuldu', 'gun_once': 18, 'sure': 55},
+        {'makine_kod': m_sec(4), 'ariza_turu': 'elektrik', 'oncelik': 'normal', 'aciklama': 'Robot eksen servo alarm.', 'cozum': 'Kablo yenilendi.', 'durum': 'cozuldu', 'gun_once': 22, 'sure': 95},
+        {'makine_kod': m_sec(5), 'ariza_turu': 'mekanik', 'oncelik': 'normal', 'aciklama': 'Dinamik dengesizlik tespit edildi.', 'cozum': 'Balans ayarı yapıldı.', 'durum': 'cozuldu', 'gun_once': 9, 'sure': 70},
+        {'makine_kod': m_sec(0), 'ariza_turu': 'mekanik', 'oncelik': 'normal', 'aciklama': 'Tahliye durdu, zincir koptu.', 'cozum': 'Zincir değiştirildi.', 'durum': 'cozuldu', 'gun_once': 25, 'sure': 40},
+        {'makine_kod': m_sec(2), 'ariza_turu': 'elektrik', 'oncelik': 'normal', 'aciklama': 'Isıtıcı band arızası. Sıcaklık düşük.', 'cozum': 'Isıtıcı band değiştirildi.', 'durum': 'cozuldu', 'gun_once': 15, 'sure': 60},
     ]
 
     for a in arizalar:
@@ -238,72 +167,15 @@ def seed():
     print('[5/12] Bakım kayıtları...')
 
     bakimlar = [
-        {
-            'makine_kod': 'CNC-001', 'tur': 'periyodik',
-            'islem': 'Spindle rulman gres değişimi, X/Y/Z eksenleri yağlama, '
-                     'ball screw backlash kontrolü ve kalibrasyonu. '
-                     'Soğutma sıvısı konsantrasyon ölçümü yapıldı (pH: 9.2).',
-            'tarih': date(2026, 4, 15), 'sure': 210, 'maliyet': 5200.00,
-            'notlar': 'Bir sonraki bakımda spindle rulman değişimi planlanmalı.',
-        },
-        {
-            'makine_kod': 'CNC-002', 'tur': 'periyodik',
-            'islem': 'Spindle soğutma çilleri temizliği, ATC (Otomatik Takım Değiştirici) '
-                     'pnömatik silindir kontrolü. Way cover ve teleskopik kapak muayenesi.',
-            'tarih': date(2026, 3, 20), 'sure': 180, 'maliyet': 3800.00,
-            'notlar': 'ATC gripper pençeleri sonraki bakımda değiştirilecek.',
-        },
-        {
-            'makine_kod': 'ENJ-001', 'tur': 'korektif',
-            'islem': 'Enjeksiyon vidası (screw) ve silindir (barrel) iç yüzey kontrolü. '
-                     'Aşınmış vida ucu (tip) değiştirildi. Geri akış valfi (check ring) yenilendi. '
-                     'Isıtıcı bantların dirençleri ölçüldü.',
-            'tarih': date(2026, 4, 28), 'sure': 300, 'maliyet': 18500.00,
-            'notlar': 'Vida ve silindir arası boşluk 0.08mm — tolerans dahilinde.',
-        },
-        {
-            'makine_kod': 'PRS-001', 'tur': 'periyodik',
-            'islem': 'Hidrolik yağ filtresi değişimi (10μ), basınç hattı hortum muayenesi, '
-                     'silindir keçe kontrolü. Hidrolik yağ numunesi alınarak analiz laboratuvarına gönderildi.',
-            'tarih': date(2026, 2, 10), 'sure': 150, 'maliyet': 3200.00,
-            'notlar': 'Yağ analiz raporu bekleniyor. Silindirdeki sızıntı takibe alındı.',
-        },
-        {
-            'makine_kod': 'KYN-001', 'tur': 'periyodik',
-            'islem': 'Robot 6 eksen reducer yağlama (Nabtesco RV reducer). '
-                     'Kablo kanalı muayenesi. Teaching pendant kalibrasyon kontrolü. '
-                     'TCP (Tool Center Point) kalibrasyonu.',
-            'tarih': date(2026, 4, 1), 'sure': 240, 'maliyet': 7800.00,
-            'notlar': 'J2 eksen reducer sesi normale döndü. TCP sapması 0.02mm.',
-        },
-        {
-            'makine_kod': 'TSL-001', 'tur': 'periyodik',
-            'islem': 'Taşlama taşı değişimi (Norton 46 grit). Hidrostatik yatak yağ seviyesi kontrolü. '
-                     'Soğutma sıvısı filtresi değişimi. Geometrik doğruluk ölçümü yapıldı.',
-            'tarih': date(2026, 4, 20), 'sure': 120, 'maliyet': 2400.00,
-            'notlar': 'Silindiriklik sapması 0.003mm — kabul edilebilir sınırda.',
-        },
-        {
-            'makine_kod': 'CNC-001', 'tur': 'korektif',
-            'islem': 'X ekseni servo motor fan değişimi (arıza #3 sonrası). '
-                     'Sürücü ünitesi üfleme ile temizlendi.',
-            'tarih': date(2026, 4, 22), 'sure': 65, 'maliyet': 1150.00,
-            'notlar': None,
-        },
-        {
-            'makine_kod': 'ENJ-001', 'tur': 'periyodik',
-            'islem': 'Kalıp kilitleme sistemi toggle pin kontrolü. '
-                     'Hidrolik pompa basınç testi. Ejektör mekanizması yağlama.',
-            'tarih': date(2026, 2, 15), 'sure': 180, 'maliyet': 4100.00,
-            'notlar': 'Toggle pinlerde aşınma başlangıcı görüldü — izlemeye alındı.',
-        },
-        {
-            'makine_kod': 'CNC-002', 'tur': 'korektif',
-            'islem': 'Firmware güncelleme (G43 offset sorunu). '
-                     'Tool offset tablosu yeniden oluşturuldu.',
-            'tarih': date(2026, 4, 16), 'sure': 45, 'maliyet': 650.00,
-            'notlar': None,
-        },
+        {'makine_kod': m_sec(0), 'tur': 'periyodik', 'islem': 'Rulman gres değişimi, eksen yağlama, backlash kontrolü. Soğutma sıvısı konsantrasyon ölçümü yapıldı.', 'tarih': date(2026, 4, 15), 'sure': 210, 'maliyet': 5200.00, 'notlar': 'Sonraki bakımda rulman değişimi planlanmalı.'},
+        {'makine_kod': m_sec(1), 'tur': 'periyodik', 'islem': 'Soğutma sistemi temizliği, pnömatik silindir kontrolü.', 'tarih': date(2026, 3, 20), 'sure': 180, 'maliyet': 3800.00, 'notlar': 'Pnömatik valfler kontrol edilmeli.'},
+        {'makine_kod': m_sec(2), 'tur': 'korektif', 'islem': 'Aşınmış mekanizma ucu değiştirildi. Geri akış valfi yenilendi. Isıtıcı bantların dirençleri ölçüldü.', 'tarih': date(2026, 4, 28), 'sure': 300, 'maliyet': 18500.00, 'notlar': 'Tolerans değerleri uygun.'},
+        {'makine_kod': m_sec(3), 'tur': 'periyodik', 'islem': 'Hidrolik yağ filtresi değişimi (10μ), hortum muayenesi, keçe kontrolü. Hidrolik yağ numunesi analize gönderildi.', 'tarih': date(2026, 2, 10), 'sure': 150, 'maliyet': 3200.00, 'notlar': 'Sızıntı takibe alındı.'},
+        {'makine_kod': m_sec(4), 'tur': 'periyodik', 'islem': 'Eksen yağlama. Kablo kanalı muayenesi. Kalibrasyon kontrolü. TCP kalibrasyonu.', 'tarih': date(2026, 4, 1), 'sure': 240, 'maliyet': 7800.00, 'notlar': 'Sapma kabul edilebilir aralıkta.'},
+        {'makine_kod': m_sec(5), 'tur': 'periyodik', 'islem': 'Filtre değişimi. Geometrik doğruluk ölçümü yapıldı.', 'tarih': date(2026, 4, 20), 'sure': 120, 'maliyet': 2400.00, 'notlar': 'Kabul edilebilir sınırda.'},
+        {'makine_kod': m_sec(0), 'tur': 'korektif', 'islem': 'Servo motor fan değişimi. Sürücü ünitesi üfleme ile temizlendi.', 'tarih': date(2026, 4, 22), 'sure': 65, 'maliyet': 1150.00, 'notlar': None},
+        {'makine_kod': m_sec(2), 'tur': 'periyodik', 'islem': 'Kilitleme sistemi kontrolü. Basınç testi. Ejektör mekanizması yağlama.', 'tarih': date(2026, 2, 15), 'sure': 180, 'maliyet': 4100.00, 'notlar': 'İzlemeye alındı.'},
+        {'makine_kod': m_sec(1), 'tur': 'korektif', 'islem': 'Firmware güncelleme. Parametre tablosu yeniden oluşturuldu.', 'tarih': date(2026, 4, 16), 'sure': 45, 'maliyet': 650.00, 'notlar': None},
     ]
 
     for b in bakimlar:
@@ -349,7 +221,7 @@ def seed():
         ],
         'kalip_degisim': [
             ('Planlı kalıp bakımı', 'Kalıp bakım prosedürü uygulandı.'),
-            ('Kalıp temizliği', 'Enjeksiyon kalıbı sökülerek temizlendi.'),
+            ('Kalıp temizliği', 'Üretim araçları sökülerek temizlendi.'),
         ],
         'plansiz_mola': [
             ('Personel molası', 'Vardiya ara molası.'),
@@ -362,14 +234,12 @@ def seed():
     }
 
     kategoriler = list(durus_sablonlari.keys())
-    # Kategori ağırlıkları (gerçekçi dağılım)
     kategori_agirliklari = [0.25, 0.30, 0.15, 0.10, 0.12, 0.08]
 
     for gun in range(14, 0, -1):
         tarih = bugun - timedelta(days=gun)
         if tarih.weekday() == 6:  # Pazar
             continue
-        # Günlük duruş sayısı: 2-4 arası
         durus_sayisi = random.randint(2, 4)
         for _ in range(durus_sayisi):
             makine = random.choice(makineler)

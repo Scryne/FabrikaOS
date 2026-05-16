@@ -131,7 +131,7 @@ function yukleHataZaman() {
 function makineKarsilastir() {
     const m1 = document.getElementById('karsMakine1')?.value;
     const m2 = document.getElementById('karsMakine2')?.value;
-    if (!m1 || !m2) { alert('İki makine seçin'); return; }
+    if (!m1 || !m2) { showToast('Uyarı', 'İki makine seçin', 'warning'); return; }
     const bas = document.getElementById('karsBas')?.value || '';
     const bit = document.getElementById('karsBit')?.value || '';
     fetch(`/analitik/api/karsilastir/makine?m1=${m1}&m2=${m2}&bas=${bas}&bit=${bit}`).then(r=>r.json()).then(data => {
@@ -176,14 +176,15 @@ function makineKarsilastir() {
 
 function donemKarsilastir() {
     const p = ['d1Bas','d1Bit','d2Bas','d2Bit'].map(id => document.getElementById(id)?.value);
-    if (p.some(v => !v)) { alert('Tüm tarihleri seçin'); return; }
+    if (p.some(v => !v)) { showToast('Uyarı', 'Tüm tarihleri seçin', 'warning'); return; }
     fetch(`/analitik/api/karsilastir/donem?d1_bas=${p[0]}&d1_bit=${p[1]}&d2_bas=${p[2]}&d2_bit=${p[3]}`).then(r=>r.json()).then(data => {
         if (data.error) { document.getElementById('donemKarsSonuc').innerHTML = `<div class="alert alert-danger">${data.error}</div>`; return; }
         const metrikler = [{ad:'OEE',k:'ort_oee',b:'%',i:'bi-speedometer2'},{ad:'Üretim',k:'toplam_uretim',b:' adet',i:'bi-box'},{ad:'Hata Oranı',k:'hata_orani',b:'%',i:'bi-bug'},{ad:'Arıza',k:'ariza_sayisi',b:'',i:'bi-tools'},{ad:'Enerji Mal.',k:'enerji_maliyeti',b:' ₺',i:'bi-lightning'},{ad:'Kaza',k:'kaza_sayisi',b:'',i:'bi-shield-exclamation'}];
         let html = '<div class="row g-3">';
         metrikler.forEach(m => {
-            const d = data.degisimler[m.k] || 0;
-            const renk = d > 0 ? (m.k==='ort_oee'||m.k==='toplam_uretim'?'success':'danger') : (m.k==='ort_oee'||m.k==='toplam_uretim'?'danger':'success');
+            const degisimObj = data.degisimler[m.k] || {yuzde: 0, renk: 'secondary'};
+            const d = degisimObj.yuzde;
+            const renk = degisimObj.renk;
             html += `<div class="col-md-4"><div class="card border-0 shadow-sm"><div class="card-body"><div class="d-flex justify-content-between align-items-center mb-2"><span class="text-muted"><i class="bi ${m.i} me-1"></i>${m.ad}</span><span class="badge bg-${renk}-subtle text-${renk}-emphasis">${d>0?'+':''}${d}%</span></div>
             <div class="d-flex justify-content-between"><div><small class="text-muted d-block">Dönem 1</small><span class="fw-bold fs-5">${data.donem1[m.k]}${m.b}</span></div><div class="text-end"><small class="text-muted d-block">Dönem 2</small><span class="fw-bold fs-5">${data.donem2[m.k]}${m.b}</span></div></div></div></div></div>`;
         });

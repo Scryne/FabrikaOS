@@ -9,6 +9,11 @@
         <p class="text-muted mb-0">Tüm modüllerden canlı veriler ve KPI takibi</p>
     </div>
     <div class="d-flex gap-2 align-items-center">
+        {% if current_user.yonetici_mi() %}
+        <a href="{{ url_for('dashboard.kiosk') }}" class="btn btn-primary btn-sm fw-bold shadow-sm" style="border-radius: 8px;">
+            <i class="bi bi-tv me-1"></i>Kiosk Modu
+        </a>
+        {% endif %}
         <span class="badge" style="background:var(--bg-card);color:var(--text-secondary);padding:0.6em 1em;font-size:0.8rem;border:1px solid var(--border-color);">
             <i class="bi bi-calendar3 me-1"></i>{{ now().strftime('%d %B %Y') if now is defined else '' }}
         </span>
@@ -23,7 +28,7 @@
                 <i class="bi bi-people-fill"></i>
             </div>
             <div>
-                <div class="kpi-value">{{ stats.aktif_calisan }}</div>
+                <div class="kpi-value" data-countup>{{ stats.aktif_calisan }}</div>
                 <div class="kpi-label">Aktif Personel</div>
             </div>
         </a>
@@ -34,7 +39,7 @@
                 <i class="bi bi-speedometer"></i>
             </div>
             <div>
-                <div class="kpi-value {% if stats.ort_oee >= 85 %}text-success{% elif stats.ort_oee >= 70 %}text-warning{% else %}text-danger{% endif %}">%{{ stats.ort_oee }}</div>
+                <div class="kpi-value {% if stats.ort_oee >= 85 %}text-success{% elif stats.ort_oee >= 70 %}text-warning{% else %}text-danger{% endif %}">%<span data-countup>{{ stats.ort_oee }}</span></div>
                 <div class="kpi-label">Haftalık OEE</div>
             </div>
         </a>
@@ -45,7 +50,7 @@
                 <i class="bi bi-box-seam-fill"></i>
             </div>
             <div>
-                <div class="kpi-value {% if stats.kritik_stok > 0 %}text-warning{% endif %}">{{ stats.kritik_stok }}</div>
+                <div class="kpi-value {% if stats.kritik_stok > 0 %}text-warning{% endif %}" data-countup>{{ stats.kritik_stok }}</div>
                 <div class="kpi-label">Kritik Stok</div>
             </div>
         </a>
@@ -56,7 +61,7 @@
                 <i class="bi bi-patch-check-fill"></i>
             </div>
             <div>
-                <div class="kpi-value">%{{ stats.hata_orani }}</div>
+                <div class="kpi-value">%<span data-countup>{{ stats.hata_orani }}</span></div>
                 <div class="kpi-label">Hata Oranı</div>
             </div>
         </a>
@@ -67,7 +72,7 @@
                 <i class="bi bi-lightning-charge-fill"></i>
             </div>
             <div>
-                <div class="kpi-value {% if stats.enerji_sapma > 10 %}text-danger{% elif stats.enerji_sapma > 0 %}text-warning{% else %}text-success{% endif %}">{% if stats.enerji_sapma > 0 %}+{% endif %}%{{ stats.enerji_sapma }}</div>
+                <div class="kpi-value {% if stats.enerji_sapma > 10 %}text-danger{% elif stats.enerji_sapma > 0 %}text-warning{% else %}text-success{% endif %}">{% if stats.enerji_sapma > 0 %}+{% endif %}%<span data-countup>{{ stats.enerji_sapma|abs if stats.enerji_sapma is defined else stats.enerji_sapma }}</span></div>
                 <div class="kpi-label">Enerji Sapma</div>
             </div>
         </a>
@@ -78,7 +83,7 @@
                 <i class="bi bi-shield-fill-check"></i>
             </div>
             <div>
-                <div class="kpi-value {% if stats.is_kazasi > 0 %}text-danger{% else %}text-success{% endif %}">{{ stats.is_kazasi }}</div>
+                <div class="kpi-value {% if stats.is_kazasi > 0 %}text-danger{% else %}text-success{% endif %}" data-countup>{{ stats.is_kazasi }}</div>
                 <div class="kpi-label">İş Kazası (Yıl)</div>
             </div>
         </a>
@@ -118,6 +123,32 @@
     {% endif %}
 </div>
 {% endif %}
+
+<!-- Faz 3: AI Darboğaz Analizi ve İçgörüler -->
+<div class="card border-0 mb-4 bg-dark text-white shadow-lg position-relative overflow-hidden" id="ai-insights-widget">
+    <!-- Dekoratif Arka Plan -->
+    <div style="position:absolute;top:-50%;right:-10%;width:300px;height:300px;background:radial-gradient(circle, rgba(162,155,254,0.15) 0%, transparent 70%);border-radius:50%;"></div>
+    
+    <div class="card-body py-4 px-4 position-relative z-1 d-flex align-items-center">
+        <div class="flex-shrink-0 me-4 text-center">
+            <div class="spinner-grow text-primary" style="width: 2rem; height: 2rem; animation-duration: 2s;" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <div class="mt-2 fw-bold text-uppercase" style="font-size:0.7rem; letter-spacing:1px; color:#a29bfe;">AI Asistan</div>
+        </div>
+        <div class="flex-grow-1" style="min-height: 50px; display: flex; align-items: center;">
+            <div id="ai-insight-content" class="w-100 h5 mb-0 fw-light" style="line-height:1.5;">
+                <span class="placeholder-glow w-100">
+                    <span class="placeholder col-8"></span>
+                    <span class="placeholder col-4"></span>
+                </span>
+            </div>
+        </div>
+        <div class="flex-shrink-0 ms-3">
+            <button class="btn btn-sm btn-outline-light rounded-pill px-3" onclick="loadAiInsights()"><i class="bi bi-arrow-clockwise me-1"></i>Yenile</button>
+        </div>
+    </div>
+</div>
 
 <!-- AI Tahminleme Özet Kartı -->
 {% if ai_ozet %}
@@ -241,32 +272,55 @@
                 <span class="badge bg-success-subtle text-success-emphasis" style="font-size:0.7rem;"><i class="bi bi-circle-fill me-1" style="font-size:0.4rem;"></i>Canlı</span>
             </div>
             <div class="card-body text-center py-4">
-                <div class="h1 fw-bold mb-1" id="canliUretimSayaci" style="font-family:'Outfit',sans-serif;color:var(--text-heading);font-size:2.5rem;">
+                <div class="h1 fw-bold mb-1" id="canliUretimSayaci" style="font-family:'Outfit',sans-serif;color:var(--text-heading);font-size:2.5rem;" data-countup>
                     {{ "{:,}".format(stats.bugun_uretim) }}
                 </div>
                 <small class="text-muted">adet üretildi</small>
                 <div class="row g-2 mt-3">
                     <div class="col-4">
                         <div class="rounded p-2" style="background:var(--bg-card-hover);">
-                            <div class="fw-bold" id="canliAcikAriza" style="color:var(--text-heading);">{{ stats.acik_ariza }}</div>
+                            <div class="fw-bold" id="canliAcikAriza" style="color:var(--text-heading);" data-countup>{{ stats.acik_ariza }}</div>
                             <small class="text-muted" style="font-size:0.7rem;">Açık Arıza</small>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="rounded p-2" style="background:var(--bg-card-hover);">
-                            <div class="fw-bold" style="color:var(--text-heading);">{{ stats.aktif_makine }}</div>
+                            <div class="fw-bold" style="color:var(--text-heading);" data-countup>{{ stats.aktif_makine }}</div>
                             <small class="text-muted" style="font-size:0.7rem;">Aktif Makine</small>
                         </div>
                     </div>
                     <div class="col-4">
                         <div class="rounded p-2" style="background:var(--bg-card-hover);">
-                            <div class="fw-bold" id="oeeGaugeValue" style="color:var(--text-heading);">%{{ stats.ort_oee }}</div>
+                            <div class="fw-bold" id="oeeGaugeValue" style="color:var(--text-heading);">%<span data-countup>{{ stats.ort_oee }}</span></div>
                             <small class="text-muted" style="font-size:0.7rem;">Haftalık OEE</small>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Faz 3: Karbon Ayak İzi ve Enerji İsraf Haritası -->
+        <div class="card border-0 mb-4 dashboard-widget" style="border: 1px solid rgba(239, 68, 68, 0.2) !important;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold text-danger"><i class="bi bi-fire me-2"></i>Rölanti Enerji İsrafı</h6>
+                <span class="badge bg-danger-subtle text-danger border border-danger" style="font-size:0.7rem;">Bu Ay</span>
+            </div>
+            <div class="card-body text-center py-4">
+                <p class="text-muted small mb-3">Makinelerin boşta ve arızalı beklemesi yüzünden boşa harcanan maliyet</p>
+                <div class="h2 fw-bold mb-1 text-danger" style="font-family:'Outfit',sans-serif;" data-countup>
+                    {{ "{:,.2f}".format(stats.enerji_israf_tl) }} ₺
+                </div>
+                <div class="mt-4 text-start p-3 rounded" style="background: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2);">
+                    <div class="d-flex align-items-start">
+                        <i class="bi bi-robot text-warning fs-5 me-2"></i>
+                        <span class="small text-muted">
+                            <strong class="text-warning">AI Önerisi:</strong> Operatör eşleştirme optimizasyonu ile bu israfın %40'ı önlenebilir.
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Machine Status -->
         <div class="card border-0 mb-4">
             <div class="card-header">
@@ -418,6 +472,45 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ── Dashboard Widget Sistemi (Auto-Refresh + Drag-Drop) ──
     DashboardWidgets.init();
+
+    // Faz 3: AI Darboğaz Analizi İçgörüleri
+    window.loadAiInsights = function() {
+        const container = document.getElementById('ai-insight-content');
+        if(!container) return;
+        
+        container.style.opacity = '0';
+        
+        fetch('/api/dashboard/insights')
+            .then(r => r.json())
+            .then(data => {
+                const insights = data.insights;
+                let currentIndex = 0;
+                
+                function showNextInsight() {
+                    if(insights.length === 0) return;
+                    const item = insights[currentIndex];
+                    container.innerHTML = `<i class="bi ${item.ikon} ${item.renk} me-2 fs-4 align-middle"></i><span class="align-middle">${item.mesaj}</span>`;
+                    container.style.transition = 'opacity 0.5s';
+                    container.style.opacity = '1';
+                    
+                    currentIndex = (currentIndex + 1) % insights.length;
+                }
+                
+                showNextInsight();
+                
+                if(window.aiInsightInterval) clearInterval(window.aiInsightInterval);
+                window.aiInsightInterval = setInterval(() => {
+                    container.style.opacity = '0';
+                    setTimeout(showNextInsight, 500);
+                }, 8000);
+            })
+            .catch(e => {
+                container.innerHTML = '<span class="text-muted"><i class="bi bi-wifi-off me-2"></i>AI servisine ulaşılamıyor.</span>';
+                container.style.opacity = '1';
+            });
+    };
+    
+    loadAiInsights();
 });
 </script>
 {% endblock %}

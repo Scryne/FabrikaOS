@@ -148,16 +148,6 @@ def api_makineler():
         bugun = datetime.now(timezone.utc).date()
         yedi_gun_once = bugun - timedelta(days=7)
 
-        # Batch: tüm makineler için OEE ortalamaları (tek sorgu)
-        oee_results = db.session.query(
-            UretimVerisi.makine_id,
-            func.avg(UretimVerisi.oee_yuzde)
-        ).filter(
-            UretimVerisi.makine_id.in_(makine_idler),
-            UretimVerisi.tarih >= yedi_gun_once
-        ).group_by(UretimVerisi.makine_id).all()
-        oee_map = {r[0]: round(float(r[1]), 1) if r[1] else None for r in oee_results}
-
         # Batch: bugünkü üretim toplamları (tek sorgu)
         uretim_results = db.session.query(
             UretimVerisi.makine_id,
@@ -179,10 +169,13 @@ def api_makineler():
 
         son_operator_results = db.session.query(
             UretimVerisi.makine_id,
-            Calisan.ad_soyad
+            Calisan.ad_soyad,
+            UretimVerisi.oee_yuzde
         ).join(son_uretim_sub, UretimVerisi.id == son_uretim_sub.c.max_id)\
-         .join(Calisan, UretimVerisi.calisan_id == Calisan.id).all()
+         .outerjoin(Calisan, UretimVerisi.calisan_id == Calisan.id).all()
+         
         operator_map = {r[0]: r[1] for r in son_operator_results}
+        oee_map = {r[0]: round(float(r[2]), 1) if r[2] is not None else None for r in son_operator_results}
 
         # Batch: son arızalar (tek sorgu)
         son_ariza_sub = db.session.query(

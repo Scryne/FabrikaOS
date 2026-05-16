@@ -2,202 +2,363 @@
 {% block title %}Teknisyen Dashboard{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-start mb-4">
-    <div class="welcome-section">
-        <h2>Kolay gelsin, {{ current_user.ad_soyad }} 🛠️</h2>
-        <p class="text-muted mb-0">Makine bakım ve arıza takip ekranı</p>
+<!-- Hero -->
+<div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom" style="background: linear-gradient(90deg, rgba(245,158,11,0.05) 0%, transparent 100%); padding: 1.5rem; border-radius: 1rem;">
+    <div class="d-flex align-items-center gap-4">
+        <div class="fdys-avatar fdys-avatar-lg" style="width: 72px; height: 72px; font-size: 1.8rem; background: #f59e0b; color: #fff; box-shadow: 0 8px 20px rgba(245,158,11,0.3);">
+            {{ current_user.ad_soyad[:2]|upper }}
+        </div>
+        <div class="welcome-section p-0">
+            <h2 class="mb-1 fw-bold" style="font-size: 1.8rem; letter-spacing: -0.02em;">Kolay gelsin, <span class="text-warning">{{ current_user.ad_soyad }}</span> 🛠️</h2>
+            <p class="text-muted mb-0 fs-6">
+                <i class="bi bi-broadcast me-2"></i>Saha operasyonları aktif. Size atanmış <strong class="text-danger">{{ atanan_arizalar|length }} acil arıza</strong> bulunuyor.
+            </p>
+        </div>
+    </div>
+    <div class="d-none d-lg-flex gap-2">
+        <a href="{{ url_for('makine.index') }}" class="btn btn-outline-warning px-3 py-2 fw-bold" style="border-radius: 50rem;"><i class="bi bi-cpu me-2"></i>Makineler</a>
+        <a href="{{ url_for('is_emri.index') }}" class="btn btn-outline-primary px-3 py-2 fw-bold" style="border-radius: 50rem;"><i class="bi bi-clipboard2-check me-2"></i>İş Emirleri</a>
     </div>
 </div>
 
-<div class="row g-4">
-    <!-- Müdahale Süresi KPI -->
-    <div class="col-lg-4">
-        <div class="card border-0 mb-4 h-100 shadow-sm">
-            <div class="card-body text-center d-flex flex-column justify-content-center py-5">
-                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mx-auto mb-3" 
-                     style="width:80px;height:80px;background:linear-gradient(135deg,#00b894,#55efc4);box-shadow: 0 10px 20px rgba(0,184,148,0.2);">
-                    <i class="bi bi-stopwatch text-white" style="font-size:2.5rem;"></i>
-                </div>
-                <h2 class="fw-bold mb-2" style="font-family:'Outfit',sans-serif;color:var(--text-heading);">{{ ort_mudahale }} dk</h2>
-                <span class="text-muted">Son 30 Gün Ortalama Müdahale Süresi</span>
+<!-- KPI Şeridi -->
+<div class="row g-4 mb-4">
+    <!-- Müdahale Süresi -->
+    <div class="col-lg-3 col-md-6">
+        <div class="ie-kpi-card ie-kpi-progress h-100 shadow-sm">
+            <div class="ie-kpi-icon"><i class="bi bi-stopwatch"></i></div>
+            <div class="flex-grow-1">
+                <div class="ie-kpi-label">Ort. Müdahale</div>
+                <div class="ie-kpi-value text-warning">{{ ort_mudahale }}<span class="fs-5 ms-1">dk</span></div>
+                <div class="text-muted small mt-1">Son 30 gün</div>
             </div>
         </div>
     </div>
-    
-    <!-- Atanan Arızalar -->
+    <!-- Çözülen Arızalar -->
+    <div class="col-lg-3 col-md-6">
+        <div class="ie-kpi-card ie-kpi-done h-100 shadow-sm">
+            <div class="ie-kpi-icon"><i class="bi bi-check2-square"></i></div>
+            <div class="flex-grow-1">
+                <div class="ie-kpi-label">Çözülen Arızalar</div>
+                <div class="d-flex align-items-baseline gap-2">
+                    <div class="ie-kpi-value text-success">{{ son_30_cozulen }}</div>
+                    <span class="text-muted small">/ {{ toplam_cozulen }} Toplam</span>
+                </div>
+                <div class="text-muted small mt-1">Son 30 gün başarı</div>
+            </div>
+        </div>
+    </div>
+    <!-- Açık Arızalar -->
+    <div class="col-lg-3 col-md-6">
+        <div class="ie-kpi-card ie-kpi-sla h-100 shadow-sm {% if atanan_arizalar|length > 0 %}ai-pulse-danger{% endif %}">
+            <div class="ie-kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="flex-grow-1">
+                <div class="ie-kpi-label">Açık Arızalar</div>
+                <div class="ie-kpi-value text-danger">{{ atanan_arizalar|length }}</div>
+                <div class="text-muted small mt-1">Acil müdahale</div>
+            </div>
+        </div>
+    </div>
+    <!-- Makine Sağlık -->
+    <div class="col-lg-3 col-md-6">
+        <a href="{{ url_for('makine.index') }}" class="ie-kpi-card h-100 shadow-sm text-decoration-none" style="border-top: 3px solid {% if makine_saglik.saglik_yuzdesi >= 80 %}#10b981{% elif makine_saglik.saglik_yuzdesi >= 60 %}#f59e0b{% else %}#ef4444{% endif %};">
+            <div class="ie-kpi-icon" style="background: rgba(16,185,129,0.12); color: #10b981;"><i class="bi bi-heart-pulse"></i></div>
+            <div class="flex-grow-1">
+                <div class="ie-kpi-label">Fabrika Sağlığı</div>
+                <div class="ie-kpi-value {% if makine_saglik.saglik_yuzdesi >= 80 %}text-success{% elif makine_saglik.saglik_yuzdesi >= 60 %}text-warning{% else %}text-danger{% endif %}">%{{ makine_saglik.saglik_yuzdesi }}</div>
+                <div class="text-muted small mt-1">{{ makine_saglik.aktif }}/{{ makine_saglik.toplam }} aktif</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Uyarı Bantları -->
+{% if (isg_verisi and isg_verisi.acik_risk > 0) or kritik_stok_sayisi > 0 or makine_saglik.bakim_geciken > 0 %}
+<div class="row g-2 mb-4">
+    {% if makine_saglik.bakim_geciken > 0 %}
+    <div class="col-auto"><a href="{{ url_for('makine.index') }}" class="alert alert-warning d-inline-flex align-items-center py-2 px-3 mb-0 text-decoration-none"><i class="bi bi-tools me-2"></i><strong>{{ makine_saglik.bakim_geciken }}</strong>&nbsp;bakım gecikmiş</a></div>
+    {% endif %}
+    {% if isg_verisi and isg_verisi.acik_risk > 0 %}
+    <div class="col-auto"><a href="{{ url_for('isg.index') }}" class="alert alert-danger d-inline-flex align-items-center py-2 px-3 mb-0 text-decoration-none"><i class="bi bi-shield-exclamation me-2"></i><strong>{{ isg_verisi.acik_risk }}</strong>&nbsp;yüksek risk</a></div>
+    {% endif %}
+    {% if kritik_stok_sayisi > 0 %}
+    <div class="col-auto"><a href="{{ url_for('stok.index') }}" class="alert alert-warning d-inline-flex align-items-center py-2 px-3 mb-0 text-decoration-none"><i class="bi bi-box-seam-fill me-2"></i><strong>{{ kritik_stok_sayisi }}</strong>&nbsp;kritik stok</a></div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="row g-4">
+    <!-- Sol Sütun -->
     <div class="col-lg-8">
-        <div class="card border-0 mb-4 h-100 shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-lightning-charge text-danger me-2"></i>Atanan Açık Arızalar</h5>
-                <span class="badge bg-danger rounded-pill">{{ atanan_arizalar|length }}</span>
+        <!-- Arıza Panosu -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center py-3 bg-transparent border-bottom">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-lightning-charge-fill text-danger me-2"></i>Müdahale Bekleyen Arızalar</h5>
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
                     {% for ariza in atanan_arizalar %}
-                    <a href="{{ url_for('makine.index') }}" class="list-group-item list-group-item-action p-4 border-bottom">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0 fw-bold 
-                                {% if ariza.oncelik == 'kiritik' %}text-danger
-                                {% elif ariza.oncelik == 'yuksek' %}text-warning
-                                {% endif %}" style="font-size: 1.1rem;">
-                                {{ ariza.makine.kod }} - {{ ariza.ariza_turu }}
-                            </h6>
-                            <span class="badge 
-                                {% if ariza.oncelik == 'kiritik' %}bg-danger
-                                {% elif ariza.oncelik == 'yuksek' %}bg-warning text-dark
-                                {% else %}bg-secondary{% endif %} py-2 px-3">
-                                {{ ariza.oncelik | upper }}
-                            </span>
-                        </div>
-                        <div class="d-flex text-muted small mt-2">
-                            <span class="me-3"><i class="bi bi-clock me-1"></i>{{ ariza.baslangic_zamani.strftime('%d.%m.%Y %H:%M') }}</span>
-                            <span><i class="bi bi-person me-1"></i>Bildiren: {{ ariza.bildiren.ad_soyad }}</span>
+                    <a href="{{ url_for('makine.index') }}" class="list-group-item list-group-item-action p-4 border-bottom position-relative hover-success transition-all" style="background: var(--bg-card);">
+                        {% if ariza.oncelik == 'kritik' %}
+                        <div class="position-absolute top-0 start-0 bottom-0" style="width: 5px; background: #ef4444;"></div>
+                        {% elif ariza.oncelik == 'yuksek' %}
+                        <div class="position-absolute top-0 start-0 bottom-0" style="width: 5px; background: #f59e0b;"></div>
+                        {% else %}
+                        <div class="position-absolute top-0 start-0 bottom-0" style="width: 5px; background: var(--border-color);"></div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-start ms-2">
+                            <div class="d-flex gap-3">
+                                <div class="d-flex align-items-center justify-content-center rounded-3 shadow-sm flex-shrink-0" style="width: 54px; height: 54px; background: var(--bg-body); border: 1px solid var(--border-color);">
+                                    <i class="bi bi-gear-fill fs-3 text-secondary"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <span class="badge bg-dark border font-monospace text-muted">{{ ariza.makine.kod }}</span>
+                                        <span class="badge {% if ariza.oncelik == 'kritik' %}bg-danger{% elif ariza.oncelik == 'yuksek' %}bg-warning text-dark{% else %}bg-secondary{% endif %} rounded-pill py-1 px-2">
+                                            {% if ariza.oncelik == 'kritik' %}<i class="bi bi-exclamation-circle-fill me-1"></i>{% endif %}{{ ariza.oncelik | upper }}
+                                        </span>
+                                    </div>
+                                    <h6 class="mb-1 fw-bold fs-5 {% if ariza.oncelik == 'kritik' %}text-danger{% else %}text-heading{% endif %}">{{ ariza.ariza_turu }}</h6>
+                                    <div class="d-flex text-muted small mt-2 gap-3">
+                                        <span><i class="bi bi-clock-history me-1"></i>{{ ariza.baslangic_zamani.strftime('%H:%M') }}</span>
+                                        <span><i class="bi bi-person me-1"></i>{{ ariza.bildiren.ad_soyad }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-sm btn-outline-danger fw-bold rounded-pill px-3">Müdahale Et</button>
                         </div>
                     </a>
                     {% else %}
                     <div class="p-5 text-center text-muted">
-                        <i class="bi bi-check-circle display-4 d-block mb-3 text-success opacity-50"></i>
-                        <p class="mb-0 fs-5">Size atanmış açık arıza bulunmuyor. Harika iş!</p>
+                        <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; background: rgba(16, 185, 129, 0.1);"><i class="bi bi-shield-check display-5 text-success"></i></div>
+                        <h5 class="fw-bold text-heading">Harika, Saha Temiz!</h5>
+                        <p class="mb-0">Size atanmış açık bir arıza kaydı bulunmuyor.</p>
                     </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
-<!-- Bakım Takvimi -->
-<div class="row g-4 mt-2">
-    <div class="col-lg-8">
-        <div class="card border-0 mb-4 shadow-sm">
-            <div class="card-header">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-tools text-info me-2"></i>Bugünkü Bakım Takvimi (Gelen/Geciken Bakımlar)</h5>
+        <!-- Bakım Takvimi -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header py-3 bg-transparent border-bottom">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-tools text-info me-2"></i>Bugünkü Bakım Operasyonları</h5>
             </div>
             <div class="card-body p-0">
                 <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
+                    <table class="table table-hover align-middle mb-0" style="border-collapse: separate; border-spacing: 0;">
                         <thead class="table-light">
                             <tr>
-                                <th class="ps-4">Makine</th>
-                                <th>Lokasyon</th>
-                                <th>Son Bakım</th>
-                                <th>Planlanan Bakım</th>
-                                <th>Durum</th>
+                                <th class="ps-4 border-0 py-3 text-uppercase font-monospace text-muted" style="font-size: 0.75rem;">Makine / Hat</th>
+                                <th class="border-0 py-3 text-uppercase font-monospace text-muted" style="font-size: 0.75rem;">Lokasyon</th>
+                                <th class="border-0 py-3 text-uppercase font-monospace text-muted" style="font-size: 0.75rem;">Planlanan Tarih</th>
+                                <th class="border-0 py-3 text-uppercase font-monospace text-muted text-end pe-4" style="font-size: 0.75rem;">Durum</th>
                             </tr>
                         </thead>
                         <tbody>
                             {% for makine in bakimi_gelen_makineler %}
-                            <tr>
-                                <td class="ps-4">
-                                    <div class="d-flex align-items-center">
-                                        <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width:40px;height:40px;">
-                                            <i class="bi bi-cpu text-primary"></i>
+                            <tr class="{% if makine.bakim_gecikti_mi %}ie-row-sla-exceeded{% endif %}">
+                                <td class="ps-4 py-3">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 42px; height: 42px; background: var(--bg-body); border: 1px solid var(--border-color);">
+                                            <i class="bi bi-cpu fs-5 {% if makine.bakim_gecikti_mi %}text-danger{% else %}text-primary{% endif %}"></i>
                                         </div>
                                         <div>
-                                            <strong>{{ makine.kod }}</strong> <br> 
+                                            <div class="fw-bold text-heading">{{ makine.kod }}</div>
                                             <small class="text-muted">{{ makine.ad }}</small>
                                         </div>
                                     </div>
                                 </td>
-                                <td>{{ makine.lokasyon or '-' }}</td>
-                                <td><span class="text-muted"><i class="bi bi-calendar-check me-1"></i>{{ makine.son_bakim_tarihi.strftime('%d.%m.%Y') if makine.son_bakim_tarihi else '-' }}</span></td>
-                                <td><span class="fw-bold"><i class="bi bi-calendar-event me-1"></i>{{ makine.sonraki_bakim_tarihi.strftime('%d.%m.%Y') }}</span></td>
-                                <td>
+                                <td class="py-3"><span class="badge bg-dark border text-muted"><i class="bi bi-geo-alt me-1"></i>{{ makine.lokasyon or 'Genel' }}</span></td>
+                                <td class="py-3"><i class="bi bi-calendar-event text-secondary me-2"></i><span class="fw-bold text-heading">{{ makine.sonraki_bakim_tarihi.strftime('%d.%m.%Y') }}</span></td>
+                                <td class="py-3 text-end pe-4">
                                     {% if makine.bakim_gecikti_mi %}
-                                        <span class="badge bg-danger py-2 px-3"><i class="bi bi-exclamation-triangle-fill me-1"></i>Gecikti</span>
+                                    <span class="badge bg-danger-subtle text-danger-emphasis py-2 px-3 border border-danger-subtle rounded-pill"><i class="bi bi-exclamation-triangle-fill me-1"></i>SLA İhlali</span>
                                     {% else %}
-                                        <span class="badge bg-warning text-dark py-2 px-3"><i class="bi bi-bell-fill me-1"></i>Bugün</span>
+                                    <span class="badge bg-warning-subtle text-warning-emphasis py-2 px-3 border border-warning-subtle rounded-pill"><i class="bi bi-bell-fill me-1"></i>Planlı Gün</span>
                                     {% endif %}
                                 </td>
                             </tr>
                             {% else %}
-                            <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">
-                                    <i class="bi bi-calendar-x display-4 d-block mb-3 opacity-50"></i>
-                                    Bugün için planlanan periyodik bakım yok.
-                                </td>
-                            </tr>
+                            <tr><td colspan="4" class="text-center py-5 text-muted"><i class="bi bi-calendar2-check display-4 d-block mb-3 opacity-50"></i>Bugün için planlanan periyodik bakım yok.</td></tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
+
+        <!-- İş Emirleri -->
+        {% if teknisyen_is_emirleri %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center py-3 bg-transparent border-bottom">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-clipboard2-check-fill text-primary me-2"></i>Atanan İş Emirleri</h5>
+                <a href="{{ url_for('is_emri.index') }}" class="btn btn-sm btn-outline-primary">Tümü →</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for ie in teknisyen_is_emirleri %}
+                    <a href="{{ url_for('is_emri.detay', id=ie.id) }}" class="list-group-item list-group-item-action p-3 border-bottom position-relative hover-success">
+                        <div class="position-absolute top-0 start-0 bottom-0" style="width: 4px; background: {% if ie.durum == 'acik' %}#3b82f6{% else %}#f59e0b{% endif %};"></div>
+                        <div class="d-flex justify-content-between align-items-center ms-2">
+                            <div>
+                                <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-1 font-monospace me-2">{{ ie.is_emri_no }}</span>
+                                <strong class="text-heading">{{ ie.baslik }}</strong>
+                            </div>
+                            <span class="badge {% if ie.durum == 'acik' %}bg-primary-subtle text-primary-emphasis{% else %}bg-warning-subtle text-warning-emphasis{% endif %} rounded-pill">{{ ie.durum | capitalize }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 
-    <!-- Performans İstatistikleri & Yaklaşan Bakımlar -->
+    <!-- Sağ Sütun -->
     <div class="col-lg-4">
-        <!-- Performans Özeti -->
-        <div class="card border-0 mb-4 shadow-sm">
-            <div class="card-header">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-trophy text-warning me-2"></i>Performans Özeti</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                    <div>
-                        <div class="text-muted small">Toplam Çözülen Arıza</div>
-                        <div class="fw-bold fs-5" style="color:var(--text-heading);">{{ toplam_cozulen }}</div>
-                    </div>
-                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
-                         style="width:48px;height:48px;background:rgba(16,185,129,0.1);">
-                        <i class="bi bi-check-circle text-success" style="font-size:1.3rem;"></i>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
-                    <div>
-                        <div class="text-muted small">Son 30 Gün</div>
-                        <div class="fw-bold fs-5" style="color:var(--text-heading);">{{ son_30_cozulen }}</div>
-                    </div>
-                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
-                         style="width:48px;height:48px;background:rgba(59,130,246,0.1);">
-                        <i class="bi bi-calendar-check text-primary" style="font-size:1.3rem;"></i>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div class="text-muted small">Ort. Müdahale Süresi</div>
-                        <div class="fw-bold fs-5" style="color:var(--text-heading);">{{ ort_mudahale }} dk</div>
-                    </div>
-                    <div class="rounded-circle d-flex align-items-center justify-content-center" 
-                         style="width:48px;height:48px;background:rgba(245,158,11,0.1);">
-                        <i class="bi bi-stopwatch text-warning" style="font-size:1.3rem;"></i>
-                    </div>
+        <!-- Hızlı İşlemler -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-body p-4 text-center">
+                <h6 class="text-uppercase text-muted fw-bold small mb-4">Hızlı Aksiyonlar</h6>
+                <div class="d-grid gap-3">
+                    <a href="{{ url_for('fabrika_harita.index') }}" class="btn btn-outline-primary py-3 fw-bold rounded-3"><i class="bi bi-map fs-4 d-block mb-2"></i>Fabrika Haritası</a>
+                    <a href="{{ url_for('stok.index') }}" class="btn btn-outline-secondary py-3 fw-bold rounded-3"><i class="bi bi-journal-text fs-4 d-block mb-2"></i>Yedek Parça / Stok</a>
                 </div>
             </div>
         </div>
 
-        <!-- Yaklaşan Bakımlar (7 Gün) -->
-        <div class="card border-0 shadow-sm">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-calendar-week text-primary me-2"></i>Yaklaşan Bakımlar</h5>
-                <span class="badge bg-primary rounded-pill">{{ yaklasan_bakimlar|length }}</span>
+        <!-- İSG Durum -->
+        {% if isg_verisi %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header py-3 bg-transparent"><h6 class="card-title mb-0 fw-bold text-heading"><i class="bi bi-shield-check text-success me-2"></i>İSG Durumu</h6></div>
+            <div class="card-body">
+                <div class="row text-center g-2">
+                    <div class="col-6">
+                        <div class="{% if isg_verisi.acik_risk > 0 %}text-danger{% else %}text-success{% endif %}">
+                            <div class="h4 fw-bold mb-0">{{ isg_verisi.acik_risk }}</div>
+                            <small class="text-muted">Yüksek Risk</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="{% if isg_verisi.suresi_dolan_egitim > 0 %}text-warning{% else %}text-success{% endif %}">
+                            <div class="h4 fw-bold mb-0">{{ isg_verisi.suresi_dolan_egitim }}</div>
+                            <small class="text-muted">Eğitim Süresi</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="{% if isg_verisi.is_kazasi > 0 %}text-danger{% else %}text-success{% endif %}">
+                            <div class="h4 fw-bold mb-0">{{ isg_verisi.is_kazasi }}</div>
+                            <small class="text-muted">İş Kazası</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-warning">
+                            <div class="h4 fw-bold mb-0">{{ isg_verisi.ramak_kala }}</div>
+                            <small class="text-muted">Ramak Kala</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Enerji Özeti -->
+        {% if enerji_ozet %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header py-3 bg-transparent"><h6 class="card-title mb-0 fw-bold text-heading"><i class="bi bi-lightning-charge text-warning me-2"></i>Enerji Özeti (Aylık)</h6></div>
+            <div class="card-body">
+                <div class="row text-center g-2">
+                    <div class="col-6">
+                        <div class="h5 fw-bold mb-0 text-heading">₺{{ "{:,.0f}".format(enerji_ozet.aylik_maliyet) }}</div>
+                        <small class="text-muted">Toplam Maliyet</small>
+                    </div>
+                    <div class="col-6">
+                        <div class="h5 fw-bold mb-0 text-heading">{{ enerji_ozet.aylik_karbon }} <small class="text-muted">ton</small></div>
+                        <small class="text-muted">Karbon Salınımı</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Kritik Stok -->
+        {% if kritik_stok_listesi %}
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header py-3 bg-transparent d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold text-heading"><i class="bi bi-box-seam text-danger me-2"></i>Kritik Stok</h6>
+                <span class="badge bg-danger rounded-pill">{{ kritik_stok_sayisi }}</span>
             </div>
             <div class="card-body p-0">
                 <div class="list-group list-group-flush">
-                    {% for makine in yaklasan_bakimlar %}
-                    <div class="list-group-item px-4 py-3 border-0">
+                    {% for m in kritik_stok_listesi %}
+                    <div class="list-group-item px-4 py-3 bg-transparent border-bottom">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <h6 class="mb-1 fw-bold" style="font-size:0.9rem;">{{ makine.kod }} — {{ makine.ad }}</h6>
-                                <small class="text-muted">
-                                    <i class="bi bi-calendar-event me-1"></i>{{ makine.sonraki_bakim_tarihi.strftime('%d.%m.%Y') }}
-                                    {% if makine.lokasyon %} · <i class="bi bi-geo-alt me-1"></i>{{ makine.lokasyon }}{% endif %}
-                                </small>
+                                <h6 class="mb-0 fw-bold text-heading small">{{ m.ad }}</h6>
+                                <small class="text-muted">{{ m.kod }}</small>
                             </div>
-                            <span class="badge bg-info-subtle text-info-emphasis py-1 px-2">
-                                {{ (makine.sonraki_bakim_tarihi - now().date()).days if now is defined else '?' }} gün
-                            </span>
+                            <span class="badge bg-danger-subtle text-danger-emphasis px-2 py-1">{{ m.mevcut_miktar }} / {{ m.minimum_stok }} {{ m.birim }}</span>
                         </div>
-                    </div>
-                    {% else %}
-                    <div class="p-4 text-center text-muted">
-                        <i class="bi bi-check-circle display-5 d-block mb-2 text-success opacity-50"></i>
-                        <p class="mb-0 small">7 gün içinde planlanan bakım yok.</p>
                     </div>
                     {% endfor %}
                 </div>
             </div>
         </div>
+        {% endif %}
+
+        <!-- Yaklaşan Bakımlar -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header py-3 bg-transparent border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold text-heading"><i class="bi bi-calendar-week text-primary me-2"></i>Gelecek 7 Gün</h6>
+                <span class="badge bg-primary rounded-pill">{{ yaklasan_bakimlar|length }}</span>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for makine in yaklasan_bakimlar %}
+                    <div class="list-group-item px-4 py-3 bg-transparent border-bottom">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1 fw-bold text-heading">{{ makine.kod }}</h6>
+                                <small class="text-muted d-block text-truncate" style="max-width: 150px;">{{ makine.ad }}</small>
+                            </div>
+                            <div class="text-end">
+                                <span class="badge bg-info-subtle text-info-emphasis px-3 py-2 rounded-pill fs-6 fw-bold">{{ (makine.sonraki_bakim_tarihi - bugun).days }} gün</span>
+                                <div class="text-muted small mt-1"><i class="bi bi-calendar3 me-1"></i>{{ makine.sonraki_bakim_tarihi.strftime('%d.%m') }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted small">Önümüzdeki 7 gün içerisinde periyodik bakım planlanmamıştır.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Son Bildirimler -->
+        {% if son_bildirimler %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-header py-3 bg-transparent d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold text-heading"><i class="bi bi-bell-fill text-info me-2"></i>Son Bildirimler</h6>
+                <a href="{{ url_for('dashboard.bildirimler') }}" class="btn btn-sm btn-outline-primary">Tümü</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for b in son_bildirimler %}
+                    <a href="{{ b.url or '#' }}" class="list-group-item list-group-item-action py-3 px-4 border-0">
+                        <h6 class="mb-1 fw-bold small" style="color:var(--text-heading);">
+                            {% if b.seviye == 'kritik' %}<i class="bi bi-exclamation-octagon-fill text-danger me-1"></i>
+                            {% elif b.seviye == 'uyari' %}<i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>
+                            {% else %}<i class="bi bi-info-circle-fill text-info me-1"></i>{% endif %}
+                            {{ b.baslik }}
+                        </h6>
+                        <small class="text-muted">{{ b.olusturma_tarihi.strftime('%d.%m %H:%M') }}</small>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

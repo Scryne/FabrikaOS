@@ -132,11 +132,14 @@ class TahminMotoru:
                 oneri=s.get('uyari'),
                 model_versiyonu=s.get('model_versiyonu', 'v2.0'),
                 meta_veri=json.dumps({
+                    'makine_kod': s.get('makine_kod'),
                     'mevcut_oee': s.get('mevcut_oee'),
                     'tahmin_ort': s.get('tahmin_ort'),
                     'trend': s.get('trend'),
                     'hedef_oee': s.get('hedef_oee'),
                     'guvenilirlik': s.get('guvenilirlik'),
+                    'gecmis': s.get('gecmis'),
+                    'tahmin': s.get('tahmin'),
                 }, ensure_ascii=False)
             )
             db.session.add(kayit)

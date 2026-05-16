@@ -9,9 +9,8 @@
     let editMode = false;
     let snapshot = null;
     let refreshTimer = null;
+    let offcanvas = null;
     let popupMachine = null;
-    let popupHideTimer = null;
-    let isOverPopup = false;
 
     // Drag state
     let dragTarget = null;
@@ -34,7 +33,7 @@
 
     // ── INIT ──
     document.addEventListener('DOMContentLoaded', () => {
-        setupPopupEvents();
+        offcanvas = new bootstrap.Offcanvas(document.getElementById('makineOffcanvas'));
         loadData();
         refreshTimer = setInterval(loadData, 30000);
     });
@@ -73,15 +72,21 @@
 
     function buildNode(m) {
         const s = STATUS[m.durum] || STATUS.kapali;
+        const wrapper = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        wrapper.setAttribute('data-id', m.id);
+        wrapper.setAttribute('class', `machine-wrapper${editMode ? ' is-editing' : ''}`);
+        wrapper.setAttribute('transform', `translate(${m.konum_x},${m.konum_y})`);
+
         const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-        g.setAttribute('data-id', m.id);
-        g.setAttribute('class', 'machine-node' + (editMode ? ' is-editing' : ''));
-        g.setAttribute('transform', `translate(${m.konum_x},${m.konum_y})`);
+        g.setAttribute('class', `machine-node machine-node-${m.durum}`);
+
+        wrapper.appendChild(g);
 
         const w = NODE_W, h = NODE_H;
 
         // ── Card body ──
-        const body = mkRect(0, 0, w, h, 8, '#1a1a1a', 'rgba(255,255,255,0.06)', 1);
+        const body = mkRect(0, 0, w, h, 8, '#141414', 'rgba(255,255,255,0.08)', 1);
+        body.setAttribute('filter', 'url(#machineShadow)');
         g.appendChild(body);
 
         // ── Top accent line (3px, status color) ──
@@ -89,12 +94,10 @@
         accent.setAttribute('opacity', '0.7');
         g.appendChild(accent);
 
-        // ── Fault pulse border ──
+        // ── Fault pulse border (replaced by CSS glow) ──
         if (m.durum === 'arizali') {
-            const pulse = mkRect(0, 0, w, h, 8, 'none', s.color, 1);
-            pulse.setAttribute('opacity', '0.3');
-            const animOpacity = mkAnim('opacity', '0.3', '0.08', '1.8s');
-            pulse.appendChild(animOpacity);
+            const pulse = mkRect(0, 0, w, h, 8, 'none', s.color, 2);
+            pulse.setAttribute('opacity', '0.5');
             g.appendChild(pulse);
         }
 
@@ -148,14 +151,13 @@
         // Edit handle
         if (editMode) {
             g.appendChild(mkText(w / 2, h - 2, '⋮⋮', 10, '#4a4a4a', 400, 'Inter', 'middle'));
-            g.addEventListener('mousedown', startDrag);
-            g.addEventListener('touchstart', startDrag, { passive: false });
+            wrapper.addEventListener('mousedown', startDrag);
+            wrapper.addEventListener('touchstart', startDrag, { passive: false });
         } else {
-            g.addEventListener('mouseenter', () => showPopup(m));
-            g.addEventListener('mouseleave', () => scheduleHide());
+            wrapper.addEventListener('click', () => showPopup(m));
         }
 
-        return g;
+        return wrapper;
     }
 
     // ── HELPERS ──
@@ -193,15 +195,15 @@
         return pt.matrixTransform(svg.getScreenCTM().inverse());
     }
 
-    // ── POPUP — anchored to machine node ──
+    // ── POPUP — Offcanvas ──
     function showPopup(m) {
         if (editMode) return;
-        clearTimeout(popupHideTimer);
         popupMachine = m;
 
         const s = STATUS[m.durum] || STATUS.kapali;
-        document.getElementById('popupStatusDot').style.background = s.color;
-        document.getElementById('popupStatusDot').style.boxShadow = 'none';
+        const dot = document.getElementById('popupStatusDot');
+        dot.style.background = s.color;
+        dot.style.boxShadow = `0 0 10px ${s.color}`;
         document.getElementById('popupTitle').textContent = m.ad;
         document.getElementById('popupSubtitle').textContent = m.kod + ' • ' + s.label;
 
@@ -233,52 +235,9 @@
         }
 
         document.getElementById('popupDetailLink').href = DETAIL_BASE + '/' + m.id;
-
-        // Position: anchor to the machine node using SVG → screen coordinates
-        const node = layer.querySelector('[data-id="' + m.id + '"]');
-        if (!node) return;
-
-        const ctm = svg.getScreenCTM();
-        const sx = ctm.a * (m.konum_x + NODE_W) + ctm.e;
-        const sy = ctm.d * m.konum_y + ctm.f;
-
-        const pw = 300;
-        let px = sx + 12;
-        let py = sy;
-
-        // If popup goes off right, flip to left
-        if (px + pw > window.innerWidth - 16) {
-            px = ctm.a * m.konum_x + ctm.e - pw - 12;
-        }
-        // If popup goes off bottom
-        popup.style.display = 'block';
-        popup.classList.add('is-visible');
-        const ph = popup.offsetHeight || 280;
-        if (py + ph > window.innerHeight - 16) {
-            py = window.innerHeight - ph - 16;
-        }
-        if (py < 10) py = 10;
-
-        popup.style.left = px + 'px';
-        popup.style.top = py + 'px';
-    }
-
-    function scheduleHide() {
-        clearTimeout(popupHideTimer);
-        popupHideTimer = setTimeout(() => {
-            if (!isOverPopup) {
-                popup.classList.remove('is-visible');
-                setTimeout(() => {
-                    if (!popup.classList.contains('is-visible')) popup.style.display = 'none';
-                }, 200);
-                popupMachine = null;
-            }
-        }, 300);
-    }
-
-    function setupPopupEvents() {
-        popup.addEventListener('mouseenter', () => { isOverPopup = true; clearTimeout(popupHideTimer); });
-        popup.addEventListener('mouseleave', () => { isOverPopup = false; scheduleHide(); });
+        
+        // Show offcanvas
+        offcanvas.show();
     }
 
     function drawSparkline(svg, data, color) {
@@ -337,6 +296,7 @@
             btnCancel.classList.remove('d-none');
             banner.classList.remove('d-none');
             panel.classList.remove('d-none');
+            svg.classList.add('edit-mode-active');
             clearInterval(refreshTimer);
             renderUnplaced();
         } else {
@@ -345,6 +305,7 @@
             btnCancel.classList.add('d-none');
             banner.classList.add('d-none');
             panel.classList.add('d-none');
+            svg.classList.remove('edit-mode-active');
             refreshTimer = setInterval(loadData, 30000);
             snapshot = null;
         }
@@ -364,6 +325,7 @@
         document.getElementById('btnCancelEdit').classList.add('d-none');
         document.getElementById('editBanner').classList.add('d-none');
         document.getElementById('unplacedPanel').classList.add('d-none');
+        svg.classList.remove('edit-mode-active');
         refreshTimer = setInterval(loadData, 30000);
         snapshot = null;
         render();

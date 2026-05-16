@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block title %}Rol ve Yetki Matrisi{% endblock %}
+
+{% block extra_css %}
+<style>
+    .module-icon-container {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        background: var(--bg-card-hover);
+        border: 1px solid var(--border-color);
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-decoration-none"><i class="bi bi-house"></i></a></li>
+        <li class="breadcrumb-item active">Yönetim</li>
+        <li class="breadcrumb-item active" aria-current="page">Yetki Matrisi</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <div>
+            <h2 class="h4 mb-1 fw-bold"><i class="bi bi-shield-lock me-2 text-primary"></i>Kapsamlı Yetki Matrisi</h2>
+            <p class="text-muted mb-0">Kurumunuza özel rolleri ve modül erişimlerini profesyonel arayüzden yönetin.</p>
+        </div>
+        
+        <!-- Rol Şablonları -->
+        <div class="dropdown">
+            <button class="btn btn-secondary dropdown-toggle px-4 fw-bold shadow-sm" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-magic me-2 text-warning"></i>Hızlı Şablon Uygula
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-lg">
+                <li><h6 class="dropdown-header">Hazır Profiller</h6></li>
+                <li><button class="dropdown-item template-btn" data-role="kalite_muduru"><i class="bi bi-patch-check me-2 text-warning"></i>Kalite Müdürü</button></li>
+                <li><button class="dropdown-item template-btn" data-role="vardiya_amiri"><i class="bi bi-people me-2 text-info"></i>Vardiya Amiri</button></li>
+                <li><button class="dropdown-item template-btn" data-role="bakim_sefi"><i class="bi bi-tools me-2 text-primary"></i>Bakım Şefi</button></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><button class="dropdown-item text-danger template-btn" data-role="temizle"><i class="bi bi-eraser me-2"></i>Tüm İzinleri Kaldır</button></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<form method="POST" action="{{ url_for('admin.yetki_matrisi') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    
+    <div class="card shadow-lg mb-4 border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle text-center">
+                <thead>
+                    <tr>
+                        <th class="text-start px-4 py-4" style="min-width: 280px;">Kullanıcı & Departman</th>
+                        {% for m in moduller %}
+                            {% set icon = 'bi-grid' %}
+                            {% set color = 'text-light' %}
+                            {% if m == 'personel' %}{% set icon = 'bi-people' %}{% set color = 'text-info' %}{% endif %}
+                            {% if m == 'makine' %}{% set icon = 'bi-gear-wide-connected' %}{% set color = 'text-primary' %}{% endif %}
+                            {% if m == 'stok' %}{% set icon = 'bi-box-seam' %}{% set color = 'text-success' %}{% endif %}
+                            {% if m == 'kalite' %}{% set icon = 'bi-patch-check' %}{% set color = 'text-warning' %}{% endif %}
+                            {% if m == 'enerji' %}{% set icon = 'bi-lightning-charge' %}{% set color = 'text-danger' %}{% endif %}
+                            {% if m == 'isg' %}{% set icon = 'bi-shield-exclamation' %}{% set color = 'text-danger' %}{% endif %}
+                        <th class="py-3 px-2">
+                            <div class="d-flex flex-column align-items-center">
+                                <div class="module-icon-container shadow-sm">
+                                    <i class="bi {{ icon }} {{ color }} fs-6"></i>
+                                </div>
+                                <span class="mb-3">{{ m|capitalize }}</span>
+                                <div class="form-check form-switch premium-switch m-0 p-0 d-flex justify-content-center">
+                                    <input class="form-check-input col-select m-0" type="checkbox" role="switch" data-col="{{ m }}" title="Tümünü Seç">
+                                </div>
+                            </div>
+                        </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for k in kullanicilar %}
+                    <tr>
+                        <td class="text-start px-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="fdys-avatar fs-6">
+                                    {{ k.ad_soyad[0]|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold fs-6 text-heading mb-1">{{ k.ad_soyad }}</div>
+                                    <div class="text-muted d-flex align-items-center" style="font-size: 0.82rem;">
+                                        <i class="bi bi-envelope me-1"></i>{{ k.kullanici_adi }}
+                                        <span class="badge bg-secondary ms-2 px-2 rounded-pill fw-normal" style="font-size: 0.75rem;">{{ k.rol|capitalize }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        
+                        {% for m in moduller %}
+                        <td class="px-2">
+                            <div class="form-check form-switch premium-switch m-0 p-0 d-flex justify-content-center">
+                                <input class="form-check-input auth-checkbox m-0" type="checkbox" role="switch"
+                                       name="user_{{ k.id }}_{{ m }}" 
+                                       data-module="{{ m }}"
+                                       id="check_{{ k.id }}_{{ m }}"
+                                       {% if k.modul_erisim.get(m) %}checked{% endif %}>
+                            </div>
+                        </td>
+                        {% endfor %}
+                    </tr>
+                    {% endfor %}
+                    
+                    {% if not kullanicilar %}
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">Yönetici harici kullanıcı bulunamadı.</td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer py-3 px-4 d-flex justify-content-between align-items-center">
+            <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Değişikliklerin aktif olması için kaydetmeniz gereklidir.</span>
+            <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm rounded-pill hover-lift">
+                <i class="bi bi-save me-2"></i>Matrisi Kaydet
+            </button>
+        </div>
+    </div>
+</form>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Sütun bazlı tümünü seç
+    document.querySelectorAll('.col-select').forEach(cb => {
+        cb.addEventListener('change', function() {
+            const module = this.dataset.col;
+            const isChecked = this.checked;
+            document.querySelectorAll(`.auth-checkbox[data-module="${module}"]`).forEach(box => {
+                box.checked = isChecked;
+            });
+        });
+    });
+    
+    // Rol Şablonları Uygulama
+    document.querySelectorAll('.template-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const role = this.dataset.role;
+            const allCheckboxes = document.querySelectorAll('.auth-checkbox');
+            
+            if(role === 'temizle') {
+                allCheckboxes.forEach(cb => cb.checked = false);
+            } 
+            else if(role === 'kalite_muduru') {
+                allCheckboxes.forEach(cb => cb.checked = false);
+                document.querySelectorAll('.auth-checkbox[data-module="kalite"]').forEach(cb => cb.checked = true);
+                document.querySelectorAll('.auth-checkbox[data-module="isg"]').forEach(cb => cb.checked = true);
+            }
+            else if(role === 'vardiya_amiri') {
+                allCheckboxes.forEach(cb => cb.checked = false);
+                document.querySelectorAll('.auth-checkbox[data-module="personel"]').forEach(cb => cb.checked = true);
+                document.querySelectorAll('.auth-checkbox[data-module="makine"]').forEach(cb => cb.checked = true);
+            }
+            else if(role === 'bakim_sefi') {
+                allCheckboxes.forEach(cb => cb.checked = false);
+                document.querySelectorAll('.auth-checkbox[data-module="makine"]').forEach(cb => cb.checked = true);
+                document.querySelectorAll('.auth-checkbox[data-module="stok"]').forEach(cb => cb.checked = true);
+            }
+            
+            // Eğer bir şablon uygulandıysa sütun başlıklarındaki "Tümünü Seç" switchlerini güncelle (opsiyonel)
+            document.querySelectorAll('.col-select').forEach(colCb => {
+                const module = colCb.dataset.col;
+                const totalBoxes = document.querySelectorAll(`.auth-checkbox[data-module="${module}"]`);
+                const checkedBoxes = document.querySelectorAll(`.auth-checkbox[data-module="${module}"]:checked`);
+                colCb.checked = (totalBoxes.length > 0 && totalBoxes.length === checkedBoxes.length);
+            });
+        });
+    });
+});
+</script>
+<style>
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
+}
+</style>
+{% endblock %}
+{% endblock %}

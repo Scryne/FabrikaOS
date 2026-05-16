@@ -10,6 +10,7 @@ from datetime import datetime, timedelta, timezone
 from app.extensions import db
 from app.models.bildirim import Bildirim
 from app.models.kullanici import Kullanici, DenetimIzi
+from app.models.makine import Makine
 
 
 def seed():
@@ -18,6 +19,15 @@ def seed():
     admin = Kullanici.query.filter_by(kullanici_adi='admin').first()
     tum_kullanicilar = Kullanici.query.all()
     admin_id = admin.id if admin else 1
+
+    prs = Makine.query.filter_by(kod='PRS-001').first()
+    prs_id = prs.id if prs else 1
+    
+    abk = Makine.query.filter_by(kod='ABK-001').first()
+    abk_id = abk.id if abk else 2
+    
+    cnc2 = Makine.query.filter_by(kod='CNC-002').first()
+    cnc2_id = cnc2.id if cnc2 else 3
 
     # ══════════════════════════════════════════════════════════════
     # ADMIN BİLDİRİMLERİ (15 adet — okunmamış + okunmuş karışık)
@@ -28,14 +38,14 @@ def seed():
             'baslik': 'Kritik Arıza: Hidrolik Pres (PRS-001)',
             'mesaj': 'Hidrolik silindir rod keçesinden yağ sızıntısı başladı. '
                      'Basınç 180 bar → 145 bar. Üretim durdu. Acil müdahale gerekiyor.',
-            'seviye': 'kritik', 'modul': 'makine', 'url': '/makine/arizalar',
+            'seviye': 'kritik', 'modul': 'makine', 'url': f'/makine/detay/{prs_id}',
             'saat': 6,
         },
         {
-            'baslik': 'Kritik Arıza: Enjeksiyon (ENJ-001)',
+            'baslik': 'Kritik Arıza: Abkant Pres (ABK-001)',
             'mesaj': 'Kalıp kilitleme ünitesinde toggle mekanizması aşınması tespit edildi. '
                      'Kilitleme kuvveti yetersiz, ürünlerde çapak oluşuyor.',
-            'seviye': 'kritik', 'modul': 'makine', 'url': '/makine/arizalar',
+            'seviye': 'kritik', 'modul': 'makine', 'url': f'/makine/detay/{abk_id}',
             'saat': 12,
         },
         {
@@ -59,14 +69,14 @@ def seed():
             'baslik': 'Bakım Zamanı: Pres Makinesi (PRS-001)',
             'mesaj': 'PRS-001 periyodik bakım tarihi 86 gün önce yapılmıştır. '
                      'Bir sonraki bakım tarihi geçmiştir. Bakım planı oluşturun.',
-            'seviye': 'uyari', 'modul': 'makine', 'url': '/makine/',
+            'seviye': 'uyari', 'modul': 'makine', 'url': f'/makine/detay/{prs_id}',
             'saat': 30,
         },
         {
             'baslik': 'OEE Düşüşü: CNC Freze (CNC-002)',
             'mesaj': 'CNC-002 son 7 günlük ortalama OEE değeri %71.8 ile '
                      'hedefin (%82) önemli ölçüde altında. İnceleme önerilir.',
-            'seviye': 'uyari', 'modul': 'makine', 'url': '/makine/',
+            'seviye': 'uyari', 'modul': 'makine', 'url': f'/makine/detay/{cnc2_id}',
             'saat': 36,
         },
         {

@@ -198,6 +198,20 @@
         transition: color 0.2s;
     }
     .password-toggle:hover { color: #fff; }
+
+
+
+    /* Kurumsal Renk Override */
+    {% if kurumsal_ayarlar and kurumsal_ayarlar.ana_renk %}
+    .visual-content .accent-line { background: {{ kurumsal_ayarlar.ana_renk }}; }
+    .visual-content h1 span { color: {{ kurumsal_ayarlar.ana_renk }}; }
+    .brand-logo i { color: {{ kurumsal_ayarlar.ana_renk }}; }
+    .form-floating > .form-control:focus {
+        border-color: {{ kurumsal_ayarlar.ana_renk }} !important;
+        box-shadow: 0 0 0 4px {{ kurumsal_ayarlar.ana_renk }}33 !important;
+    }
+
+    {% endif %}
 </style>
 {% endblock %}
 
@@ -208,7 +222,7 @@
         <div class="visual-bg"></div>
         <div class="visual-overlay"></div>
         <canvas id="particles-js"></canvas>
-        <div class="system-badge">Fabrika Dijital Yönetim Sistemi</div>
+        <div class="system-badge">{% if kurumsal_ayarlar %}{{ kurumsal_ayarlar.sirket_adi }}{% else %}Fabrika Dijital Yönetim Sistemi{% endif %}</div>
         <div class="visual-content" style="z-index: 2; position: relative;">
             <div class="accent-line"></div>
             <h1>Geleceğin Üretimini <br><span>Bugün</span> Yönetin.</h1>
@@ -219,21 +233,30 @@
     <!-- Right Side -->
     <div class="form-side">
         <div class="login-card">
-            <div class="brand-logo">
-                <i class="bi bi-gear-wide-connected"></i>
+            <div class="brand-logo text-center mb-4">
+                {% if kurumsal_ayarlar and kurumsal_ayarlar.logo_path %}
+                <img src="{{ url_for('static', filename=kurumsal_ayarlar.logo_path) }}" alt="Logo" style="max-height: 80px; max-width: 100%;">
+                {% else %}
+                <i class="bi bi-gear-wide-connected" style="font-size: 3rem;"></i>
                 <h3 class="text-white fw-bold mt-2" style="font-family: 'Outfit', sans-serif;">FDYS Portal</h3>
+                {% endif %}
+                {% if kurumsal_ayarlar %}
+                <h5 class="text-muted mt-2" style="font-family: 'Outfit', sans-serif; font-weight:300;">{{ kurumsal_ayarlar.sirket_adi }}</h5>
+                {% endif %}
             </div>
 
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
-                    <div class="alert" role="alert">
-                        <i class="bi bi-exclamation-circle me-2"></i>
+                    <div class="alert" role="alert" style="{% if category == 'success' %}background-color: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.15); color: #34d399;{% endif %}">
+                        <i class="bi {% if category == 'success' %}bi-check-circle{% else %}bi-exclamation-circle{% endif %} me-2"></i>
                         {{ message }}
                     </div>
                     {% endfor %}
                 {% endif %}
             {% endwith %}
+
+
 
             <form method="POST" action="{{ url_for('auth.login') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -340,5 +363,7 @@
     window.addEventListener('resize', init);
     init();
     animate();
+
+
 </script>
 {% endblock %}

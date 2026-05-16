@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="FDYS — Fabrika Dijital Yönetim Sistemi">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{% block title %}FDYS{% endblock %} — Fabrika Dijital Yönetim Sistemi</title>
+    <title>{% block title %}{% if kurumsal_ayarlar %}{{ kurumsal_ayarlar.sirket_adi }}{% else %}FDYS{% endif %}{% endblock %} — {% if kurumsal_ayarlar %}{{ kurumsal_ayarlar.sirket_adi }}{% else %}Fabrika Dijital Yönetim Sistemi{% endif %}</title>
 
 
     <!-- Bootstrap 5.3 CSS -->
@@ -16,8 +16,34 @@
     <link href="{{ url_for('static', filename='css/style.css') }}?v=6.0" rel="stylesheet">
 
     {% block extra_css %}{% endblock %}
+
+    {% if kurumsal_ayarlar and kurumsal_ayarlar.ana_renk %}
+    <style>
+        :root {
+            --bs-primary: {{ kurumsal_ayarlar.ana_renk }};
+            --bs-primary-rgb: {{ kurumsal_ayarlar.ana_renk|replace('#','')|map('int', 16)|join(',') }}; /* Hex to RGB simulation fallback if needed, but modern CSS often handles hex. Let's just override primary var */
+        }
+        
+        .text-primary { color: var(--bs-primary) !important; }
+        .bg-primary { background-color: var(--bs-primary) !important; }
+        .btn-primary { 
+            background-color: var(--bs-primary); 
+            border-color: var(--bs-primary); 
+        }
+        .btn-primary:hover {
+            filter: brightness(0.9);
+            background-color: var(--bs-primary);
+            border-color: var(--bs-primary);
+        }
+        .sidebar .nav-link.active {
+            background-color: rgba(255,255,255,0.05);
+            border-left: 3px solid var(--bs-primary);
+            color: var(--text-heading);
+        }
+    </style>
+    {% endif %}
 </head>
-<body>
+<body class="overflow-x-hidden">
 
     {% if current_user.is_authenticated %}
     <!-- Sidebar Overlay (Mobile) -->
@@ -29,8 +55,14 @@
         <nav class="sidebar text-white p-0" id="sidebar">
             <!-- Brand -->
             <div class="px-3 py-3 d-flex align-items-center" style="border-bottom: 1px solid var(--border-color);">
+                {% if kurumsal_ayarlar and kurumsal_ayarlar.logo_path %}
+                <img src="{{ url_for('static', filename=kurumsal_ayarlar.logo_path) }}" alt="Logo" style="max-height: 32px; max-width: 40px; margin-right: 10px;">
+                {% else %}
                 <i class="bi bi-gear-wide-connected me-2 fs-4 text-primary"></i>
-                <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.2rem;color:var(--text-heading);">FDYS</span>
+                {% endif %}
+                <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.2rem;color:var(--text-heading);">
+                    {% if kurumsal_ayarlar %}{{ kurumsal_ayarlar.sirket_adi }}{% else %}FDYS{% endif %}
+                </span>
             </div>
 
             <!-- Main Menu -->
@@ -64,9 +96,14 @@
                 {% endif %}
             </ul>
 
-            <!-- Modules -->
+            <!-- Modüller -->
             <div class="sidebar-label">Modüller</div>
             <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('is_emri.') %}active{% endif %}" href="{{ url_for('is_emri.index') }}">
+                        <i class="bi bi-clipboard2-check me-2 si-yellow"></i>İş Emirleri
+                    </a>
+                </li>
                 {% if current_user.modul_erisim_var_mi('makine') %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('fabrika_harita.') %}active{% endif %}" href="{{ url_for('fabrika_harita.index') }}">
@@ -74,27 +111,10 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('is_emri.') %}active{% endif %}" href="{{ url_for('is_emri.index') }}">
-                        <i class="bi bi-clipboard2-check me-2 si-yellow"></i>İş Emirleri
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('tahmin.') %}active{% endif %}" href="{{ url_for('tahmin.index') }}">
                         <i class="bi bi-cpu me-2 si-purple"></i>AI Tahminleme
                     </a>
                 </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('analitik.') %}active{% endif %}" href="{{ url_for('analitik.index') }}">
-                        <i class="bi bi-graph-up-arrow me-2 si-cyan"></i>Analitik
-                    </a>
-                </li>
-                {% if current_user.yonetici_mi() %}
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('otomasyon.') %}active{% endif %}" href="{{ url_for('otomasyon.index') }}">
-                        <i class="bi bi-robot me-2 si-green"></i>Otomasyon & Kurallar
-                    </a>
-                </li>
-                {% endif %}
                 {% endif %}
                 {% if current_user.modul_erisim_var_mi('kalite') %}
                 <li class="nav-item">
@@ -117,13 +137,6 @@
                     </a>
                 </li>
                 {% endif %}
-                {% if current_user.yonetici_mi() %}
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('rapor.') %}active{% endif %}" href="{{ url_for('rapor.index') }}">
-                        <i class="bi bi-file-earmark-bar-graph me-2"></i>Raporlar
-                    </a>
-                </li>
-                {% endif %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('takvim.') %}active{% endif %}" href="{{ url_for('takvim.index') }}">
                         <i class="bi bi-calendar3 me-2 si-yellow"></i>Takvim
@@ -132,12 +145,42 @@
             </ul>
 
             {% if current_user.yonetici_mi() %}
-            <!-- General -->
-            <div class="sidebar-label">Genel</div>
+            <!-- Yönetim -->
+            <div class="sidebar-label">Yönetim</div>
             <ul class="nav flex-column mb-4">
                 <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('analitik.') %}active{% endif %}" href="{{ url_for('analitik.index') }}">
+                        <i class="bi bi-graph-up-arrow me-2 si-cyan"></i>Analitik
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('rapor.') %}active{% endif %}" href="{{ url_for('rapor.index') }}">
+                        <i class="bi bi-file-earmark-bar-graph me-2"></i>Raporlar
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('otomasyon.') %}active{% endif %}" href="{{ url_for('otomasyon.index') }}">
+                        <i class="bi bi-robot me-2 si-green"></i>Otomasyon &amp; Kurallar
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link {% if request.endpoint == 'admin.index' %}active{% endif %}" href="{{ url_for('admin.index') }}">
-                        <i class="bi bi-gear me-2"></i>Ayarlar
+                        <i class="bi bi-people-fill me-2"></i>Kullanıcılar
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.yetki_matrisi' %}active{% endif %}" href="{{ url_for('admin.yetki_matrisi') }}">
+                        <i class="bi bi-ui-checks-grid me-2 si-orange"></i>Yetki Matrisi
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.kurumsal' %}active{% endif %}" href="{{ url_for('admin.kurumsal') }}">
+                        <i class="bi bi-building-gear me-2 si-teal"></i>Kurumsal Ayarlar
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'admin.entegrasyon' %}active{% endif %}" href="{{ url_for('admin.entegrasyon') }}">
+                        <i class="bi bi-diagram-3 me-2 si-indigo"></i>Entegrasyon Merkezi
                     </a>
                 </li>
                 <li class="nav-item">

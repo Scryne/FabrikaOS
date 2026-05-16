@@ -126,7 +126,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-body" style="height:380px;"><canvas id="raporGrafik"></canvas></div>
+                <div class="card-body" style="height:380px;" id="trendGrafikContainer"><canvas id="raporGrafik"></canvas></div>
             </div>
         </div>
         <div class="col-lg-4">
@@ -241,7 +241,7 @@ function _renderOzet(ozet){
     const c = document.getElementById('raporOzetIcerik');
     if(!ozet||!ozet.length){c.innerHTML='';return;}
     const icons = {'Toplam Üretim':'bi-box','Ort. OEE':'bi-speedometer2','Hatalı Üretim':'bi-bug','Gün Sayısı':'bi-calendar3',
-        'Toplam Hata Kaydı':'bi-exclamation-triangle','Toplam Fire Adedi':'bi-trash3','Toplam Maliyet':'bi-currency-lira','Kayıt Sayısı':'bi-hash',
+        'Toplam Hata Kaydı':'bi-exclamation-triangle','Toplam Fire Adedi':'bi-trash3','Toplam Maliyet':'bi-cash-stack','Kayıt Sayısı':'bi-hash',
         'Toplam Olay':'bi-shield-exclamation','İş Kazası':'bi-bandaid','Ramak Kala':'bi-exclamation-diamond',
         'Toplam Giriş':'bi-box-arrow-in-down','Toplam Çıkış':'bi-box-arrow-up','Net Hareket':'bi-arrow-left-right',
         'Aktif Personel':'bi-people','Toplam Vardiya Ataması':'bi-calendar2-week'};
@@ -264,63 +264,149 @@ function hexToRgb(hex){
 }
 
 function _renderGrafik(grafik, tip){
-    const container = document.getElementById('raporGrafik').parentElement;
+    const container = document.getElementById('trendGrafikContainer');
+    if(raporChart){
+        raporChart.destroy();
+        raporChart = null;
+    }
+
     if(!grafik||!grafik.labels||!grafik.labels.length){
         container.innerHTML='<div class="h-100 d-flex flex-column align-items-center justify-content-center text-muted"><i class="bi bi-graph-down display-4 mb-3 opacity-25"></i><h6>Görselleştirilecek Veri Yok</h6></div>';
         return;
     }
     container.innerHTML='<canvas id="raporGrafik"></canvas>';
     const ctx=document.getElementById('raporGrafik').getContext('2d');
-    if(raporChart)raporChart.destroy();
 
     const chartType = tip==='area'?'line':tip;
     const datasets = grafik.datasets.map(ds=>{
         const rgb = hexToRgb(ds.color||'#3b82f6');
-        let bg = tip==='bar'?`rgba(${rgb},0.25)`:'transparent';
+        let bg = tip==='bar'?`rgba(${rgb},0.8)`:'transparent';
         if(tip==='line'||tip==='area'){
-            const grad=ctx.createLinearGradient(0,0,0,350);
-            grad.addColorStop(0,`rgba(${rgb},${tip==='area'?0.35:0.15})`);
+            const grad=ctx.createLinearGradient(0,0,0,380);
+            grad.addColorStop(0,`rgba(${rgb},${tip==='area'?0.4:0.15})`);
             grad.addColorStop(1,`rgba(${rgb},0.0)`);
             bg=grad;
         }
-        return{label:ds.label,data:ds.data,borderColor:ds.color||'#3b82f6',backgroundColor:bg,
-            borderWidth:tip==='bar'?0:2.5,borderRadius:tip==='bar'?6:0,tension:0.4,
-            pointRadius:tip==='bar'?0:3,pointBackgroundColor:ds.color||'#3b82f6',
-            pointBorderColor:'transparent',pointHoverRadius:5,fill:tip!=='bar'};
+        return{
+            label: ds.label,
+            data: ds.data,
+            borderColor: ds.color || '#3b82f6',
+            backgroundColor: bg,
+            borderWidth: tip==='bar' ? 0 : 3,
+            borderRadius: tip==='bar' ? 6 : 0,
+            tension: 0.4,
+            pointRadius: tip==='bar' ? 0 : 4,
+            pointBackgroundColor: '#18181b',
+            pointBorderColor: ds.color || '#3b82f6',
+            pointBorderWidth: 2.5,
+            pointHoverRadius: 6,
+            pointHoverBackgroundColor: ds.color || '#3b82f6',
+            pointHoverBorderColor: '#ffffff',
+            fill: tip!=='bar'
+        };
     });
 
-    Chart.defaults.color='#737373';
-    Chart.defaults.font.family="'Inter',system-ui,sans-serif";
+    Chart.defaults.color='#a3a3a3';
+    Chart.defaults.font.family="'Inter', system-ui, sans-serif";
 
-    raporChart=new Chart(ctx,{type:chartType,data:{labels:grafik.labels,datasets},
-        options:{responsive:true,maintainAspectRatio:false,
+    raporChart=new Chart(ctx,{
+        type:chartType,
+        data:{labels:grafik.labels,datasets},
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
             interaction:{mode:'index',intersect:false},
-            plugins:{legend:{position:'top',align:'end',labels:{usePointStyle:true,boxWidth:6,padding:16,font:{size:11,weight:'600'}}},
-                tooltip:{backgroundColor:'rgba(23,23,23,0.95)',titleColor:'#fff',bodyColor:'#e5e5e5',
-                    borderColor:'rgba(255,255,255,0.08)',borderWidth:1,padding:12,boxPadding:6,usePointStyle:true,
-                    titleFont:{size:13,weight:'bold'},bodyFont:{size:12}}},
-            scales:{x:{grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},ticks:{maxRotation:45,padding:8,font:{size:10}}},
-                y:{grid:{color:'rgba(255,255,255,0.04)',drawBorder:false},beginAtZero:true,ticks:{padding:12,font:{size:10}}}}}});
+            plugins:{
+                legend:{
+                    position:'top',
+                    align:'end',
+                    labels:{usePointStyle:true,boxWidth:8,padding:20,font:{size:12,weight:'500'}}
+                },
+                tooltip:{
+                    backgroundColor:'rgba(15, 15, 15, 0.9)',
+                    titleColor:'#ffffff',
+                    bodyColor:'#e5e5e5',
+                    borderColor:'rgba(255,255,255,0.1)',
+                    borderWidth:1,
+                    padding:14,
+                    boxPadding:8,
+                    usePointStyle:true,
+                    titleFont:{size:13,weight:'600'},
+                    bodyFont:{size:13}
+                }
+            },
+            scales:{
+                x:{
+                    grid:{color:'rgba(255,255,255,0.03)',drawBorder:false},
+                    ticks:{maxRotation:45,padding:10,font:{size:11}}
+                },
+                y:{
+                    grid:{color:'rgba(255,255,255,0.06)',drawBorder:false,borderDash:[5,5]},
+                    beginAtZero:true,
+                    ticks:{padding:12,font:{size:11}}
+                }
+            }
+        }
+    });
     window._lastGrafik=grafik;
 }
 
 function _renderDagilim(ozet, modul){
     const container=document.getElementById('dagilimContainer');
+    if(dagilimChart){
+        dagilimChart.destroy();
+        dagilimChart = null;
+    }
+
     if(!ozet||ozet.length<2){
         container.innerHTML='<div class="text-center text-muted"><i class="bi bi-pie-chart display-4 d-block mb-2 opacity-25"></i><small>Dağılım verisi yok</small></div>';
         return;
     }
     container.innerHTML='<canvas id="dagilimGrafik"></canvas>';
     const ctx=document.getElementById('dagilimGrafik').getContext('2d');
-    if(dagilimChart)dagilimChart.destroy();
+    
     const labels=ozet.map(o=>o.baslik);
     const values=ozet.map(o=>{const n=String(o.deger).replace(/[^0-9.,]/g,'').replace(',','');return parseFloat(n)||0;});
     const colors=ozet.map(o=>o.renk||'#3b82f6');
+    const bgColors = colors.map(c => {
+        const rgb = hexToRgb(c);
+        return `rgba(${rgb}, 0.85)`;
+    });
 
-    dagilimChart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data:values,backgroundColor:colors.map(c=>c+'30'),borderColor:colors,borderWidth:2,hoverOffset:8}]},
-        options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
-            plugins:{legend:{position:'bottom',labels:{usePointStyle:true,boxWidth:6,padding:12,font:{size:11},color:'#a3a3a3'}},
-                tooltip:{backgroundColor:'rgba(23,23,23,0.95)',titleColor:'#fff',bodyColor:'#e5e5e5',padding:10,borderColor:'rgba(255,255,255,0.08)',borderWidth:1}}}});
+    dagilimChart=new Chart(ctx,{
+        type:'doughnut',
+        data:{
+            labels,
+            datasets:[{
+                data:values,
+                backgroundColor:bgColors,
+                borderColor:'#18181b', // Match dark card background
+                borderWidth:3,
+                hoverOffset:8
+            }]
+        },
+        options:{
+            responsive:true,
+            maintainAspectRatio:false,
+            cutout:'75%',
+            plugins:{
+                legend:{
+                    position:'bottom',
+                    labels:{usePointStyle:true,boxWidth:8,padding:16,font:{size:12},color:'#a3a3a3'}
+                },
+                tooltip:{
+                    backgroundColor:'rgba(15, 15, 15, 0.9)',
+                    titleColor:'#ffffff',
+                    bodyColor:'#e5e5e5',
+                    padding:12,
+                    borderColor:'rgba(255,255,255,0.1)',
+                    borderWidth:1,
+                    boxPadding:6,
+                    usePointStyle:true
+                }
+            }
+        }
+    });
 }
 
 function grafikTipiDegistir(tip,btn){

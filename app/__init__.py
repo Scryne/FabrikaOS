@@ -176,13 +176,23 @@ def _register_shell_context(app):
 def _register_template_helpers(app):
     """Jinja2 template yardımcı fonksiyonlarını kaydeder."""
     from datetime import datetime
+    from app.models.kurumsal import KurumsalAyarlar
 
     @app.context_processor
     def utility_processor():
+        # Veritabanı henüz hazır değilse hata vermesin diye try-except eklenebilir, 
+        # ancak uygulamanın düzgün çalışması için DB'nin hazır olması beklenir.
+        try:
+            kurumsal = KurumsalAyarlar.ayarlari_getir()
+        except Exception:
+            kurumsal = None
+
         return {
             'app_name': app.config.get('FDYS_APP_NAME', 'FDYS'),
             'app_version': app.config.get('FDYS_VERSION', '1.0.0'),
             'current_year': datetime.now().year,
+            'now': datetime.now,
+            'kurumsal_ayarlar': kurumsal,
         }
 
 def _register_security_headers(app):

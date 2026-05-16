@@ -18,6 +18,7 @@ from app.models.is_emri import IsEmri, IsEmriYorum
 from app.models.analitik import KpiHedef
 from app.models.dosya import DosyaEki
 from app.models.eposta import EpostaAyarlari
+from app.models.kurumsal import KurumsalAyarlar
 
 __all__ = [
     'Kullanici', 'DenetimIzi',
@@ -33,4 +34,5 @@ __all__ = [
     'KpiHedef',
     'DosyaEki',
     'EpostaAyarlari',
+    'KurumsalAyarlar',
 ]

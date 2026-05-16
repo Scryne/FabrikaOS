@@ -8,6 +8,86 @@ from app.extensions import db
 tahmin_bp = Blueprint('tahmin', __name__, url_prefix='/tahmin')
 
 
+import json
+from app.models.tahmin import TahminKaydi
+
+def _get_db_tahminler(tahmin_turu):
+    kayitlar = TahminKaydi.query.filter_by(tahmin_turu=tahmin_turu, aktif=True).order_by(TahminKaydi.risk_skoru.desc()).all()
+    sonuclar = []
+    for k in kayitlar:
+        meta = json.loads(k.meta_veri) if k.meta_veri else {}
+        if tahmin_turu == 'bakim':
+            sonuclar.append({
+                'makine_id': k.kaynak_id,
+                'makine_ad': k.kaynak_adi,
+                'risk_skoru': k.risk_skoru,
+                'tahmini_gun': k.tahmini_gun,
+                'oneri': k.oneri,
+                'detaylar': meta
+            })
+        elif tahmin_turu == 'oee':
+            son_14 = meta.get('son_14gun_oee', [0])
+            sonuclar.append({
+                'makine_id': k.kaynak_id,
+                'makine_ad': k.kaynak_adi,
+                'makine_kod': meta.get('makine_kod', ''),
+                'risk_skoru': k.risk_skoru,
+                'oneri': k.oneri,
+                'uyari': k.oneri if k.risk_skoru > 30 else '',
+                'mevcut_oee': meta.get('mevcut_oee', son_14[-1] if son_14 else 0),
+                'trend': meta.get('trend', 0),
+                'tahmin_ort': meta.get('tahmin_ort', 0),
+                'hedef_oee': meta.get('hedef_oee', 0),
+                'guvenilirlik': meta.get('guvenilirlik', 0),
+                'gecmis': meta.get('gecmis', {'labels': [], 'values': []}),
+                'tahmin': meta.get('tahmin', {'labels': [], 'values': []})
+            })
+        elif tahmin_turu == 'stok':
+            sonuclar.append({
+                'malzeme_id': k.kaynak_id,
+                'malzeme_ad': k.kaynak_adi,
+                'risk_skoru': k.risk_skoru,
+                'tukenme_gun': k.tahmini_gun,
+                'oneri': k.oneri,
+                'kritik_mi': k.risk_skoru >= 75,
+                'mevcut_miktar': meta.get('mevcut_stok', 0),
+                'gunluk_tuketim': meta.get('gunluk_tuketim', 0),
+                'birim': meta.get('birim', 'adet')
+            })
+        elif tahmin_turu == 'anomali':
+            tip = meta.get('tip') or meta.get('anomali_tipi', 'sistem')
+            if 'enerji' in tip:
+                tip = 'enerji'
+            elif 'kalite' in tip:
+                tip = 'kalite'
+                
+            deger = meta.get('deger', meta.get('guncel_tuketim_kwh', meta.get('hata_orani_trend', [0])[-1] if 'hata_orani_trend' in meta else 0))
+            ortalama = meta.get('ortalama', meta.get('normal_tuketim_kwh', meta.get('normal_hata_orani', 0)))
+            sapma_yuzde = meta.get('sapma_yuzde', 0)
+            
+            tarih_str = ''
+            if k.tahmin_tarihi:
+                tarih_str = k.tahmin_tarihi.strftime('%d.%m.%Y')
+            elif k.olusturma_tarihi:
+                tarih_str = k.olusturma_tarihi.strftime('%d.%m.%Y')
+                
+            sonuclar.append({
+                'tip': tip,
+                'kaynak_turu': k.kaynak_turu,
+                'kaynak_id': k.kaynak_id,
+                'kaynak_adi': k.kaynak_adi,
+                'baslik': k.baslik,
+                'aciklama': k.aciklama,
+                'risk_skoru': k.risk_skoru,
+                'tarih': tarih_str,
+                'deger': deger,
+                'ortalama': ortalama,
+                'sapma_yuzde': sapma_yuzde,
+                'birim': '%' if tip == 'kalite' else 'kW'
+            })
+    return sonuclar
+
+
 @tahmin_bp.route('/')
 @login_required
 def index():
@@ -17,16 +97,10 @@ def index():
     # DB'den mevcut tahminleri al
     ozet = tahmin_motoru.dashboard_ozeti()
 
-    # Alt modüllerin verilerini topla
-    from app.services.ai.kestirimci_bakim import kestirimci_bakim_servisi
-    from app.services.ai.oee_tahmin import oee_tahmin_servisi
-    from app.services.ai.stok_tahmin import stok_tahmin_servisi
-    from app.services.ai.anomali_tespit import anomali_tespit_servisi
-
-    bakim_sonuclari = kestirimci_bakim_servisi.tum_makineleri_analiz_et()
-    oee_sonuclari = oee_tahmin_servisi.tum_makineleri_analiz_et()
-    stok_sonuclari = stok_tahmin_servisi.tum_malzemeleri_analiz_et()
-    anomali_sonuclari = anomali_tespit_servisi.tum_anomalileri_tespit_et()
+    bakim_sonuclari = _get_db_tahminler('bakim')
+    oee_sonuclari = _get_db_tahminler('oee')
+    stok_sonuclari = _get_db_tahminler('stok')
+    anomali_sonuclari = _get_db_tahminler('anomali')
 
     return render_template('tahmin/index.html',
                            ozet=ozet,
@@ -40,8 +114,7 @@ def index():
 @login_required
 def kestirimci_bakim():
     """Kestirimci bakım detay sayfası."""
-    from app.services.ai.kestirimci_bakim import kestirimci_bakim_servisi
-    sonuclar = kestirimci_bakim_servisi.tum_makineleri_analiz_et()
+    sonuclar = _get_db_tahminler('bakim')
     return render_template('tahmin/kestirimci_bakim.html', sonuclar=sonuclar)
 
 
@@ -49,8 +122,7 @@ def kestirimci_bakim():
 @login_required
 def oee_tahmin():
     """OEE trend tahmini detay sayfası."""
-    from app.services.ai.oee_tahmin import oee_tahmin_servisi
-    sonuclar = oee_tahmin_servisi.tum_makineleri_analiz_et()
+    sonuclar = _get_db_tahminler('oee')
     return render_template('tahmin/oee_tahmin.html', sonuclar=sonuclar)
 
 
@@ -58,8 +130,7 @@ def oee_tahmin():
 @login_required
 def stok_tahmin():
     """Stok tükenme tahminleri sayfası."""
-    from app.services.ai.stok_tahmin import stok_tahmin_servisi
-    sonuclar = stok_tahmin_servisi.tum_malzemeleri_analiz_et()
+    sonuclar = _get_db_tahminler('stok')
     return render_template('tahmin/stok_tahmin.html', sonuclar=sonuclar)
 
 
@@ -67,8 +138,7 @@ def stok_tahmin():
 @login_required
 def anomaliler():
     """Anomali tespiti sayfası."""
-    from app.services.ai.anomali_tespit import anomali_tespit_servisi
-    sonuclar = anomali_tespit_servisi.tum_anomalileri_tespit_et()
+    sonuclar = _get_db_tahminler('anomali')
     return render_template('tahmin/anomaliler.html', sonuclar=sonuclar)
 
 

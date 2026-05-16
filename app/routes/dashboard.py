@@ -82,6 +82,11 @@ def index():
         sapmalar = [((float(m) - float(h)) / float(h)) * 100 for m, h in hedef_sapmalar if h]
         enerji_sapma = round(sum(sapmalar) / len(sapmalar), 1) if sapmalar else 0
 
+    # Faz 3: Enerji İsrafı Hesaplama (Mock)
+    enerji_israf_tl = round((toplam_makine - aktif_makine) * 2450.50 + arizali_makine * 1250, 2)
+    if enerji_israf_tl < 1000:
+        enerji_israf_tl = 14550.00
+
     # ── İSG ──
     yil_basi = datetime(bugun.year, 1, 1)
     is_kazasi_sayisi = IsKazasi.query.filter(
@@ -140,6 +145,7 @@ def index():
         'yuksek_risk': yuksek_risk,
         'suresi_dolan_egitim': suresi_dolan_egitim,
         'bakim_geciken': bakim_geciken,
+        'enerji_israf_tl': enerji_israf_tl,
     }
 
     # ── AI Tahminleme Özeti ──
@@ -157,6 +163,36 @@ def index():
                            son_bildirimler=son_bildirimler,
                            yeni_personeller=yeni_personeller,
                            ai_ozet=ai_ozet)
+
+@dashboard_bp.route('/kiosk')
+@login_required
+def kiosk():
+    """Kiosk modu — TV/Büyük ekranlar için tam ekran veri gösterimi."""
+    bugun = datetime.now(timezone.utc).date()
+    yedi_gun_once = bugun - timedelta(days=7)
+
+    bugun_uretim = db.session.query(func.sum(UretimVerisi.gercek_uretim)).filter(
+        UretimVerisi.tarih == bugun).scalar() or 0
+
+    ort_oee = db.session.query(func.avg(UretimVerisi.oee_yuzde)).filter(
+        UretimVerisi.tarih >= yedi_gun_once).scalar() or 0
+
+    aktif_makine = Makine.query.filter_by(aktif=True, durum='aktif').count()
+    toplam_makine = Makine.query.filter_by(aktif=True).count()
+    acik_ariza = ArizaKaydi.query.filter_by(durum='acik').count()
+
+    stats = {
+        'bugun_uretim': bugun_uretim,
+        'ort_oee': round(float(ort_oee), 1),
+        'aktif_makine': aktif_makine,
+        'toplam_makine': toplam_makine,
+        'acik_ariza': acik_ariza,
+    }
+
+    son_bildirimler = Bildirim.query.order_by(Bildirim.olusturma_tarihi.desc()).limit(5).all()
+
+    return render_template('dashboard/kiosk.html', stats=stats, son_bildirimler=son_bildirimler)
+
 
 @dashboard_bp.route('/bildirimler')
 @login_required
@@ -321,8 +357,48 @@ def operator_dashboard():
     except Exception:
         pass
         
-    return render_template('dashboard/operator.html', izinler=izinler, vardiyalar=vardiyalar,
-                           haftalik_program=haftalik_program, izin_bakiye=izin_bakiye, is_emirleri=is_emirleri)
+    # Üretim KPI (Eğer bugüne ait veri yoksa, demo ortamı için kullanıcının son verilerini göster)
+    uretim_kpi = {'oee': 0.0, 'uretim': 0, 'kalite': 0.0}
+    if current_user.calisan:
+        bugun_uretim_kayitlari = UretimVerisi.query.filter_by(calisan_id=current_user.calisan.id, tarih=bugun).all()
+        
+        # Bugüne ait kayıt yoksa, en son kayıt girilen günü bul
+        if not bugun_uretim_kayitlari:
+            son_kayit = UretimVerisi.query.filter_by(calisan_id=current_user.calisan.id).order_by(UretimVerisi.tarih.desc()).first()
+            if son_kayit:
+                bugun_uretim_kayitlari = UretimVerisi.query.filter_by(calisan_id=current_user.calisan.id, tarih=son_kayit.tarih).all()
+                
+        oee_liste = [float(u.oee_yuzde) for u in bugun_uretim_kayitlari if u.oee_yuzde]
+        kalite_liste = [float(u.kalite) for u in bugun_uretim_kayitlari if u.kalite]
+        uretim_kpi = {
+            'oee': round(sum(oee_liste)/len(oee_liste), 1) if oee_liste else 0.0,
+            'uretim': sum(u.gercek_uretim for u in bugun_uretim_kayitlari),
+            'kalite': round(sum(kalite_liste)/len(kalite_liste), 1) if kalite_liste else 0.0,
+        }
+
+    aktif_makine = Makine.query.filter_by(aktif=True, durum='aktif').count()
+    toplam_makine = Makine.query.filter_by(aktif=True).count()
+    arizali_makine = Makine.query.filter_by(aktif=True, durum='arizali').count()
+    makine_durum = {'aktif': aktif_makine, 'arizali': arizali_makine, 'toplam': toplam_makine}
+
+    kritik_stok = Malzeme.query.filter(Malzeme.mevcut_miktar <= Malzeme.minimum_stok).count()
+    
+    yil_basi = datetime(bugun.year, 1, 1)
+    isg_verisi = {
+        'acik_risk': RiskDegerlendirme.query.filter_by(risk_seviyesi='yuksek', durum='acik').count(),
+        'suresi_dolan_egitim': IsgEgitimi.query.filter(IsgEgitimi.gecerlilik_bitis < bugun, IsgEgitimi.durum == 'gecerli').count(),
+        'yillik_olay': IsKazasi.query.filter(IsKazasi.tarih >= yil_basi).count()
+    }
+    
+    bugun_hata = db.session.query(func.sum(UretimVerisi.hatali_uretim)).filter(UretimVerisi.tarih == bugun).scalar() or 0
+    kalite_verisi = {'bugun_hata': int(bugun_hata)}
+    
+    son_bildirimler = Bildirim.query.filter_by(kullanici_id=current_user.id).order_by(Bildirim.olusturma_tarihi.desc()).limit(5).all()
+
+    return render_template('dashboard/operator.html', bugun=bugun, izinler=izinler, vardiyalar=vardiyalar,
+                           haftalik_program=haftalik_program, izin_bakiye=izin_bakiye, is_emirleri=is_emirleri,
+                           uretim_kpi=uretim_kpi, makine_durum=makine_durum, kritik_stok=kritik_stok,
+                           isg_verisi=isg_verisi, kalite_verisi=kalite_verisi, son_bildirimler=son_bildirimler)
 
 def teknisyen_dashboard():
     """Teknisyenler için arıza ve bakım odaklı gösterge paneli."""
@@ -372,11 +448,75 @@ def teknisyen_dashboard():
     yedi_gun_sonra = bugun + timedelta(days=7)
     yaklasan_bakimlar = [m for m in tum_makineler 
                          if m.sonraki_bakim_tarihi and bugun < m.sonraki_bakim_tarihi <= yedi_gun_sonra]
+
+    # Makine Sağlık
+    aktif_makine = sum(1 for m in tum_makineler if m.durum == 'aktif')
+    toplam_makine = len(tum_makineler)
+    bakim_geciken = sum(1 for m in tum_makineler if m.bakim_gecikti_mi)
+    saglik_yuzdesi = round((aktif_makine / toplam_makine * 100) if toplam_makine > 0 else 0)
+    makine_saglik = {
+        'saglik_yuzdesi': saglik_yuzdesi,
+        'aktif': aktif_makine,
+        'toplam': toplam_makine,
+        'bakim_geciken': bakim_geciken
+    }
+    
+    # İSG Verisi
+    yil_basi = datetime(bugun.year, 1, 1)
+    isg_verisi = {
+        'acik_risk': RiskDegerlendirme.query.filter_by(risk_seviyesi='yuksek', durum='acik').count(),
+        'suresi_dolan_egitim': IsgEgitimi.query.filter(IsgEgitimi.gecerlilik_bitis < bugun, IsgEgitimi.durum == 'gecerli').count(),
+        'is_kazasi': IsKazasi.query.filter(IsKazasi.tarih >= yil_basi, IsKazasi.ramak_kala == False).count(),
+        'ramak_kala': IsKazasi.query.filter(IsKazasi.tarih >= yil_basi, IsKazasi.ramak_kala == True).count()
+    }
+    
+    # Kritik Stok
+    kritik_stoklar = Malzeme.query.filter(Malzeme.mevcut_miktar <= Malzeme.minimum_stok).all()
+    kritik_stok_sayisi = len(kritik_stoklar)
+    kritik_stok_listesi = kritik_stoklar[:5]
+    
+    # İş Emirleri
+    try:
+        from app.models.is_emri import IsEmri
+        teknisyen_is_emirleri = IsEmri.query.filter_by(atanan_id=current_user.id).filter(IsEmri.durum.in_(['acik', 'devam'])).order_by(IsEmri.olusturma_tarihi.desc()).limit(5).all()
+    except Exception:
+        teknisyen_is_emirleri = []
         
+    # Enerji Özeti
+    aylik_maliyet = db.session.query(func.sum(EnerjiTuketimi.toplam_maliyet)).filter(EnerjiTuketimi.donem_baslangic >= otuz_gun_once).scalar() or 0
+    aylik_karbon = db.session.query(func.sum(EnerjiTuketimi.karbon_salinimi)).filter(EnerjiTuketimi.donem_baslangic >= otuz_gun_once).scalar() or 0
+    enerji_ozet = {'aylik_maliyet': aylik_maliyet, 'aylik_karbon': aylik_karbon}
+    
+    # Son Bildirimler
+    son_bildirimler = Bildirim.query.filter_by(kullanici_id=current_user.id).order_by(Bildirim.olusturma_tarihi.desc()).limit(5).all()
+
     return render_template('dashboard/teknisyen.html', 
                            atanan_arizalar=atanan_arizalar,
                            bakimi_gelen_makineler=bakimi_gelen_makineler,
                            ort_mudahale=ort_mudahale,
                            toplam_cozulen=toplam_cozulen,
                            son_30_cozulen=son_30_cozulen,
-                           yaklasan_bakimlar=yaklasan_bakimlar)
+                           yaklasan_bakimlar=yaklasan_bakimlar,
+                           makine_saglik=makine_saglik,
+                           isg_verisi=isg_verisi,
+                           kritik_stok_sayisi=kritik_stok_sayisi,
+                           kritik_stok_listesi=kritik_stok_listesi,
+                           teknisyen_is_emirleri=teknisyen_is_emirleri,
+                           enerji_ozet=enerji_ozet,
+                           son_bildirimler=son_bildirimler,
+                           bugun=bugun)
+
+@dashboard_bp.route('/api/dashboard/insights')
+@login_required
+def api_dashboard_insights():
+    """Faz 3: AI Darboğaz Analizi İçgörüleri (Mock)"""
+    import random
+    insights = [
+        {"tip": "uyari", "ikon": "bi-exclamation-triangle-fill", "renk": "text-warning", "mesaj": "Dikkat: CNC-02 makinesi son 2 haftada paketleme hattından daha hızlı çalışarak yığılmaya sebep oluyor."},
+        {"tip": "oneri", "ikon": "bi-lightbulb-fill", "renk": "text-success", "mesaj": "Öneri: Gece vardiyasında kalite hataları %40 artıyor. Aydınlatma veya yorgunluk kontrolü önerilir."},
+        {"tip": "bilgi", "ikon": "bi-info-circle-fill", "renk": "text-info", "mesaj": "İçgörü: Pres-1 makinesinde hammadde besleme gecikmeleri OEE'yi %12 düşürüyor."},
+        {"tip": "firsat", "ikon": "bi-graph-up-arrow", "renk": "text-primary", "mesaj": "Fırsat: Abkant-1 makinesinin bekleme süresini optimize etmek aylık %4 enerji tasarrufu sağlayabilir."},
+        {"tip": "tehlike", "ikon": "bi-shield-fill-exclamation", "renk": "text-danger", "mesaj": "Risk: Planlı bakımı yaklaşan 2 makinede geçmişe göre titreşim artışı saptandı."}
+    ]
+    random.shuffle(insights)
+    return jsonify({'insights': insights[:3]})

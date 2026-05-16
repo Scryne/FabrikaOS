@@ -131,7 +131,7 @@ class OtomasyonMotoru:
             ).first()
             if mevcut:
                 self._audit_log(kural, True,
-                                f"Malzeme {malzeme.kod}: Mevcut açık talep var (IE #{mevcut.numara}), atlanıyor.")
+                                f"Malzeme {malzeme.kod}: Mevcut açık talep var (IE #{mevcut.is_emri_no}), atlanıyor.")
                 return None
 
             tedarikci_bilgisi = ""
@@ -179,7 +179,7 @@ class OtomasyonMotoru:
             ).first()
             if mevcut:
                 self._audit_log(kural, True,
-                                f"Makine {makine.kod}: Mevcut açık bakım emri var (IE #{mevcut.numara}), atlanıyor.")
+                                f"Makine {makine.kod}: Mevcut açık bakım emri var (IE #{mevcut.is_emri_no}), atlanıyor.")
                 return None
 
             sonraki = makine.sonraki_bakim_tarihi

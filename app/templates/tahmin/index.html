@@ -289,13 +289,13 @@ function yenidenHesapla() {
         if (data.status === 'success') {
             location.reload();
         } else {
-            alert('Hata: ' + data.mesaj);
+            showToast('Hata', data.mesaj, 'danger');
             btn.disabled = false;
             btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Tahminleri Güncelle';
         }
     })
     .catch(err => {
-        alert('Bağlantı hatası: ' + err);
+        showToast('Bağlantı Hatası', err.toString(), 'danger');
         btn.disabled = false;
         btn.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Tahminleri Güncelle';
     });

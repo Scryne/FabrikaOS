@@ -2,8 +2,9 @@
 {% block title %}Yeni İş Emri{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-8">
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
         <!-- Breadcrumb -->
         <nav aria-label="breadcrumb" class="mb-3">
             <ol class="breadcrumb mb-0" style="font-size:0.85rem;">
@@ -49,9 +50,15 @@
                         </div>
                     </div>
 
-                    <div class="mb-4">
-                        {{ form.atanan_id.label(class="form-label") }}
-                        {{ form.atanan_id(class="form-select") }}
+                    <div class="mb-4 position-relative">
+                        <div class="d-flex justify-content-between align-items-end mb-2">
+                            {{ form.atanan_id.label(class="form-label mb-0") }}
+                            <!-- Faz 3: AI Operatör Önerisi Butonu -->
+                            <button type="button" class="btn btn-sm btn-outline-primary shadow-sm" onclick="showAiSuggestions()" style="border-radius: 20px;">
+                                <i class="bi bi-robot me-1"></i>AI Operatör Önerisi
+                            </button>
+                        </div>
+                        {{ form.atanan_id(class="form-select", id="atananIdSelect") }}
                     </div>
 
                     <div class="d-flex gap-2">
@@ -61,6 +68,142 @@
                 </form>
             </div>
         </div>
+        </div>
     </div>
 </div>
+
+<!-- Faz 3: AI Operatör Önerileri Offcanvas -->
+<div class="offcanvas offcanvas-end shadow-lg" tabindex="-1" id="aiSuggestionsOffcanvas" aria-labelledby="aiSuggestionsLabel" style="width: 450px; background-color: var(--bg-card); border-left: 1px solid var(--border-color);">
+  <div class="offcanvas-header border-bottom" style="border-color: var(--border-color) !important; padding: 1.5rem;">
+    <h5 class="offcanvas-title fw-bold d-flex align-items-center" id="aiSuggestionsLabel">
+        <div class="icon-square bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px;">
+            <i class="bi bi-magic fs-5"></i>
+        </div>
+        AI Operatör Önerisi
+    </h5>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
+  </div>
+  <div class="offcanvas-body p-4 position-relative" style="background-color: var(--bg-body);">
+    <div class="alert bg-primary-subtle border-0 d-flex align-items-center rounded-4 mb-4 p-3 shadow-sm">
+        <i class="bi bi-info-circle-fill text-primary fs-3 me-3"></i>
+        <div class="small text-primary-emphasis fw-medium" style="line-height: 1.4;">
+            Sistem, görev gereksinimlerine göre en uygun personelleri yetkinlik, performans ve İSG geçmişine göre analiz etti.
+        </div>
+    </div>
+    
+    <div id="aiSuggestionsContainer">
+        <!-- Spinner -->
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+            <p class="mt-3 text-muted fw-medium fs-5">Optimum Adaylar Analiz Ediliyor...</p>
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showAiSuggestions() {
+    const offcanvasEl = document.getElementById('aiSuggestionsOffcanvas');
+    const bsOffcanvas = new bootstrap.Offcanvas(offcanvasEl);
+    bsOffcanvas.show();
+    
+    const container = document.getElementById('aiSuggestionsContainer');
+    container.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+            <p class="mt-3 text-muted fw-medium fs-5">Optimum Adaylar Analiz Ediliyor...</p>
+        </div>`;
+        
+    fetch('{{ url_for("is_emri.api_operator_oneriler") }}')
+        .then(response => response.json())
+        .then(data => {
+            let html = '';
+            data.oneriler.forEach((item, index) => {
+                let delay = index * 0.15;
+                let etiketlerHtml = item.etiketler.map(e => `<span class="badge bg-dark text-light border border-secondary px-2 py-1 me-2 mb-2 fw-medium" style="font-size:0.75rem; letter-spacing: 0.3px;">${e}</span>`).join('');
+                
+                let shadowColor = item.skor_renk === 'success' ? 'rgba(25, 135, 84, 0.15)' : 
+                                  item.skor_renk === 'warning' ? 'rgba(255, 193, 7, 0.15)' : 'rgba(13, 202, 240, 0.15)';
+                                  
+                html += `
+                <div class="card mb-4 ai-suggestion-card position-relative overflow-hidden" style="border-radius: 16px; background-color: var(--bg-card); border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 10px 30px ${shadowColor}; animation: fadeInUp 0.6s cubic-bezier(0.165, 0.84, 0.44, 1) forwards ${delay}s; opacity: 0; transform: translateY(30px);">
+                    <!-- Renk Barı -->
+                    <div class="position-absolute top-0 start-0 w-100 bg-${item.skor_renk}" style="height: 4px; z-index: 2;"></div>
+                    
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-1 text-white" style="letter-spacing: -0.5px;">${item.ad}</h5>
+                                <div class="text-muted small d-flex align-items-center fw-medium">
+                                    <i class="bi bi-person-badge me-2"></i>Sistem Eşleşmesi
+                                </div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end">
+                                <span class="badge bg-${item.skor_renk} text-dark fs-5 fw-bold rounded-3 px-3 py-2 shadow-sm d-flex align-items-center gap-1">
+                                    %${item.skor}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-dark rounded-3 p-3 mb-4 border" style="border-color: rgba(255,255,255,0.05) !important;">
+                            <p class="small text-light mb-0" style="line-height: 1.6; opacity: 0.9;">${item.detay}</p>
+                        </div>
+                        
+                        <div class="d-flex flex-wrap mb-4">
+                            ${etiketlerHtml}
+                        </div>
+                        
+                        <button type="button" class="btn btn-${item.skor_renk} w-100 fw-bold rounded-pill py-2 shadow-sm d-flex justify-content-center align-items-center transition-all suggestion-btn" onclick="selectOperator(${item.id})" style="font-size: 0.95rem;">
+                            <i class="bi bi-check2-circle me-2 fs-5"></i>
+                            <span>Bu Operatörü Ata</span>
+                        </button>
+                    </div>
+                </div>`;
+            });
+            
+            setTimeout(() => {
+                container.innerHTML = html;
+            }, 800); // Yapay bir analiz gecikmesi efekti
+        })
+        .catch(err => {
+            container.innerHTML = '<div class="alert alert-danger rounded-4 p-3"><i class="bi bi-exclamation-triangle me-2"></i>Öneriler yüklenirken hata oluştu.</div>';
+        });
+}
+
+function selectOperator(id) {
+    const select = document.getElementById('atananIdSelect');
+    if(select) {
+        select.value = id;
+        const offcanvasEl = document.getElementById('aiSuggestionsOffcanvas');
+        const bsOffcanvas = bootstrap.Offcanvas.getInstance(offcanvasEl);
+        bsOffcanvas.hide();
+        
+        // Bildirim
+        const tooltip = document.createElement('div');
+        tooltip.className = 'position-absolute bg-success text-white px-3 py-2 rounded-3 small shadow-lg z-3 d-flex align-items-center fw-medium';
+        tooltip.style.top = '-45px';
+        tooltip.style.right = '0';
+        tooltip.style.animation = 'fadeInUp 0.3s ease forwards';
+        tooltip.innerHTML = '<i class="bi bi-check-circle-fill me-2 fs-6"></i>Aday Başarıyla Seçildi';
+        select.parentElement.appendChild(tooltip);
+        setTimeout(() => tooltip.remove(), 2500);
+    }
+}
+</script>
+<style>
+@keyframes fadeInUp {
+    to { opacity: 1; transform: translateY(0); }
+}
+.suggestion-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+}
+.suggestion-btn:active {
+    transform: translateY(0);
+}
+</style>
 {% endblock %}

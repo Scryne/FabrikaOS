@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+{% block title %}Entegrasyon Merkezi{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-decoration-none"><i class="bi bi-house"></i></a></li>
+        <li class="breadcrumb-item active">Yönetim</li>
+        <li class="breadcrumb-item active" aria-current="page">Entegrasyon Merkezi</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2 class="h4 mb-1 fw-bold"><i class="bi bi-diagram-3 me-2 text-primary"></i>Entegrasyon Merkezi</h2>
+                <p class="text-muted mb-0">Üçüncü parti sistemler, ERP çözümleri ve IoT cihazları ile veri alışverişini yönetin.</p>
+            </div>
+            <button class="btn btn-primary" onclick="alert('Yeni API Anahtarı oluşturuldu: FDYS-' + Math.random().toString(36).substring(2, 15).toUpperCase())">
+                <i class="bi bi-key me-2"></i>Yeni API Key Oluştur
+            </button>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- SAP Integration -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 hover-lift">
+            <div class="card-body text-center p-4">
+                <div class="bg-primary-subtle rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-server fs-1 text-primary"></i>
+                </div>
+                <h5 class="fw-bold">SAP S/4HANA</h5>
+                <p class="text-muted small mb-4">Üretim siparişleri ve stok hareketlerini SAP ERP sistemi ile çift yönlü senkronize edin.</p>
+                <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                    <span class="badge bg-success-subtle"><i class="bi bi-circle-fill small me-1"></i>Bağlı</span>
+                    <button class="btn btn-sm btn-outline-secondary">Ayarlar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logo Integration -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 hover-lift">
+            <div class="card-body text-center p-4">
+                <div class="bg-warning-subtle rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-box-seam fs-1 text-warning"></i>
+                </div>
+                <h5 class="fw-bold">Logo Tiger / Go</h5>
+                <p class="text-muted small mb-4">Maliyet muhasebesi ve faturalandırma için Logo yazılımlarına otomatik veri aktarımı.</p>
+                <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                    <span class="badge bg-secondary"><i class="bi bi-circle small me-1"></i>Yapılandırılmadı</span>
+                    <button class="btn btn-sm btn-primary">Bağlan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Webhook Integration -->
+    <div class="col-md-6 col-lg-4">
+        <div class="card h-100 hover-lift">
+            <div class="card-body text-center p-4">
+                <div class="bg-info-subtle rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 80px; height: 80px;">
+                    <i class="bi bi-broadcast fs-1 text-info"></i>
+                </div>
+                <h5 class="fw-bold">Özel Webhook'lar</h5>
+                <p class="text-muted small mb-4">Sistemdeki kalite ve arıza olaylarını kendi iç sistemlerinize anlık (real-time) gönderin.</p>
+                <div class="d-flex justify-content-between align-items-center border-top pt-3">
+                    <span class="badge bg-info-subtle">3 Aktif Hook</span>
+                    <button class="btn btn-sm btn-outline-secondary">Yönet</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-5">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-code-square me-2"></i>API Erişim Anahtarları (REST API)</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Uygulama Adı</th>
+                                <th>API Key (Maskeli)</th>
+                                <th>Yetki Seviyesi</th>
+                                <th>Son Kullanım</th>
+                                <th class="text-end">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>MES Edge Gateway</td>
+                                <td><code class="text-light bg-secondary px-2 py-1 rounded border">FDYS-******************X7A</code></td>
+                                <td><span class="badge bg-danger">Tam Yetki</span></td>
+                                <td>2 dakika önce</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> İptal</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>PowerBI Raporlayıcı</td>
+                                <td><code class="text-light bg-secondary px-2 py-1 rounded border">FDYS-******************B9K</code></td>
+                                <td><span class="badge bg-info">Sadece Okuma</span></td>
+                                <td>1 saat önce</td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i> İptal</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+}
+</style>
+{% endblock %}

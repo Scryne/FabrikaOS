@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="tr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kiosk Modu - FabrikaOS</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-base: #09090b;
+            --card-bg: rgba(24, 24, 27, 0.6);
+            --card-border: rgba(255, 255, 255, 0.06);
+            --text-muted: #a1a1aa;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 25%);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+        }
+
+        .kiosk-header {
+            padding: 1.25rem 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--card-border);
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(12px);
+            flex-shrink: 0;
+            z-index: 10;
+        }
+
+        .kiosk-brand {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.25rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .kiosk-time-container {
+            text-align: right;
+        }
+
+        .kiosk-time {
+            font-family: 'Outfit', sans-serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: 1px;
+        }
+
+        .kiosk-date {
+            font-size: 1rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            margin-top: 0.25rem;
+        }
+
+        .kiosk-content {
+            flex-grow: 1;
+            padding: 2rem 2.5rem;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: 1fr 1fr auto;
+            gap: 1.5rem;
+            min-height: 0; /* Prevents flex item from expanding beyond screen */
+        }
+
+        .kiosk-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 1.25rem;
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.5);
+            position: relative;
+        }
+
+        .kiosk-card.primary {
+            grid-column: span 2;
+            background: linear-gradient(145deg, rgba(30, 58, 138, 0.2) 0%, rgba(24, 24, 27, 0.6) 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .kiosk-card.primary::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(96, 165, 250, 0.5), transparent);
+        }
+
+        .kiosk-label {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+        }
+
+        .kiosk-value {
+            font-family: 'Outfit', sans-serif;
+            font-size: clamp(3.5rem, 5vw, 5.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin: 0.75rem 0;
+            color: #ffffff;
+        }
+
+        .kiosk-card.primary .kiosk-value {
+            font-size: clamp(5rem, 8vw, 8rem);
+            background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .kiosk-subtext {
+            font-size: 1.1rem;
+            color: #71717a;
+            font-weight: 500;
+        }
+
+        .kiosk-notifications {
+            grid-column: span 3;
+            background: rgba(24, 24, 27, 0.8);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+            border-radius: 1rem;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.05);
+        }
+
+        .marquee-container {
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+            margin-left: 1.5rem;
+            mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+            -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+        }
+
+        .marquee-content {
+            display: flex;
+            width: fit-content;
+        }
+
+        .marquee-track {
+            display: flex;
+            /* 120 seconds makes it much slower and more readable */
+            animation: marquee 120s linear infinite; 
+        }
+
+        .marquee-track:hover {
+            animation-play-state: paused; /* Pause on hover if mouse is available */
+        }
+
+        .marquee-item {
+            display: inline-flex;
+            align-items: center;
+            font-size: 1.25rem;
+            margin-right: 4rem;
+            color: #e4e4e7;
+            white-space: nowrap;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            /* Shift by exactly 50% of the total duplicated track for a seamless loop */
+            100% { transform: translateX(-50%); } 
+        }
+
+        /* Subtle glow pulse for live indicator */
+        .live-pulse {
+            width: 10px;
+            height: 10px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        .btn-exit-kiosk {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            background: rgba(24, 24, 27, 0.8);
+            color: var(--text-muted);
+            border: 1px solid var(--card-border);
+            border-radius: 2rem;
+            padding: 0.5rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            backdrop-filter: blur(8px);
+            opacity: 0.3;
+            transition: all 0.3s ease;
+            z-index: 9999;
+            text-decoration: none;
+        }
+
+        .btn-exit-kiosk:hover {
+            opacity: 1;
+            color: #ffffff;
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.5);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header -->
+    <div class="kiosk-header">
+        <div class="kiosk-brand">FabrikaOS</div>
+        <div class="kiosk-time-container">
+            <div class="kiosk-time" id="kioskTime">00:00:00</div>
+            <div class="kiosk-date" id="kioskDate">1 Ocak 2026, Pazartesi</div>
+        </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="kiosk-content">
+        
+        <!-- Live Production (Large) -->
+        <div class="kiosk-card primary">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="kiosk-label"><i class="bi bi-activity text-primary fs-4 me-2"></i>Bugünkü Üretim</div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-danger small fw-bold tracking-widest">CANLI</span>
+                    <div class="live-pulse"></div>
+                </div>
+            </div>
+            <div class="kiosk-value" id="kioskUretim" data-countup>{{ stats.bugun_uretim }}</div>
+            <div class="kiosk-subtext">Toplam Gerçekleşen Üretim Adedi</div>
+        </div>
+
+        <!-- OEE -->
+        <div class="kiosk-card">
+            <div class="kiosk-label"><i class="bi bi-speedometer2 text-success fs-4 me-2"></i>Ortalama OEE</div>
+            <div class="kiosk-value text-success">%<span id="kioskOEE" data-countup>{{ stats.ort_oee }}</span></div>
+            <div class="kiosk-subtext">Fabrika Geneli Haftalık Performans</div>
+        </div>
+
+        <!-- Active Machines -->
+        <div class="kiosk-card">
+            <div class="kiosk-label"><i class="bi bi-cpu text-info fs-4 me-2"></i>Aktif Makine</div>
+            <div class="kiosk-value text-info">
+                <span id="kioskAktifMakine" data-countup>{{ stats.aktif_makine }}</span>
+                <span class="text-secondary fs-1 fw-normal">/{{ stats.toplam_makine }}</span>
+            </div>
+            <div class="kiosk-subtext">Şu An Üretimde Olan Hat Sayısı</div>
+        </div>
+
+        <!-- Faults -->
+        <div class="kiosk-card">
+            <div class="kiosk-label"><i class="bi bi-exclamation-triangle text-danger fs-4 me-2"></i>Açık Arıza</div>
+            <div class="kiosk-value text-danger" id="kioskAriza" data-countup>{{ stats.acik_ariza }}</div>
+            <div class="kiosk-subtext">Bekleyen Bakım & Müdahale</div>
+        </div>
+
+        <!-- Empty slot for grid balance or future use -->
+        <div class="kiosk-card" style="border-style: dashed; background: transparent; opacity: 0.5;">
+            <div class="d-flex flex-column align-items-center justify-content-center text-center h-100">
+                <i class="bi bi-shield-check text-secondary fs-1 mb-2"></i>
+                <div class="kiosk-subtext">Sistem Normal</div>
+            </div>
+        </div>
+
+        <!-- Notifications Marquee -->
+        <div class="kiosk-notifications">
+            <div class="d-flex align-items-center flex-shrink-0">
+                <i class="bi bi-broadcast text-warning fs-5 me-2"></i>
+                <div class="kiosk-label mb-0 text-warning" style="font-size: 0.9rem;">BİLDİRİMLER</div>
+            </div>
+            <div class="marquee-container">
+                <div class="marquee-content">
+                    <div class="marquee-track">
+                        {% if son_bildirimler %}
+                            <!-- Duplicate the list 4 times for a seamless loop -->
+                            {% for i in range(4) %}
+                                {% for b in son_bildirimler %}
+                                <div class="marquee-item">
+                                    {% if b.seviye == 'kritik' %}
+                                    <i class="bi bi-exclamation-octagon-fill text-danger me-2"></i>
+                                    {% elif b.seviye == 'uyari' %}
+                                    <i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>
+                                    {% else %}
+                                    <i class="bi bi-info-circle-fill text-info me-2"></i>
+                                    {% endif %}
+                                    <strong class="text-white">{{ b.baslik }}:</strong> &nbsp;<span class="text-muted">{{ b.mesaj }}</span>
+                                </div>
+                                {% endfor %}
+                            {% endfor %}
+                        {% else %}
+                            <div class="marquee-item text-muted">Şu an için sisteme düşen yeni bir bildirim bulunmuyor. Her şey yolunda.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exit Button -->
+    <a href="{{ url_for('dashboard.index') }}" class="btn-exit-kiosk">
+        <i class="bi bi-box-arrow-left me-2"></i>Çıkış
+    </a>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/ui_utils.js') }}"></script>
+    <script>
+        // Clock Update
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('kioskTime').textContent = now.toLocaleTimeString('tr-TR', { hour12: false });
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('kioskDate').textContent = now.toLocaleDateString('tr-TR', options);
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+
+        // Fullscreen toggle on double click
+        document.body.addEventListener('dblclick', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log(`Fullscreen error: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        });
+        
+        // Setup Polling for Real-Time data
+        setInterval(() => {
+            fetch('/dashboard/api/dashboard/realtime')
+                .then(r => r.json())
+                .then(data => {
+                    if (data.bugun_uretim !== undefined && typeof animateCountUp === 'function') {
+                        animateCountUp(document.getElementById('kioskUretim'), data.bugun_uretim, 1000);
+                        animateCountUp(document.getElementById('kioskOEE'), data.ort_oee, 1000);
+                        animateCountUp(document.getElementById('kioskAktifMakine'), data.aktif_makine, 1000);
+                        animateCountUp(document.getElementById('kioskAriza'), data.acik_ariza, 1000);
+                    } else if(data.bugun_uretim !== undefined) {
+                        // Fallback if ui_utils.js is missing
+                        document.getElementById('kioskUretim').textContent = data.bugun_uretim;
+                        document.getElementById('kioskOEE').textContent = data.ort_oee;
+                        document.getElementById('kioskAktifMakine').textContent = data.aktif_makine;
+                        document.getElementById('kioskAriza').textContent = data.acik_ariza;
+                    }
+                }).catch(e => console.error("Kiosk polling error:", e));
+        }, 15000);
+    </script>
+</body>
+</html>

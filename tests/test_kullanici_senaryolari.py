@@ -37,7 +37,7 @@ def test_db(test_app):
     tek.sifre_belirle('tek123')
 
     # Temel makine ekle
-    m1 = Makine(ad='Enjeksiyon M1', kod='ENJ-01', teorik_kapasite=1000, satin_alma_tarihi=date(2025, 1, 1))
+    m1 = Makine(ad='Abkant Pres A1', kod='ABK-01', teorik_kapasite=1000, satin_alma_tarihi=date(2025, 1, 1))
 
     db.session.add_all([admin, op, tek, m1])
     db.session.commit()
@@ -56,7 +56,7 @@ def test_senaryo_1_ariza_bildirimi(client, test_db):
     login(client, 'oper', 'oper123')
     
     # 2. Arıza oluştur (Simülasyon - DB seviyesi)
-    m1 = Makine.query.filter_by(kod='ENJ-01').first()
+    m1 = Makine.query.filter_by(kod='ABK-01').first()
     oper = Kullanici.query.filter_by(kullanici_adi='oper').first()
     tek = Kullanici.query.filter_by(kullanici_adi='tek').first()
 
@@ -92,7 +92,7 @@ def test_senaryo_2_otomatik_bildirim_olusturma(client, test_db):
     b1 = Bildirim(
         kullanici_id=admin.id,
         baslik='OEE Düşük',
-        mesaj='ENJ-01 makinesinde OEE hedefinin çok altında.',
+        mesaj='ABK-01 makinesinde OEE hedefinin çok altında.',
         seviye='uyari'
     )
     db.session.add(b1)

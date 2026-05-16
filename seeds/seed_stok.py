@@ -65,10 +65,10 @@ def seed():
         },
         {
             'ad': 'Sandvik Coromant Türkiye',
-            'yetkili_kisi': 'Tolga Sarı',
+            'yetkili_kisi': 'Tuğrul Kaya',
             'telefon': '0216 574 31 00',
-            'eposta': 'tolga.sari@sandvik.com',
-            'adres': 'İstanbul Tuzla Kimya OSB',
+            'eposta': 'tugrul.kaya@sandvik.com',
+            'adres': 'İstanbul Tuzla OSB',
             'ortalama_teslimat_gun': 3,
             'performans_puani': 4.9,
         },
@@ -81,6 +81,15 @@ def seed():
             'ortalama_teslimat_gun': 5,
             'performans_puani': 4.3,
         },
+        {
+            'ad': 'Erdemir Demir Çelik',
+            'yetkili_kisi': 'Ali Vefa',
+            'telefon': '0372 329 30 00',
+            'eposta': 'ali.vefa@erdemir.com.tr',
+            'adres': 'Zonguldak Karadeniz Ereğli',
+            'ortalama_teslimat_gun': 4,
+            'performans_puani': 4.6,
+        }
     ]
 
     for t_data in tedarikciler:
@@ -91,110 +100,42 @@ def seed():
         print(f'  + Tedarikçi: {t_data["ad"]}')
 
     db.session.flush()
-
     ted_ids = {t.ad: t.id for t in Tedarikci.query.all()}
 
     # ── MALZEMELER (12 kalem) ──
     malzemeler = [
-        # Kesici takımlar
-        {
-            'ad': 'CNC Kesici Uç CNMG 120408',
-            'kod': 'MLZ-001', 'birim': 'adet', 'kategori': 'Kesici Takım',
-            'lokasyon': 'Raf A-01', 'birim_fiyat': 92.50,
-            'mevcut_miktar': 145, 'minimum_stok': 50,
-            'tedarikci_id': ted_ids.get('Sandvik Coromant Türkiye'),
-        },
-        {
-            'ad': 'Parmak Freze Ø12 (HSS-Co)',
-            'kod': 'MLZ-010', 'birim': 'adet', 'kategori': 'Kesici Takım',
-            'lokasyon': 'Raf A-02', 'birim_fiyat': 185.00,
-            'mevcut_miktar': 28, 'minimum_stok': 15,
-            'tedarikci_id': ted_ids.get('Sandvik Coromant Türkiye'),
-        },
-
-        # Yağ ve sıvılar
-        {
-            'ad': 'Hidrolik Yağ (ISO VG 46)',
-            'kod': 'MLZ-002', 'birim': 'litre', 'kategori': 'Endüstriyel Yağ',
-            'lokasyon': 'Depo B-03', 'birim_fiyat': 45.80,
-            'mevcut_miktar': 280, 'minimum_stok': 100,
-            'tedarikci_id': ted_ids.get('Petrol Ofisi Endüstriyel Yağlar'),
-        },
-        {
-            'ad': 'CNC Soğutma Sıvısı (Emülsiyon)',
-            'kod': 'MLZ-007', 'birim': 'litre', 'kategori': 'Endüstriyel Yağ',
-            'lokasyon': 'Depo B-05', 'birim_fiyat': 62.00,
-            'mevcut_miktar': 95, 'minimum_stok': 50,
-            'tedarikci_id': ted_ids.get('Petrol Ofisi Endüstriyel Yağlar'),
-        },
-
-        # Rulman
-        {
-            'ad': 'Bilyalı Rulman SKF 6205-2RS',
-            'kod': 'MLZ-003', 'birim': 'adet', 'kategori': 'Rulman/Yatak',
-            'lokasyon': 'Raf C-02', 'birim_fiyat': 148.00,
-            'mevcut_miktar': 22, 'minimum_stok': 10,
-            'tedarikci_id': ted_ids.get('SKF Türkiye'),
-        },
-
-        # Kaynak malzemeleri
-        {
-            'ad': 'MIG Kaynak Teli ER70S-6 (Ø1.0mm)',
-            'kod': 'MLZ-004', 'birim': 'kg', 'kategori': 'Kaynak Malzemesi',
-            'lokasyon': 'Raf D-01', 'birim_fiyat': 105.00,
-            'mevcut_miktar': 42, 'minimum_stok': 25,
-            'tedarikci_id': ted_ids.get('Borusan Mannesmann'),
-        },
-
-        # Elektronik / otomasyon
-        {
-            'ad': 'Siemens S7-1200 PLC CPU Modülü',
-            'kod': 'MLZ-005', 'birim': 'adet', 'kategori': 'Otomasyon / Elektronik',
-            'lokasyon': 'Raf E-01', 'birim_fiyat': 4250.00,
-            'mevcut_miktar': 2, 'minimum_stok': 1,
-            'tedarikci_id': ted_ids.get('Siemens Türkiye'),
-        },
-        {
-            'ad': 'Proksimiti Sensör (M12, NPN)',
-            'kod': 'MLZ-009', 'birim': 'adet', 'kategori': 'Otomasyon / Elektronik',
-            'lokasyon': 'Raf E-03', 'birim_fiyat': 320.00,
-            'mevcut_miktar': 8, 'minimum_stok': 5,
-            'tedarikci_id': ted_ids.get('Siemens Türkiye'),
-        },
-
-        # KKD (Kişisel Koruyucu Donanım)
-        {
-            'ad': 'Nitril Kesim Dirençli Eldiven',
-            'kod': 'MLZ-006', 'birim': 'adet', 'kategori': 'KKD',
-            'lokasyon': 'Raf F-02', 'birim_fiyat': 38.50,
-            'mevcut_miktar': 12, 'minimum_stok': 40,  # KRİTİK — minimum altında!
-            'tedarikci_id': ted_ids.get('Kardemir Karabük Demir Çelik'),
-        },
-
-        # Hammadde
-        {
-            'ad': 'St37 Çelik Levha (2mm, 1500×3000)',
-            'kod': 'MLZ-008', 'birim': 'kg', 'kategori': 'Hammadde',
-            'lokasyon': 'Depo A-01', 'birim_fiyat': 24.80,
-            'mevcut_miktar': 1200, 'minimum_stok': 500,
-            'tedarikci_id': ted_ids.get('Kardemir Karabük Demir Çelik'),
-        },
-        {
-            'ad': 'Alüminyum Çubuk (Ø25, 6082-T6)',
-            'kod': 'MLZ-011', 'birim': 'kg', 'kategori': 'Hammadde',
-            'lokasyon': 'Depo A-03', 'birim_fiyat': 85.00,
-            'mevcut_miktar': 180, 'minimum_stok': 80,
-            'tedarikci_id': ted_ids.get('Borusan Mannesmann'),
-        },
-
-        # Basınçlı hava
-        {
-            'ad': 'Kompresör Yağ Filtresi (Atlas Copco)',
-            'kod': 'MLZ-012', 'birim': 'adet', 'kategori': 'Filtre / Sarf',
-            'lokasyon': 'Raf G-01', 'birim_fiyat': 520.00,
-            'mevcut_miktar': 3, 'minimum_stok': 2,
-            'tedarikci_id': ted_ids.get('Atlas Copco Kompresör'),
-        },
+            {'ad': 'CNC Kesici Uç CNMG 120408', 'kod': 'MLZ-001', 'birim': 'adet', 'kategori': 'Kesici Takım', 'lokasyon': 'Raf A-01', 'birim_fiyat': 92.50, 'mevcut_miktar': 145, 'minimum_stok': 50, 'tedarikci_id': ted_ids.get('Sandvik Coromant Türkiye')},
+            {'ad': 'Parmak Freze Ø12 (HSS-Co)', 'kod': 'MLZ-010', 'birim': 'adet', 'kategori': 'Kesici Takım', 'lokasyon': 'Raf A-02', 'birim_fiyat': 185.00, 'mevcut_miktar': 28, 'minimum_stok': 15, 'tedarikci_id': ted_ids.get('Sandvik Coromant Türkiye')},
+            {'ad': 'Hidrolik Yağ (ISO VG 46)', 'kod': 'MLZ-002', 'birim': 'litre', 'kategori': 'Endüstriyel Yağ', 'lokasyon': 'Depo B-03', 'birim_fiyat': 45.80, 'mevcut_miktar': 280, 'minimum_stok': 100, 'tedarikci_id': ted_ids.get('Petrol Ofisi Endüstriyel Yağlar')},
+            {'ad': 'CNC Soğutma Sıvısı (Emülsiyon)', 'kod': 'MLZ-007', 'birim': 'litre', 'kategori': 'Endüstriyel Yağ', 'lokasyon': 'Depo B-05', 'birim_fiyat': 62.00, 'mevcut_miktar': 95, 'minimum_stok': 50, 'tedarikci_id': ted_ids.get('Petrol Ofisi Endüstriyel Yağlar')},
+            {'ad': 'Bilyalı Rulman SKF 6205-2RS', 'kod': 'MLZ-003', 'birim': 'adet', 'kategori': 'Rulman/Yatak', 'lokasyon': 'Raf C-02', 'birim_fiyat': 148.00, 'mevcut_miktar': 22, 'minimum_stok': 10, 'tedarikci_id': ted_ids.get('SKF Türkiye')},
+            {'ad': 'MIG Kaynak Teli ER70S-6 (Ø1.0mm)', 'kod': 'MLZ-004', 'birim': 'kg', 'kategori': 'Kaynak Malzemesi', 'lokasyon': 'Raf D-01', 'birim_fiyat': 105.00, 'mevcut_miktar': 42, 'minimum_stok': 25, 'tedarikci_id': ted_ids.get('Borusan Mannesmann')},
+            {'ad': 'Siemens S7-1200 PLC CPU Modülü', 'kod': 'MLZ-005', 'birim': 'adet', 'kategori': 'Otomasyon / Elektronik', 'lokasyon': 'Raf E-01', 'birim_fiyat': 4250.00, 'mevcut_miktar': 2, 'minimum_stok': 1, 'tedarikci_id': ted_ids.get('Siemens Türkiye')},
+            {'ad': 'Proksimiti Sensör (M12, NPN)', 'kod': 'MLZ-009', 'birim': 'adet', 'kategori': 'Otomasyon / Elektronik', 'lokasyon': 'Raf E-03', 'birim_fiyat': 320.00, 'mevcut_miktar': 8, 'minimum_stok': 5, 'tedarikci_id': ted_ids.get('Siemens Türkiye')},
+            {'ad': 'Nitril Kesim Dirençli Eldiven', 'kod': 'MLZ-006', 'birim': 'adet', 'kategori': 'KKD', 'lokasyon': 'Raf F-02', 'birim_fiyat': 38.50, 'mevcut_miktar': 12, 'minimum_stok': 40, 'tedarikci_id': ted_ids.get('Kardemir Karabük Demir Çelik')},
+            {'ad': 'St37 Çelik Levha (2mm, 1500×3000)', 'kod': 'MLZ-008', 'birim': 'kg', 'kategori': 'Hammadde', 'lokasyon': 'Depo A-01', 'birim_fiyat': 24.80, 'mevcut_miktar': 1200, 'minimum_stok': 500, 'tedarikci_id': ted_ids.get('Kardemir Karabük Demir Çelik')},
+            {'ad': 'Alüminyum Çubuk (Ø25, 6082-T6)', 'kod': 'MLZ-011', 'birim': 'kg', 'kategori': 'Hammadde', 'lokasyon': 'Depo A-03', 'birim_fiyat': 85.00, 'mevcut_miktar': 180, 'minimum_stok': 80, 'tedarikci_id': ted_ids.get('Borusan Mannesmann')},
+            {'ad': 'Kompresör Yağ Filtresi (Atlas Copco)', 'kod': 'MLZ-012', 'birim': 'adet', 'kategori': 'Filtre / Sarf', 'lokasyon': 'Raf G-01', 'birim_fiyat': 520.00, 'mevcut_miktar': 3, 'minimum_stok': 2, 'tedarikci_id': ted_ids.get('Atlas Copco Kompresör')},
+        ]
+    hareketler = [
+        ('MLZ-001', 'giris', 80, 92.50, 'FTR-2026-0412', 'Sandvik sipariş teslimatı — 80 adet CNMG uç', 28),
+        ('MLZ-001', 'cikis', 15, None, None, 'CNC-001 ve CNC-002 için takım değişimi', 20),
+        ('MLZ-001', 'cikis', 8, None, None, 'Müşteri acil sipariş — ek takım tüketimi', 10),
+        ('MLZ-010', 'giris', 20, 185.00, 'FTR-2026-0445', 'Parmak freze haftalık sipariş', 14),
+        ('MLZ-002', 'giris', 200, 45.80, 'FTR-2026-0398', 'Petrol Ofisi aylık teslimat — 200L HLP 46', 25),
+        ('MLZ-002', 'cikis', 35, None, None, 'PRS-001 hidrolik yağ ikmali', 15),
+        ('MLZ-007', 'giris', 50, 62.00, 'FTR-2026-0430', 'CNC soğutma sıvısı ikmali', 12),
+        ('MLZ-003', 'giris', 15, 148.00, 'FTR-2026-0401', 'SKF rulman sipariş teslimatı', 22),
+        ('MLZ-003', 'cikis', 3, None, None, 'TSL-001 taşlama mil rulmanı değişimi', 8),
+        ('MLZ-004', 'giris', 30, 105.00, 'FTR-2026-0410', 'Borusan kaynak teli teslimatı — 30 kg', 21),
+        ('MLZ-004', 'cikis', 18, None, None, 'KYN-001 kaynak robotu aylık tüketim', 7),
+        ('MLZ-006', 'giris', 100, 38.50, 'FTR-2026-0420', 'KKD yenileme siparişi — 100 çift eldiven', 18),
+        ('MLZ-006', 'cikis', 88, None, None, 'Tüm departmanlara dağıtım (üretim + bakım)', 5),
+        ('MLZ-008', 'giris', 800, 24.80, 'FTR-2026-0415', 'Kardemir haftalık çelik levha siparişi', 16),
+        ('MLZ-008', 'cikis', 350, None, None, 'PRS-001 pres hattı — aylık levha tüketimi', 9),
+        ('MLZ-008', 'cikis', 180, None, None, 'KYN-001 kaynak hattı — şase üretimi', 3),
+        ('MLZ-011', 'giris', 100, 85.00, 'FTR-2026-0440', 'Alüminyum çubuk sipariş teslimatı', 11),
+        ('MLZ-012', 'giris', 2, 520.00, 'FTR-2026-0425', 'Atlas Copco kompresör filtresi', 13),
     ]
 
     for m_data in malzemeler:
@@ -209,60 +150,6 @@ def seed():
     # ── STOK HAREKETLERİ (18 işlem) ──
     admin = Kullanici.query.filter_by(kullanici_adi='admin').first()
     admin_id = admin.id if admin else 1
-
-    hareketler = [
-        # Kesici takım
-        ('MLZ-001', 'giris', 80, 92.50, 'FTR-2026-0412',
-         'Sandvik sipariş teslimatı — 80 adet CNMG uç', 28),
-        ('MLZ-001', 'cikis', 15, None, None,
-         'CNC-001 ve CNC-002 için takım değişimi', 20),
-        ('MLZ-001', 'cikis', 8, None, None,
-         'Müşteri acil sipariş — ek takım tüketimi', 10),
-        ('MLZ-010', 'giris', 20, 185.00, 'FTR-2026-0445',
-         'Parmak freze haftalık sipariş', 14),
-
-        # Yağ
-        ('MLZ-002', 'giris', 200, 45.80, 'FTR-2026-0398',
-         'Petrol Ofisi aylık teslimat — 200L HLP 46', 25),
-        ('MLZ-002', 'cikis', 35, None, None,
-         'PRS-001 hidrolik yağ ikmali', 15),
-        ('MLZ-007', 'giris', 50, 62.00, 'FTR-2026-0430',
-         'CNC soğutma sıvısı ikmali', 12),
-
-        # Rulman
-        ('MLZ-003', 'giris', 15, 148.00, 'FTR-2026-0401',
-         'SKF rulman sipariş teslimatı', 22),
-        ('MLZ-003', 'cikis', 3, None, None,
-         'TSL-001 taşlama mil rulmanı değişimi', 8),
-
-        # Kaynak teli
-        ('MLZ-004', 'giris', 30, 105.00, 'FTR-2026-0410',
-         'Borusan kaynak teli teslimatı — 30 kg', 21),
-        ('MLZ-004', 'cikis', 18, None, None,
-         'KYN-001 kaynak robotu aylık tüketim', 7),
-
-        # KKD — kritik stok
-        ('MLZ-006', 'giris', 100, 38.50, 'FTR-2026-0420',
-         'KKD yenileme siparişi — 100 çift eldiven', 18),
-        ('MLZ-006', 'cikis', 88, None, None,
-         'Tüm departmanlara dağıtım (üretim + bakım)', 5),
-
-        # Hammadde çelik
-        ('MLZ-008', 'giris', 800, 24.80, 'FTR-2026-0415',
-         'Kardemir haftalık çelik levha siparişi', 16),
-        ('MLZ-008', 'cikis', 350, None, None,
-         'PRS-001 pres hattı — aylık levha tüketimi', 9),
-        ('MLZ-008', 'cikis', 180, None, None,
-         'KYN-001 kaynak hattı — şase üretimi', 3),
-
-        # Alüminyum
-        ('MLZ-011', 'giris', 100, 85.00, 'FTR-2026-0440',
-         'Alüminyum çubuk sipariş teslimatı', 11),
-
-        # Filtre
-        ('MLZ-012', 'giris', 2, 520.00, 'FTR-2026-0425',
-         'Atlas Copco kompresör filtresi', 13),
-    ]
 
     for kod, tur, miktar, fiyat, fatura, neden, gun_once in hareketler:
         malzeme = Malzeme.query.filter_by(kod=kod).first()
@@ -281,4 +168,4 @@ def seed():
         db.session.add(h)
 
     db.session.flush()
-    print('  + 18 stok hareketi oluşturuldu\n')
+    print('  + Stok hareketleri oluşturuldu\n')

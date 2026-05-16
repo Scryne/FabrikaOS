@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Kurumsal Ayarlar{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-decoration-none"><i class="bi bi-house"></i></a></li>
+        <li class="breadcrumb-item active">Yönetim</li>
+        <li class="breadcrumb-item active" aria-current="page">Kurumsal Ayarlar</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-card d-flex justify-content-between align-items-center py-3 border-bottom border-secondary">
+                <h5 class="card-title mb-0 fw-bold">
+                    <i class="bi bi-building-gear me-2 text-primary"></i>Müşteriye Özel Markalama (White-Label)
+                </h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted mb-4">Sistemin görünümünü kendi markanıza göre özelleştirin. Logonuzu yükleyin ve kurumsal renklerinizi belirleyin.</p>
+                
+                <form method="POST" action="{{ url_for('admin.kurumsal') }}" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Şirket Adı</label>
+                            <input type="text" class="form-control form-control-lg" name="sirket_adi" value="{{ ayarlar.sirket_adi }}" required placeholder="Örn: Acme A.Ş.">
+                            <div class="form-text">Giriş ekranında ve menüde görünecek isim.</div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Ana Tema Rengi</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <input type="color" class="form-control form-control-color border-0 p-0" id="colorPicker" name="ana_renk" value="{{ ayarlar.ana_renk }}" title="Renk Seç">
+                                <input type="text" class="form-control" id="colorText" value="{{ ayarlar.ana_renk }}" style="width: 120px;" maxlength="7">
+                            </div>
+                            <div class="form-text">Butonlar ve vurgular için kullanılacak ana renk.</div>
+                        </div>
+                        
+                        <div class="col-12 mt-4">
+                            <label class="form-label fw-bold">Firma Logosu</label>
+                            <div class="d-flex align-items-center gap-4">
+                                <div class="bg-dark p-3 rounded d-flex align-items-center justify-content-center border" style="width: 150px; height: 100px;">
+                                    {% if ayarlar.logo_path %}
+                                    <img src="{{ url_for('static', filename=ayarlar.logo_path) }}" id="logoPreview" alt="Logo" style="max-height: 80px; max-width: 100%;">
+                                    {% else %}
+                                    <img src="" id="logoPreview" alt="Logo" style="max-height: 80px; max-width: 100%; display: none;">
+                                    <i class="bi bi-image text-muted fs-1" id="logoIcon"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="flex-grow-1">
+                                    <input type="file" class="form-control" name="logo" id="logoInput" accept="image/png, image/jpeg, image/svg+xml">
+                                    <div class="form-text mt-2">Önerilen boyut: 200x80 piksel. Şeffaf arkaplanlı (PNG/SVG) tercih edilir. Yüklenmezse sadece şirket adı gösterilir.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr class="my-4 border-secondary">
+                    
+                    <div class="d-flex justify-content-end gap-2">
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                            <i class="bi bi-save me-2"></i>Ayarları Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const colorPicker = document.getElementById('colorPicker');
+        const colorText = document.getElementById('colorText');
+        
+        colorPicker.addEventListener('input', function() {
+            colorText.value = this.value;
+        });
+
+        colorText.addEventListener('input', function() {
+            let val = this.value.trim();
+            if (val && !val.startsWith('#')) {
+                val = '#' + val;
+            }
+            if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+                colorPicker.value = val;
+            }
+        });
+        
+        // blur event to correct the text if it's incomplete
+        colorText.addEventListener('blur', function() {
+            this.value = colorPicker.value;
+        });
+        
+        const logoInput = document.getElementById('logoInput');
+        const logoPreview = document.getElementById('logoPreview');
+        const logoIcon = document.getElementById('logoIcon');
+        
+        logoInput.addEventListener('change', function() {
+            if (this.files && this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    logoPreview.src = e.target.result;
+                    logoPreview.style.display = 'block';
+                    if(logoIcon) logoIcon.style.display = 'none';
+                }
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+    });
+</script>
+{% endblock %}

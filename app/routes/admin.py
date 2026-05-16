@@ -306,3 +306,80 @@ def eposta_test():
     from app.services.eposta_servisi import eposta_servisi
     sonuc = eposta_servisi.test_baglantisi()
     return jsonify(sonuc)
+
+# ══════════════════════════════════════
+#  Kurumsal Ayarlar (White-Labeling)
+# ══════════════════════════════════════
+
+@admin_bp.route('/kurumsal', methods=['GET', 'POST'])
+@login_required
+@role_required('yonetici')
+@log_action('Kurumsal Ayarlar Güncelleme')
+def kurumsal():
+    from app.models.kurumsal import KurumsalAyarlar
+    from flask import current_app
+    import os
+    from werkzeug.utils import secure_filename
+    
+    ayarlar = KurumsalAyarlar.ayarlari_getir()
+
+    if request.method == 'POST':
+        ayarlar.sirket_adi = request.form.get('sirket_adi', 'FabrikaOS')
+        ayarlar.ana_renk = request.form.get('ana_renk', '#0d6efd')
+        
+        logo = request.files.get('logo')
+        if logo and logo.filename != '':
+            filename = secure_filename(logo.filename)
+            upload_folder = os.path.join(current_app.root_path, 'static', 'img', 'uploads')
+            os.makedirs(upload_folder, exist_ok=True)
+            file_path = os.path.join(upload_folder, filename)
+            logo.save(file_path)
+            ayarlar.logo_path = f'img/uploads/{filename}'
+            
+        db.session.commit()
+        flash('Kurumsal ayarlar başarıyla güncellendi.', 'success')
+        return redirect(url_for('admin.kurumsal'))
+
+    return render_template('admin/kurumsal.html', ayarlar=ayarlar)
+
+
+# ══════════════════════════════════════
+#  Entegrasyon Merkezi
+# ══════════════════════════════════════
+
+@admin_bp.route('/entegrasyon')
+@login_required
+@role_required('yonetici')
+def entegrasyon():
+    return render_template('admin/entegrasyon.html')
+
+
+# ══════════════════════════════════════
+#  Kapsamlı Rol ve Yetki Matrisi
+# ══════════════════════════════════════
+
+@admin_bp.route('/yetki-matrisi', methods=['GET', 'POST'])
+@login_required
+@role_required('yonetici')
+@log_action('Yetki Matrisi Güncelleme')
+def yetki_matrisi():
+    kullanicilar = Kullanici.query.filter(Kullanici.rol != 'yonetici').all()
+    moduller = ['personel', 'makine', 'stok', 'kalite', 'enerji', 'isg']
+    
+    if request.method == 'POST':
+        from sqlalchemy.orm.attributes import flag_modified
+        for k in kullanicilar:
+            yeni_erisim = {}
+            for m in moduller:
+                # Checkbox name format: user_ID_module
+                checkbox_name = f"user_{k.id}_{m}"
+                yeni_erisim[m] = checkbox_name in request.form
+            
+            k.modul_erisim = yeni_erisim
+            flag_modified(k, 'modul_erisim')
+            
+        db.session.commit()
+        flash('Yetki matrisi başarıyla güncellendi.', 'success')
+        return redirect(url_for('admin.yetki_matrisi'))
+        
+    return render_template('admin/yetki_matrisi.html', kullanicilar=kullanicilar, moduller=moduller)

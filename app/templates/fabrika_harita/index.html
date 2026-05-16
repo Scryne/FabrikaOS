@@ -6,6 +6,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="container-fluid">
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
@@ -95,8 +96,8 @@
     <div class="card-body p-0 position-relative">
         <!-- Edit Banner -->
         <div class="edit-mode-banner d-none" id="editBanner">
-            <i class="bi bi-info-circle me-2"></i>
-            <strong>Düzenleme Modu:</strong>&nbsp;Makineleri sürükleyerek konumlandırın.
+            <i class="bi bi-arrows-move me-2"></i>
+            <strong>Düzenleme Modu:</strong>&nbsp;Makineleri sürükleyerek konumlandırın. Düzenlemeyi bitirmek için Kaydet'e tıklayın.
         </div>
 
         <!-- Loading -->
@@ -110,32 +111,46 @@
             <svg id="fabrikaHarita" class="harita-svg" viewBox="0 0 1200 680" preserveAspectRatio="xMidYMid meet">
                 <defs>
                     <!-- Subtle Dot Grid -->
-                    <pattern id="dotGrid" width="20" height="20" patternUnits="userSpaceOnUse">
-                        <circle cx="10" cy="10" r="0.5" fill="rgba(255,255,255,0.04)"/>
+                    <pattern id="dotGrid" width="30" height="30" patternUnits="userSpaceOnUse">
+                        <circle cx="2" cy="2" r="1.5" fill="rgba(255,255,255,0.03)"/>
                     </pattern>
+
+                    <!-- Machine Shadows & Glows -->
+                    <filter id="machineShadow" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="8" stdDeviation="8" flood-color="#000" flood-opacity="0.6"/>
+                    </filter>
+                    <filter id="glowAktif" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#10b981" flood-opacity="0.4"/>
+                    </filter>
+                    <filter id="glowArizali" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="8" flood-color="#ef4444" flood-opacity="0.6"/>
+                    </filter>
+                    <filter id="glowBakim" x="-20%" y="-20%" width="140%" height="140%">
+                        <feDropShadow dx="0" dy="0" stdDeviation="6" flood-color="#f59e0b" flood-opacity="0.4"/>
+                    </filter>
 
                     <!-- Zone Fills -->
                     <linearGradient id="zoneA" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.035"/>
-                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.008"/>
+                        <stop offset="0%" stop-color="#10b981" stop-opacity="0.04"/>
+                        <stop offset="100%" stop-color="#10b981" stop-opacity="0.01"/>
                     </linearGradient>
                     <linearGradient id="zoneB" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.035"/>
-                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.008"/>
+                        <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.04"/>
+                        <stop offset="100%" stop-color="#3b82f6" stop-opacity="0.01"/>
                     </linearGradient>
                     <linearGradient id="zoneC" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.035"/>
-                        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.008"/>
+                        <stop offset="0%" stop-color="#8b5cf6" stop-opacity="0.04"/>
+                        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.01"/>
                     </linearGradient>
                     <linearGradient id="zoneD" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.035"/>
-                        <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.008"/>
+                        <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.04"/>
+                        <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.01"/>
                     </linearGradient>
                 </defs>
 
                 <!-- Background -->
-                <rect width="1200" height="680" fill="#111111"/>
-                <rect width="1200" height="680" fill="url(#dotGrid)"/>
+                <rect width="1200" height="680" fill="#0a0a0a" rx="12"/>
+                <rect width="1200" height="680" fill="url(#dotGrid)" rx="12"/>
 
                 <!-- Factory Outline -->
                 <rect x="16" y="16" width="1168" height="648" rx="8" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
@@ -220,47 +235,61 @@
     </div>
 </div>
 
-<!-- Popup -->
-<div class="makine-popup" id="makinePopup" style="display:none;">
-    <div class="popup-header">
-        <div class="popup-status-dot" id="popupStatusDot"></div>
-        <div>
-            <div class="popup-title" id="popupTitle"></div>
-            <div class="popup-subtitle" id="popupSubtitle"></div>
+
+
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Offcanvas Makine Detay -->
+<div class="offcanvas offcanvas-end makine-offcanvas shadow-lg" tabindex="-1" id="makineOffcanvas" aria-labelledby="makineOffcanvasLabel" style="background-color: var(--bg-card); border-left: 1px solid var(--border-color); width: 340px;">
+    <div class="offcanvas-header border-bottom border-secondary" style="border-color: var(--border-color) !important;">
+        <div class="d-flex align-items-center gap-3">
+            <div class="popup-status-dot" id="popupStatusDot" style="width:12px;height:12px;border-radius:50%;"></div>
+            <div>
+                <h5 class="offcanvas-title fw-bold mb-0" id="popupTitle" style="color: var(--text-heading); font-family: 'Outfit', sans-serif;"></h5>
+                <div class="popup-subtitle text-muted small mt-1" id="popupSubtitle"></div>
+            </div>
         </div>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
     </div>
-    <div class="popup-divider"></div>
-    <div class="popup-body">
-        <div class="popup-row">
-            <span class="popup-label"><i class="bi bi-speedometer2 me-1"></i>OEE</span>
-            <span class="popup-value" id="popupOEE"></span>
+    <div class="offcanvas-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <span class="text-muted small"><i class="bi bi-speedometer2 me-1"></i>OEE (Canlı)</span>
+            <span class="fw-bold fs-5" id="popupOEE"></span>
         </div>
         <!-- Sparkline Container -->
-        <div class="popup-trend-container" id="popupTrendContainer" style="display:none;">
-            <div class="popup-trend-label">Son 7 Gün OEE Trendi</div>
-            <svg class="popup-sparkline" id="popupSparkline" viewBox="0 0 100 30" preserveAspectRatio="none"></svg>
+        <div class="popup-trend-container mb-4" id="popupTrendContainer" style="display:none;">
+            <div class="text-muted small mb-2">Son 7 Gün OEE Trendi</div>
+            <div style="background: var(--bg-card-hover); padding: 10px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <svg class="popup-sparkline" id="popupSparkline" viewBox="0 0 100 30" preserveAspectRatio="none" style="width:100%;height:40px;overflow:visible;"></svg>
+            </div>
         </div>
-        <div class="popup-row mt-2">
-            <span class="popup-label"><i class="bi bi-box-seam me-1"></i>Bugün Üretim</span>
-            <span class="popup-value" id="popupUretim"></span>
+        
+        <div class="list-group list-group-flush mb-4 border-top border-bottom border-secondary" style="border-color: var(--border-color) !important;">
+            <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3" style="border-color: var(--border-color) !important;">
+                <span class="text-muted"><i class="bi bi-box-seam me-2"></i>Bugün Üretim</span>
+                <span class="fw-bold text-white" id="popupUretim"></span>
+            </div>
+            <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3" style="border-color: var(--border-color) !important;">
+                <span class="text-muted"><i class="bi bi-person me-2"></i>Operatör</span>
+                <span class="fw-bold text-white" id="popupOperator"></span>
+            </div>
+            <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3" style="border-color: var(--border-color) !important;">
+                <span class="text-muted"><i class="bi bi-tools me-2"></i>Son Bakım</span>
+                <span class="fw-bold text-white" id="popupBakim"></span>
+            </div>
+            <div class="list-group-item bg-transparent justify-content-between align-items-center px-0 py-3" id="popupArizaRow" style="display:none; border-color: var(--border-color) !important;">
+                <span class="text-muted"><i class="bi bi-exclamation-diamond me-2 text-danger"></i>Son Arıza</span>
+                <span class="fw-bold text-danger text-end" id="popupAriza" style="max-width: 150px; word-wrap: break-word;"></span>
+            </div>
         </div>
-        <div class="popup-row">
-            <span class="popup-label"><i class="bi bi-person me-1"></i>Operatör</span>
-            <span class="popup-value" id="popupOperator"></span>
+        
+        <div class="mt-auto">
+            <a href="#" id="popupDetailLink" class="btn btn-primary w-100 py-2 fw-bold" style="border-radius: 8px;">
+                <i class="bi bi-arrow-right-circle me-2"></i>Makine Paneline Git
+            </a>
         </div>
-        <div class="popup-row">
-            <span class="popup-label"><i class="bi bi-tools me-1"></i>Son Bakım</span>
-            <span class="popup-value" id="popupBakim"></span>
-        </div>
-        <div class="popup-row" id="popupArizaRow" style="display:none;">
-            <span class="popup-label"><i class="bi bi-exclamation-diamond me-1"></i>Son Arıza</span>
-            <span class="popup-value text-danger" id="popupAriza"></span>
-        </div>
-    </div>
-    <div class="popup-footer">
-        <a href="#" id="popupDetailLink" class="btn btn-sm btn-primary w-100">
-            <i class="bi bi-arrow-right me-1"></i>Detaya Git
-        </a>
     </div>
 </div>
 {% endblock %}

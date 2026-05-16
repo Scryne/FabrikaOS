@@ -137,7 +137,7 @@ function showToast(title, message, type = 'info') {
     const icon = icons[type] || icons.info;
 
     const toastEl = document.createElement('div');
-    toastEl.className = `fdys-toast fdys-toast-${type}`;
+    toastEl.className = `fdys-toast fdys-toast-${type} toast-alert`;
     toastEl.innerHTML = `
         <div class="fdys-toast-icon"><i class="bi ${icon}"></i></div>
         <div class="fdys-toast-body">
@@ -154,7 +154,7 @@ function showToast(title, message, type = 'info') {
 
     // Auto dismiss after 5s
     setTimeout(() => {
-        toastEl.style.animation = 'fdysToastOut 0.3s ease forwards';
+        toastEl.classList.add('hiding');
         setTimeout(() => toastEl.remove(), 300);
     }, 5000);
 }
@@ -491,3 +491,52 @@ function forceDarkTheme() {
     html.setAttribute('data-bs-theme', 'dark');
     localStorage.removeItem('fdys-theme');
 }
+
+// ═══════════════════════════════════════════════
+// 14. CountUp Animation (Sayı Animasyonu)
+// ═══════════════════════════════════════════════
+window.animateCountUp = function(el, target, duration = 1500) {
+    if (!el) return;
+    const isFormatted = typeof target === 'string' && target.includes(',');
+    const parsedTarget = isFormatted ? parseFloat(target.replace(/,/g, '')) : parseFloat(target);
+    if (isNaN(parsedTarget)) return;
+
+    let startTime = null;
+    const startValue = 0;
+
+    function formatValue(val) {
+        if (Number.isInteger(parsedTarget)) {
+            val = Math.floor(val);
+            return isFormatted ? val.toLocaleString('en-US') : val;
+        }
+        return val.toFixed(2);
+    }
+
+    function step(timestamp) {
+        if (!startTime) startTime = timestamp;
+        const progress = Math.min((timestamp - startTime) / duration, 1);
+        // easeOutExpo
+        const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+        const current = startValue + (parsedTarget - startValue) * easeProgress;
+        
+        el.textContent = formatValue(current);
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        } else {
+            el.textContent = target; // Ensure exact final value
+        }
+    }
+    
+    window.requestAnimationFrame(step);
+};
+
+// Initialize CountUp on elements with data-countup attribute
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        document.querySelectorAll('[data-countup]').forEach(el => {
+            const val = el.textContent.trim();
+            animateCountUp(el, val, 2000);
+        });
+    }, 100);
+});

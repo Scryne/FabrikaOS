@@ -12,6 +12,7 @@ Kullanım:
 
 import os
 import sys
+import argparse
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -26,7 +27,8 @@ def run_seed():
     with app.app_context():
         print('\n' + '=' * 60)
         print('  FabrikaOS — Kapsamlı Demo Verisi Yükleme')
-        print('  Senaryo: AnadoluTech Metal Sanayi A.Ş.')
+        sirket_adi = "AnadoluTech Metal Sanayi A.Ş."
+        print(f'  Senaryo: {sirket_adi} (METAL)')
         print('=' * 60 + '\n')
 
         # Mevcut verileri temizle
@@ -87,7 +89,7 @@ def run_seed():
         print('=' * 60)
         print()
         print('  +--------------------------------------------------+')
-        print('  |  AnadoluTech Metal Sanayi A.S. — Giris Bilgileri |')
+        print(f'  |  {sirket_adi[:28]:<28} - Giriş Bilgileri |')
         print('  +------------------+-----------------+-------------+')
         print('  | Rol              | Kullanici       | Sifre       |')
         print('  +------------------+-----------------+-------------+')
@@ -102,7 +104,7 @@ def run_seed():
         print('  ------------------')
         print('  [x] Kullanicilar ve Calisanlar (5 kullanici, 15 calisan)')
         print('  [x] Makine Parki (6 makine, maliyet bilgileri dahil)')
-        print('  [x] Uretim Verileri (30 gunluk, 3 vardiya, OEE hesaplamali)')
+        print('  [x] Uretim Verileri (180 gunluk, 3 vardiya, OEE hesaplamali)')
         print('  [x] Ariza Kayitlari (8 ariza — acik + cozulmus)')
         print('  [x] Bakim Kayitlari (9 bakim — periyodik + korektif)')
         print('  [x] Durus Kayitlari (14 gunluk, 6 kategori)')

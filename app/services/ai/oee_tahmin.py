@@ -95,23 +95,39 @@ class OEETahminServisi:
 
         # Hedef kontrolü
         hedef = float(makine.hedef_oee) if makine.hedef_oee else 85.0
-        hedef_alti_gunler = [i for i, v in enumerate(tahmin_degerleri) if v < hedef]
+        
+        mevcut_oee = degerler[-1]
+        tahmin_son = tahmin_degerleri[-1]
+        trend = tahmin_son - tahmin_degerleri[0] if len(tahmin_degerleri) >= 2 else 0
 
-        # Uyarı oluştur
         uyari = None
         risk_skoru = 0
-        if hedef_alti_gunler:
-            ilk_gun = hedef_alti_gunler[0] + 1
-            uyari = f"OEE tahmini {ilk_gun} gün içinde hedefin (%{hedef}) altına düşebilir."
-            risk_skoru = min(100, 40 + len(hedef_alti_gunler) * 10)
+
+        if tahmin_son < hedef:
+            fark = hedef - tahmin_son
+            
+            if mevcut_oee < hedef:
+                if trend < -1.5:
+                    uyari = f"OEE hedefin (%{hedef}) altında ve düşüş trendi hızlandı (Tahmin: %{tahmin_son:.1f})."
+                    risk_skoru = min(98, 40 + (fark * 3) + abs(trend)*2)
+                elif trend > 1.5:
+                    uyari = f"OEE hedefin altında kalacak ancak iyileşme trendi var (Tahmin: %{tahmin_son:.1f})."
+                    risk_skoru = max(10, 30 + (fark * 2) - abs(trend)*3)
+                else:
+                    uyari = f"OEE hedefin (%{hedef}) altında seyrediyor (Tahmin: %{tahmin_son:.1f})."
+                    risk_skoru = min(70, 20 + (fark * 2.5))
+            else:
+                hedef_alti_gunler = [i for i, v in enumerate(tahmin_degerleri) if v < hedef]
+                ilk_gun = hedef_alti_gunler[0] + 1
+                uyari = f"OEE tahmini {ilk_gun} gün içinde hedefin (%{hedef}) altına düşebilir."
+                risk_skoru = min(95, 50 + (fark * 4))
+                
         else:
-            # Trend analizi
-            trend = tahmin_degerleri[-1] - tahmin_degerleri[0] if len(tahmin_degerleri) >= 2 else 0
             if trend < -3:
-                uyari = f"OEE'de düşüş trendi tespit edildi (7 günde tahmini {abs(trend):.1f} puan düşüş)."
+                uyari = f"OEE hedefin üzerinde ancak düşüş trendi tespit edildi ({abs(trend):.1f} puan düşüş)."
                 risk_skoru = 30
             else:
-                risk_skoru = max(0, 20 - trend)
+                risk_skoru = max(0, 10 - trend)
 
         # Tarih etiketleri
         gecmis_labels = [t.strftime('%d.%m') for t in tarihler]

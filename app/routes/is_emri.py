@@ -226,3 +226,37 @@ def api_durum_guncelle():
 def api_istatistikler():
     """Dashboard widget için JSON istatistikler."""
     return jsonify(is_emri_servisi.istatistikler())
+
+
+@is_emri_bp.route('/api/operator/oneriler')
+@login_required
+def api_operator_oneriler():
+    """Faz 3: Akıllı Operatör Yetkinlik Eşleştirmesi (AI Mock)"""
+    # Gerçek senaryoda bu servis çalışanın sertifikalarına, geçmiş OEE'lerine bakar.
+    oneriler = [
+        {
+            "id": 2, 
+            "ad": "Ahmet Yılmaz", 
+            "skor": 94, 
+            "skor_renk": "success",
+            "detay": "Entegre Kalite Eğitimi var. Son 3 ay OEE: %89.",
+            "etiketler": ["Tecrübeli", "Sertifikalı", "Hızlı"]
+        },
+        {
+            "id": 4, 
+            "ad": "Mehmet Demir", 
+            "skor": 82, 
+            "skor_renk": "warning",
+            "detay": "CNC ve Torna operatörü. İSG eğitimi tam.",
+            "etiketler": ["Çok Yönlü", "İSG Uyumlu"]
+        },
+        {
+            "id": 5, 
+            "ad": "Ayşe Kaya", 
+            "skor": 75, 
+            "skor_renk": "info",
+            "detay": "Vardiya uyuşmazlığı olabilir ama yetkinlik eşleşmesi yüksek.",
+            "etiketler": ["Titiz", "Kalite Odaklı"]
+        }
+    ]
+    return jsonify({"oneriler": oneriler})

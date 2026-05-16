@@ -29,7 +29,8 @@ def seed():
             'kullanici_adi': 'ahmet.yilmaz',
             'rol': 'operator',
             'modul_erisim': {
-                'personel': True, 'makine': True, 'stok': True, 'kalite': True
+                'personel': True, 'makine': True, 'stok': True,
+                'kalite': True, 'isg': True
             },
         },
         {
@@ -37,20 +38,25 @@ def seed():
             'kullanici_adi': 'fatma.demir',
             'rol': 'operator',
             'modul_erisim': {
-                'personel': True, 'makine': True, 'stok': True
+                'personel': True, 'makine': True, 'stok': True,
+                'kalite': True, 'isg': True
             },
         },
         {
             'ad_soyad': 'Mehmet Kaya',
             'kullanici_adi': 'mehmet.kaya',
             'rol': 'teknisyen',
-            'modul_erisim': {'makine': True, 'isg': True},
+            'modul_erisim': {
+                'makine': True, 'stok': True, 'enerji': True, 'isg': True
+            },
         },
         {
             'ad_soyad': 'Ayşe Özkan',
             'kullanici_adi': 'ayse.ozkan',
             'rol': 'teknisyen',
-            'modul_erisim': {'makine': True, 'enerji': True, 'isg': True},
+            'modul_erisim': {
+                'makine': True, 'stok': True, 'enerji': True, 'isg': True
+            },
         },
     ]
 
@@ -66,7 +72,7 @@ def seed():
     db.session.flush()
 
     # ── Çalışan Kadrosu (15 kişi) ──
-    # Makine ID'leri: 1=CNC-001, 2=CNC-002, 3=ENJ-001, 4=PRS-001, 5=KYN-001, 6=TSL-001
+    # Makine ID'leri: 1=CNC-001, 2=CNC-002, 3=ABK-001, 4=PRS-001, 5=KYN-001, 6=TSL-001
     calisanlar = [
         # Üretim Departmanı
         {
@@ -82,7 +88,7 @@ def seed():
         },
         {
             'sicil_no': 'P002', 'ad_soyad': 'Fatma Demir',
-            'departman': 'Üretim', 'pozisyon': 'Enjeksiyon Operatörü',
+            'departman': 'Üretim', 'pozisyon': 'Abkant Operatörü',
             'telefon': '0533 222 33 44', 'eposta': 'fatma.demir@anadolutech.com.tr',
             'ise_baslama': date(2020, 6, 1), 'ucret': 42000,
             'beceri_json': [

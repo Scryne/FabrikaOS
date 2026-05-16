@@ -81,8 +81,8 @@ def seed():
             }, ensure_ascii=False),
         ))
 
-    if 'ENJ-001' in makineler:
-        m = makineler['ENJ-001']
+    if 'ABK-001' in makineler:
+        m = makineler['ABK-001']
         tahminler.append(TahminKaydi(
             tahmin_turu='bakim',
             kaynak_turu='makine',
@@ -287,15 +287,15 @@ def seed():
     # ══════════════════════════════════════════════════════════════
     # ANOMALİ TESPİTLERİ
     # ══════════════════════════════════════════════════════════════
-    if 'ENJ-001' in makineler:
-        m = makineler['ENJ-001']
+    if 'ABK-001' in makineler:
+        m = makineler['ABK-001']
         tahminler.append(TahminKaydi(
             tahmin_turu='anomali',
             kaynak_turu='makine',
             kaynak_id=m.id,
             kaynak_adi=f'{m.ad} ({m.kod})',
             baslik='Anormal Enerji Tüketim Artışı Tespit Edildi',
-            aciklama='Son 7 günde enjeksiyon makinesinin saat başı enerji tüketimi '
+            aciklama='Son 7 günde abkant pres makinesinin saat başı enerji tüketimi '
                      'ortalamanın %23 üzerine çıktı. Kovan ısıtıcı bantlardan birinin '
                      'aşırı akım çekiyor olması muhtemel. Termal kamera ile kontrol önerilir.',
             risk_skoru=68.0,

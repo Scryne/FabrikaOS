@@ -173,6 +173,10 @@ def detay(id):
     # ── AI Tahminleme Verileri ──
     ai_bakim = None
     ai_oee = None
+    
+    son_uretim = makine.uretim_verileri.order_by(UretimVerisi.id.desc()).first()
+    mevcut_oee = round(float(son_uretim.oee_yuzde), 1) if son_uretim and son_uretim.oee_yuzde is not None else 0.0
+
     try:
         from app.services.ai.kestirimci_bakim import kestirimci_bakim_servisi
         ai_bakim = kestirimci_bakim_servisi.makine_tahmini(id)
@@ -206,7 +210,8 @@ def detay(id):
                            aylik_uretim=aylik_uretim,
                            aylik_hata=aylik_hata,
                            ai_bakim=ai_bakim,
-                           ai_oee=ai_oee)
+                           ai_oee=ai_oee,
+                           mevcut_oee=mevcut_oee)
 
 
 @makine_bp.route('/uretim-girisi/<int:id>', methods=['GET', 'POST'])

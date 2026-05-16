@@ -177,6 +177,34 @@ const FDYS_CHARTS = (() => {
         return gradient;
     }
 
+    // ── Neon Glow Plugin ──
+    const neonGlowPlugin = {
+        id: 'neonGlow',
+        beforeDatasetDraw: function(chart, args) {
+            const ctx = chart.ctx;
+            ctx.save();
+            if (chart.config.type === 'line') {
+                ctx.shadowColor = args.meta.dataset.borderColor || COLORS.primary;
+                ctx.shadowBlur = 12;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 4;
+            } else if (chart.config.type === 'doughnut') {
+                ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                ctx.shadowBlur = 15;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 10;
+            } else if (chart.config.type === 'bar') {
+                ctx.shadowColor = 'rgba(0,0,0,0.3)';
+                ctx.shadowBlur = 8;
+                ctx.shadowOffsetX = 0;
+                ctx.shadowOffsetY = 4;
+            }
+        },
+        afterDatasetDraw: function(chart) {
+            chart.ctx.restore();
+        }
+    };
+
     // ══════════════════════════════════════════
     //  PUBLIC API — Grafik Oluşturucular
     // ══════════════════════════════════════════
@@ -207,9 +235,9 @@ const FDYS_CHARTS = (() => {
                     backgroundColor: gradient,
                     fill: true,
                     tension: 0.4,
-                    borderWidth: 2.5,
-                    pointRadius: config.pointRadius !== undefined ? config.pointRadius : 4,
-                    pointHoverRadius: 7,
+                    borderWidth: 3,
+                    pointRadius: config.pointRadius !== undefined ? config.pointRadius : 0,
+                    pointHoverRadius: 6,
                     pointBackgroundColor: config.lineColor || COLORS.primary,
                     pointBorderColor: COLORS.cardBg,
                     pointBorderWidth: 2,
@@ -343,11 +371,8 @@ const FDYS_CHARTS = (() => {
             return toplam > 0 ? Math.round((kumulatif / toplam) * 100) : 0;
         });
 
-        // Bar renkleri: İlk çubuk en yoğun, sonrakiler açılır
-        const barColors = values.map((_, i) => {
-            const opacity = Math.max(0.4, 1 - (i * 0.15));
-            return `rgba(91, 141, 239, ${opacity})`;
-        });
+        // Çubuklar için dikey gradyan
+        const barGradient = createGradient(ctx, COLORS.primary, COLORS.primaryLight, 300);
 
         return new Chart(ctx, {
             type: 'bar',
@@ -357,7 +382,8 @@ const FDYS_CHARTS = (() => {
                     {
                         label: config.barLabel || 'Hata Adedi',
                         data: values,
-                        backgroundColor: barColors,
+                        backgroundColor: barGradient,
+                        hoverBackgroundColor: COLORS.primary,
                         borderRadius: 8,
                         borderSkipped: false,
                         barPercentage: 0.7,
@@ -378,8 +404,8 @@ const FDYS_CHARTS = (() => {
                         pointHoverRadius: 7,
                         pointHoverBackgroundColor: '#fff',
                         pointHoverBorderColor: COLORS.danger,
-                        tension: 0.35,
-                        borderWidth: 2.5,
+                        tension: 0.4,
+                        borderWidth: 3,
                         yAxisID: 'y1',
                         order: 1
                     }
@@ -726,12 +752,14 @@ const FDYS_CHARTS = (() => {
         createDoughnutChart,
         createGradient,
         tooltipConfig,
-        legendConfig
+        legendConfig,
+        neonGlowPlugin
     };
 })();
 
 // Global Chart.js defaults — dark theme override
 if (typeof Chart !== 'undefined') {
+    Chart.register(FDYS_CHARTS.neonGlowPlugin);
     Chart.defaults.color = '#64748B';
     Chart.defaults.borderColor = 'rgba(148, 163, 184, 0.08)';
     Chart.defaults.font.family = "'Inter', 'Segoe UI', system-ui, sans-serif";
