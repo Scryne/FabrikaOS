@@ -99,9 +99,11 @@ def _register_blueprints(app):
     from app.routes.otomasyon import otomasyon_bp
     from app.routes.dosya import dosya_bp
     from app.routes.takvim import takvim_bp
+    from app.routes.landing import landing_bp
 
     app.register_blueprint(auth_bp)
-    app.register_blueprint(dashboard_bp)
+    app.register_blueprint(landing_bp)
+    app.register_blueprint(dashboard_bp, url_prefix='/dashboard')
     app.register_blueprint(personel_bp)
     app.register_blueprint(makine_bp)
     app.register_blueprint(stok_bp)

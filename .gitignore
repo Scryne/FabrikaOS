@@ -17,56 +17,9 @@ eggs/
 venv/
 env/
 .venv/
-.env/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-.project
-.pydevproject
-
-# OS
-.DS_Store
-Thumbs.db
-desktop.ini
-
-# Database
-*.db
-*.sqlite3
-instance/
-
-# Environment Variables
-.env
-.flaskenv
-
-# Logs
-*.log
-logs/
-
-# Uploads
-app/static/uploads/*
-!app/static/uploads/.gitkeep
-
-# Coverage
-htmlcov/
-.coverage
-.coverage.*
 
 # PyTest
 .pytest_cache/
 
-# Distribution
-*.tar.gz
-*.whl
-
-# Backup
-*.bak
-*.backup
-
-# Documentation (binary)
-*.docx
-*.xlsx
-*.pptx
+# Coverage
+htmlcov/

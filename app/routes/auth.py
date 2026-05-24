@@ -80,7 +80,7 @@ def logout():
     """Kullanıcı çıkışı."""
     logout_user()
     flash('Başarıyla çıkış yaptınız.', 'info')
-    return redirect(url_for('auth.login'))
+    return redirect(url_for('landing.index'))
 
 
 @auth_bp.route('/profil')
