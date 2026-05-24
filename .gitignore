@@ -1,25 +1,4 @@
 # ===========================
 # FDYS - FabrikaOS .gitignore
 # ===========================
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-*.egg-info/
-dist/
-build/
-eggs/
-*.egg
-
-# Virtual Environment
-venv/
-env/
-.venv/
-
-# PyTest
-.pytest_cache/
-
-# Coverage
-htmlcov/
+# Kullanici istegi uzerine tum dosyalar (venv dahil) pushlanmaktadir.
