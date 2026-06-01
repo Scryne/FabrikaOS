@@ -1,0 +1,114 @@
+{% extends "dis_panel/base_panel.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Borç ve Ödemeler</h4>
+        <p class="text-muted mb-0 mt-1">Aidat, kira ve diğer cari hareketleriniz</p>
+    </div>
+</div>
+
+<!-- Özet Kartları -->
+<div class="row g-4 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm bg-card h-100" style="border-top: 4px solid var(--bs-danger);">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase mb-2">Toplam Borcunuz</h6>
+                <h2 class="fw-bold {% if ozet.toplam_kalan > 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ '{:,.2f}'.format(ozet.toplam_kalan).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺
+                </h2>
+                {% if ozet.geciken_borc > 0 %}
+                <div class="text-danger mt-2 small"><i class="bi bi-exclamation-circle me-1"></i>Vadesi geçmiş: {{ '{:,.2f}'.format(ozet.geciken_borc).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm bg-card h-100" style="border-top: 4px solid var(--bs-success);">
+            <div class="card-body">
+                <h6 class="text-muted text-uppercase mb-2">Bugüne Kadar Ödenen</h6>
+                <h2 class="fw-bold text-success">
+                    {{ '{:,.2f}'.format(ozet.toplam_odeme).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺
+                </h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm bg-card h-100 bg-primary text-white" style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);">
+            <div class="card-body d-flex flex-column justify-content-center text-center">
+                <i class="bi bi-credit-card-fill fs-1 mb-2 opacity-75"></i>
+                <h5 class="fw-bold mb-1">Hızlı Ödeme Yap</h5>
+                <p class="small opacity-75 mb-0">Sanal POS ile güvenli ödeme</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Borç Listesi -->
+<div class="card border-0 shadow-sm bg-card">
+    <div class="card-header bg-transparent border-bottom pt-4 pb-3">
+        <h6 class="mb-0 fw-bold">Borç Tahakkukları</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 custom-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Borç Türü / Dönem</th>
+                        <th>Son Ödeme</th>
+                        <th class="text-end">Tutar</th>
+                        <th class="text-end">Kalan Tutar</th>
+                        <th>Durum</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for borc in ozet.borclar %}
+                    <tr class="{% if borc.durum == 'gecikti' %}table-danger table-opacity-10{% endif %}">
+                        <td>
+                            <div class="fw-bold">{{ borc.borc_turu_adi }}</div>
+                            {% if borc.donem %}
+                            <small class="text-muted">{{ borc.donem }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if borc.son_odeme_tarihi %}
+                            <div class="{% if borc.durum == 'gecikti' %}text-danger fw-bold{% endif %}">
+                                {{ borc.son_odeme_tarihi.strftime('%d.%m.%Y') }}
+                            </div>
+                            {% if borc.durum == 'gecikti' %}
+                            <small class="text-danger">{{ borc.gecikme_gunu }} gün gecikti</small>
+                            {% endif %}
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td class="text-end fw-medium">{{ '{:,.2f}'.format(borc.tutar).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺</td>
+                        <td class="text-end fw-bold {% if borc.kalan_tutar > 0 %}text-danger{% else %}text-success{% endif %}">
+                            {{ '{:,.2f}'.format(borc.kalan_tutar).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ borc.durum_sinif }}">{{ borc.durum_adi }}</span>
+                        </td>
+                        <td class="text-end">
+                            {% if borc.kalan_tutar > 0 %}
+                            <a href="{{ url_for('dis_panel.odeme', borc_id=borc.id) }}" class="btn btn-sm btn-primary shadow-sm">Ödeme Yap</a>
+                            {% else %}
+                            <button class="btn btn-sm btn-outline-success" disabled><i class="bi bi-check2-all me-1"></i>Ödendi</button>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-check-circle fs-1 text-success d-block mb-3"></i>
+                            <p class="mb-0">Borç kaydınız bulunmuyor.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

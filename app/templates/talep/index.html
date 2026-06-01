@@ -1,0 +1,285 @@
+{% extends "base.html" %}
+{% block title %}Talep & İş Takip Dashboard{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Talep & İş Takip</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-headset me-2 text-primary"></i>Talep & İş Takip Merkezi</h2>
+        <p class="text-muted mb-0 mt-1">Sisteminizdeki tüm istek, arıza ve şikayetlerin merkezi yönetimi</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('talep.liste') }}" class="btn btn-outline-secondary shadow-sm">
+            <i class="bi bi-collection me-1"></i>Tümünü Gör
+        </a>
+        <a href="{{ url_for('talep.ekle') }}" class="btn btn-primary shadow-sm">
+            <i class="bi bi-plus-circle me-1"></i>Yeni Talep Aç
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Açık Talepler -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-3 p-3" style="background:rgba(13,202,240,0.12);">
+                            <i class="bi bi-inbox fs-4" style="color:#0dcaf0;"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted small text-uppercase fw-bold mb-1">Aktif / Açık Talepler</h6>
+                        <h3 class="mb-0 fw-bold text-heading">{{ stats.acik }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Acil Talepler -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-3 p-3" style="background:rgba(255,193,7,0.12);">
+                            <i class="bi bi-lightning-charge fs-4" style="color:#ffc107;"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted small text-uppercase fw-bold mb-1">Acil Müdahale</h6>
+                        <h3 class="mb-0 fw-bold text-warning">{{ stats.acil_talepler|length }}</h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ortalama Çözüm -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-3 p-3" style="background:rgba(25,135,84,0.12);">
+                            <i class="bi bi-stopwatch fs-4" style="color:#198754;"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted small text-uppercase fw-bold mb-1">Hız Performansı</h6>
+                        <h3 class="mb-0 fw-bold text-success">{{ stats.ort_cozum_suresi_dk }}<span class="fs-6 ms-1 text-muted fw-normal">dk</span></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Müşteri Memnuniyeti -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card border-0 h-100">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <div class="rounded-3 p-3" style="background:rgba(13,110,253,0.12);">
+                            <i class="bi bi-star fs-4" style="color:#0d6efd;"></i>
+                        </div>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="text-muted small text-uppercase fw-bold mb-1">Memnuniyet Oranı</h6>
+                        <h3 class="mb-0 fw-bold text-primary">{{ stats.ort_memnuniyet }}<span class="fs-6 ms-1 text-muted fw-normal">/5</span></h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Grafikler -->
+    <div class="col-12 col-xl-8">
+        <div class="card border-0 h-100">
+            <div class="card-header bg-transparent border-0 pt-4 pb-0 px-4">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2 text-primary"></i>Dağılım Analizleri</h5>
+            </div>
+            <div class="card-body p-4">
+                <div class="row h-100 align-items-center">
+                    <div class="col-12 col-md-6 position-relative">
+                        <h6 class="text-center text-muted fw-bold mb-4 letter-spacing-1 text-uppercase small">Kategorisel Dağılım</h6>
+                        <div style="position: relative; height: 320px; width: 100%; padding: 1rem;">
+                            <canvas id="kategoriChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-6 position-relative mt-5 mt-md-0">
+                        <div class="d-none d-md-block" style="position: absolute; left: 0; top: 10%; bottom: 10%; width: 1px; background: var(--border-color);"></div>
+                        <h6 class="text-center text-muted fw-bold mb-4 letter-spacing-1 text-uppercase small">Durum Dağılımı</h6>
+                        <div style="position: relative; height: 320px; width: 100%; padding: 1rem;">
+                            <canvas id="durumChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Son Talepler -->
+    <div class="col-12 col-xl-4">
+        <div class="card border-0 h-100">
+            <div class="card-header bg-transparent border-bottom pt-4 pb-3 px-4 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>Aktivite Akışı</h5>
+                <a href="{{ url_for('talep.liste') }}" class="text-decoration-none small">Tümü →</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush gap-0">
+                    {% for talep in stats.son_talepler[:6] %}
+                    <a href="{{ url_for('talep.detay', id=talep.id) }}" class="list-group-item list-group-item-action py-3 px-4 border-0 border-bottom">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold text-truncate" style="max-width: 70%;" title="{{ talep.baslik }}">{{ talep.talep_no }} • {{ talep.baslik }}</h6>
+                            <small class="text-muted">{{ talep.gecen_sure_str }}</small>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <small class="text-muted"><i class="bi bi-person me-1"></i>{{ talep.talep_eden_adi[:15] }}{% if talep.talep_eden_adi|length > 15 %}...{% endif %}</small>
+                            <span class="badge bg-{{ talep.durum_sinif }}"><i class="bi {{ talep.durum_icon }} me-1"></i>{{ talep.durum_adi }}</span>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="p-5 text-center text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-3 opacity-50"></i>
+                        <h6 class="fw-bold">Talep Bulunamadı</h6>
+                        <p class="mb-0 small">Sistemde henüz oluşturulmuş bir talep kaydı bulunmamaktadır.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const kategoriVerileri = {{ stats.kategori_dagilimi | tojson }};
+    const durumVerileri = {{ stats.durum_dagilimi | tojson }};
+    
+    // Tema kontrolü
+    const isDark = document.documentElement.getAttribute('data-bs-theme') !== 'light';
+    const textColor = isDark ? '#94a3b8' : '#64748b'; // soft slate color
+    const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+    
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.font.size = 12;
+    
+    // Modern Gradient Palette
+    const modernPalette = [
+        '#6366f1', // indigo
+        '#10b981', // emerald
+        '#f59e0b', // amber
+        '#8b5cf6', // violet
+        '#ec4899', // pink
+        '#0ea5e9', // sky
+        '#64748b'  // slate
+    ];
+    
+    // Ortak Chart ayarları (Modern UI)
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+            padding: 10
+        },
+        plugins: {
+            legend: { 
+                position: 'bottom',
+                labels: {
+                    padding: 20,
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    font: {
+                        family: "'Inter', sans-serif",
+                        weight: '500'
+                    }
+                }
+            },
+            tooltip: {
+                backgroundColor: isDark ? 'rgba(15, 23, 42, 0.9)' : 'rgba(255, 255, 255, 0.9)',
+                titleColor: isDark ? '#fff' : '#000',
+                bodyColor: isDark ? '#cbd5e1' : '#334155',
+                borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                borderWidth: 1,
+                padding: 12,
+                boxPadding: 6,
+                usePointStyle: true,
+                titleFont: {
+                    size: 14,
+                    family: "'Outfit', sans-serif",
+                    weight: 'bold'
+                },
+                bodyFont: {
+                    size: 13,
+                    family: "'Inter', sans-serif"
+                }
+            }
+        },
+        animation: {
+            animateScale: true,
+            animateRotate: true
+        }
+    };
+
+    if (kategoriVerileri.length > 0) {
+        new Chart(document.getElementById('kategoriChart'), {
+            type: 'doughnut',
+            data: {
+                labels: kategoriVerileri.map(i => i[0]),
+                datasets: [{
+                    data: kategoriVerileri.map(i => i[1]),
+                    backgroundColor: modernPalette,
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                ...commonOptions,
+                cutout: '75%',
+                plugins: {
+                    ...commonOptions.plugins
+                }
+            }
+        });
+    }
+
+    if (durumVerileri.length > 0) {
+        new Chart(document.getElementById('durumChart'), {
+            type: 'pie',
+            data: {
+                labels: durumVerileri.map(i => i[0]),
+                datasets: [{
+                    data: durumVerileri.map(i => i[1]),
+                    backgroundColor: ['#0ea5e9', '#6366f1', '#f59e0b', '#10b981', '#64748b', '#ef4444'],
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                ...commonOptions
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

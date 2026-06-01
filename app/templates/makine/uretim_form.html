@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
+    <div class="col-12 col-md-6">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-success text-white py-3 border-bottom-0">
                 <h5 class="mb-0 fw-bold"><i class="bi bi-plus-circle me-2"></i>Üretim Veri Girişi</h5>
@@ -14,11 +14,11 @@
                     {{ form.hidden_tag() }}
                     
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.tarih.label }}</label>
                             {{ form.tarih(class="form-control", type="date") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.vardiya.label }}</label>
                             {{ form.vardiya(class="form-select") }}
                         </div>
@@ -29,20 +29,20 @@
                             <small class="text-muted">Üretimi gerçekleştiren operatör</small>
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.planlanan_sure_dk.label }}</label>
                             {{ form.planlanan_sure_dk(class="form-control", type="number") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.gercek_calisma_dk.label }}</label>
                             {{ form.gercek_calisma_dk(class="form-control", type="number") }}
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.gercek_uretim.label }}</label>
                             {{ form.gercek_uretim(class="form-control", type="number") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.hatali_uretim.label }}</label>
                             {{ form.hatali_uretim(class="form-control", type="number") }}
                         </div>

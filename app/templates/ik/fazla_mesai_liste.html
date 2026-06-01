@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Fazla Mesai{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+        <li class="breadcrumb-item active">Fazla Mesai</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>Fazla Mesai</h2>
+        <p class="text-muted mb-0 mt-1">Aylık fazla mesai kayıtları ve onay takibi</p>
+    </div>
+    <a href="{{ url_for('ik.fazla_mesai_ekle') }}" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Kayıt
+    </a>
+</div>
+
+<!-- Aylık Özet -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="kpi-mini-card">
+            <div class="kpi-icon" style="background:rgba(59,130,246,0.12);color:#3b82f6;"><i class="bi bi-clock"></i></div>
+            <div>
+                <div class="kpi-value">{{ toplam_saat|round(1) }}h</div>
+                <div class="kpi-label">Toplam Saat</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-mini-card">
+            <div class="kpi-icon" style="background:rgba(16,185,129,0.12);color:#10b981;"><i class="bi bi-check-circle"></i></div>
+            <div>
+                <div class="kpi-value">{{ onaylanan_saat|round(1) }}h</div>
+                <div class="kpi-label">Onaylanan</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtreler -->
+<div class="card border-0 mb-4">
+    <div class="card-body p-3">
+        <form method="GET" class="row g-3">
+            <div class="col-6 col-md-2">
+                <select name="ay" class="form-select">
+                    <option value="0" {% if ay == 0 %}selected{% endif %}>Tüm Aylar</option>
+                    {% for a in range(1, 13) %}
+                    <option value="{{ a }}" {% if a == ay %}selected{% endif %}>{{ ['', 'Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'][a] }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-6 col-md-2">
+                <select name="yil" class="form-select">
+                    <option value="0" {% if yil == 0 %}selected{% endif %}>Tüm Yıllar</option>
+                    {% for y in range(2020, 2031) %}
+                    <option value="{{ y }}" {% if y == yil %}selected{% endif %}>{{ y }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <select name="durum" class="form-select">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="bekliyor" {% if durum == 'bekliyor' %}selected{% endif %}>Bekliyor</option>
+                    <option value="onaylandi" {% if durum == 'onaylandi' %}selected{% endif %}>Onaylandı</option>
+                    <option value="reddedildi" {% if durum == 'reddedildi' %}selected{% endif %}>Reddedildi</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">Filtrele</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Çalışan</th>
+                        <th>Tarih</th>
+                        <th>Saat Aralığı</th>
+                        <th>Toplam</th>
+                        <th>Tür</th>
+                        <th>Çarpan</th>
+                        <th>Onay</th>
+                        <th class="text-end pe-4">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in mesailer.items %}
+                    <tr>
+                        <td class="ps-4 fw-medium">
+                            <a href="{{ url_for('ik.personel_karti', id=m.calisan_id) }}" class="text-decoration-none">{{ m.calisan.ad_soyad }}</a>
+                        </td>
+                        <td>{{ m.tarih.strftime('%d.%m.%Y') }}</td>
+                        <td class="text-muted">{{ m.baslangic_saati.strftime('%H:%M') }} — {{ m.bitis_saati.strftime('%H:%M') }}</td>
+                        <td class="fw-bold">{{ m.toplam_saat }}h</td>
+                        <td><span class="badge bg-secondary">{{ m.mesai_turu_adi }}</span></td>
+                        <td>{{ m.ucret_carpani }}x</td>
+                        <td>
+                            {% if m.onay_durumu == 'bekliyor' %}<span class="badge bg-warning-subtle">Bekliyor</span>
+                            {% elif m.onay_durumu == 'onaylandi' %}<span class="badge bg-success-subtle">Onaylandı</span>
+                            {% else %}<span class="badge bg-danger-subtle">Reddedildi</span>{% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            {% if m.onay_durumu == 'bekliyor' %}
+                            <div class="btn-group btn-group-sm">
+                                <form method="POST" action="{{ url_for('ik.fazla_mesai_onayla', id=m.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-outline-success" title="Onayla"><i class="bi bi-check-lg"></i></button>
+                                </form>
+                                <form method="POST" action="{{ url_for('ik.fazla_mesai_reddet', id=m.id) }}" class="d-inline">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button class="btn btn-outline-danger" title="Reddet"><i class="bi bi-x-lg"></i></button>
+                                </form>
+                            </div>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="8" class="text-center py-5 text-muted">
+                        <i class="bi bi-clock fs-1 d-block mb-2"></i><p>Bu dönemde fazla mesai kaydı yok.</p>
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if mesailer.pages > 1 %}
+    <div class="card-footer d-flex justify-content-center pt-3 pb-3">
+        <nav><ul class="pagination pagination-sm mb-0">
+            <li class="page-item {% if not mesailer.has_prev %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('ik.fazla_mesai_liste', page=mesailer.prev_num, ay=ay, yil=yil, durum=durum) }}">Önceki</a>
+            </li>
+            {% for pn in mesailer.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                {% if pn %}<li class="page-item {% if pn == mesailer.page %}active{% endif %}"><a class="page-link" href="{{ url_for('ik.fazla_mesai_liste', page=pn, ay=ay, yil=yil, durum=durum) }}">{{ pn }}</a></li>
+                {% else %}<li class="page-item disabled"><span class="page-link">...</span></li>{% endif %}
+            {% endfor %}
+            <li class="page-item {% if not mesailer.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('ik.fazla_mesai_liste', page=mesailer.next_num, ay=ay, yil=yil, durum=durum) }}">Sonraki</a>
+            </li>
+        </ul></nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

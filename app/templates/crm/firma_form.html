@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}{% if is_edit %}Firma Düzenle{% else %}Yeni Firma Ekle{% endif %}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('crm.index') }}">CRM Merkezi</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('crm.firmalar') }}">Firmalar</a></li>
+        <li class="breadcrumb-item active">{% if is_edit %}Düzenle{% else %}Yeni Firma{% endif %}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold">
+        <i class="bi {% if is_edit %}bi-pencil-square text-primary{% else %}bi-building-add text-success{% endif %} me-2"></i>
+        {% if is_edit %}Firma Düzenle: {{ firma.unvan }}{% else %}Yeni Firma Ekle{% endif %}
+    </h2>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-4">
+                        <!-- Logo (Opsiyonel) -->
+                        <div class="col-12 text-center mb-2">
+                            <div class="position-relative d-inline-block">
+                                {% if is_edit and firma.logo %}
+                                <img src="{{ url_for('static', filename='uploads/' + firma.logo) }}" class="rounded border shadow-sm" width="160" height="120" style="object-fit: contain; background: white;" id="previewLogo">
+                                {% else %}
+                                <div class="rounded border shadow-sm bg-light d-flex align-items-center justify-content-center text-muted" style="width: 160px; height: 120px;" id="previewLogoBox">
+                                    <i class="bi bi-building fs-1"></i>
+                                </div>
+                                <img src="" class="rounded border shadow-sm d-none" width="160" height="120" style="object-fit: contain; background: white;" id="previewLogo">
+                                {% endif %}
+                                
+                                <label for="logoInput" class="position-absolute bottom-0 end-0 btn btn-primary rounded-circle p-2 shadow-sm" style="cursor: pointer; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; transform: translate(25%, 25%);">
+                                    <i class="bi bi-camera"></i>
+                                </label>
+                                <input type="file" name="logo" id="logoInput" class="d-none" accept="image/*" onchange="previewImage(this)">
+                            </div>
+                            <div class="small text-muted mt-3">Firma Logosu (İsteğe Bağlı)</div>
+                        </div>
+
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3 text-success"><i class="bi bi-info-circle me-2"></i>Kurumsal Bilgiler</h5>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">{{ form.firma_no.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.firma_no(class="form-control" + (" is-invalid" if form.firma_no.errors else ""), readonly=True if is_edit else False) }}
+                            {% for error in form.firma_no.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">Sistem tarafından üretilir.</div>
+                        </div>
+
+                        <div class="col-12 col-md-8">
+                            <label class="form-label">{{ form.unvan.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.unvan(class="form-control" + (" is-invalid" if form.unvan.errors else ""), placeholder="Tam ve Resmi Ünvan") }}
+                            {% for error in form.unvan.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.vergi_no.label.text }}</label>
+                            {{ form.vergi_no(class="form-control" + (" is-invalid" if form.vergi_no.errors else ""), placeholder="10 veya 11 Haneli VN/TCKN") }}
+                            {% for error in form.vergi_no.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.vergi_dairesi.label.text }}</label>
+                            {{ form.vergi_dairesi(class="form-control" + (" is-invalid" if form.vergi_dairesi.errors else ""), placeholder="Örn: Beyoğlu VD") }}
+                            {% for error in form.vergi_dairesi.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.sektor.label.text }}</label>
+                            {{ form.sektor(class="form-select" + (" is-invalid" if form.sektor.errors else "")) }}
+                            {% for error in form.sektor.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.faaliyet_alani.label.text }}</label>
+                            {{ form.faaliyet_alani(class="form-control" + (" is-invalid" if form.faaliyet_alani.errors else ""), placeholder="Örn: CNC Metal Kesimi, Matbaa vb.") }}
+                            {% for error in form.faaliyet_alani.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3 text-success"><i class="bi bi-telephone me-2"></i>İletişim & Adres</h5>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.yetkili_kisi.label.text }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                {{ form.yetkili_kisi(class="form-control" + (" is-invalid" if form.yetkili_kisi.errors else ""), placeholder="Ana İletişim Kişisi") }}
+                            </div>
+                            {% for error in form.yetkili_kisi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text">Diğer yetkilileri firma profilinden ekleyebilirsiniz.</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.telefon.label.text }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-telephone"></i></span>
+                                {{ form.telefon(class="form-control" + (" is-invalid" if form.telefon.errors else ""), placeholder="0XXX XXX XX XX") }}
+                            </div>
+                            {% for error in form.telefon.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.eposta.label.text }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                                {{ form.eposta(class="form-control" + (" is-invalid" if form.eposta.errors else ""), placeholder="ornek@firma.com") }}
+                            </div>
+                            {% for error in form.eposta.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.web_sitesi.label.text }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-globe"></i></span>
+                                {{ form.web_sitesi(class="form-control" + (" is-invalid" if form.web_sitesi.errors else ""), placeholder="www.firma.com") }}
+                            </div>
+                            {% for error in form.web_sitesi.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ form.adres.label.text }}</label>
+                            {{ form.adres(class="form-control" + (" is-invalid" if form.adres.errors else ""), rows="3", placeholder="Açık işyeri/merkez adresi") }}
+                            {% for error in form.adres.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3 text-success"><i class="bi bi-geo-alt me-2"></i>Lokasyon & Operasyon</h5>
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label class="form-label">{{ form.blok.label.text }}</label>
+                            {{ form.blok(class="form-control" + (" is-invalid" if form.blok.errors else ""), placeholder="Örn: B Blok") }}
+                            {% for error in form.blok.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label class="form-label">{{ form.daire_no.label.text }}</label>
+                            {{ form.daire_no(class="form-control" + (" is-invalid" if form.daire_no.errors else ""), placeholder="Kapı No") }}
+                            {% for error in form.daire_no.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <label class="form-label">{{ form.durum.label.text }}</label>
+                            {{ form.durum(class="form-select" + (" is-invalid" if form.durum.errors else "")) }}
+                            {% for error in form.durum.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">{{ form.m2.label.text }}</label>
+                            <div class="input-group">
+                                {{ form.m2(class="form-control" + (" is-invalid" if form.m2.errors else ""), placeholder="250.00") }}
+                                <span class="input-group-text">m²</span>
+                            </div>
+                            {% for error in form.m2.errors %}
+                            <div class="invalid-feedback d-block">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6 col-lg-3">
+                            <label class="form-label">{{ form.calisan_sayisi.label.text }}</label>
+                            {{ form.calisan_sayisi(class="form-control" + (" is-invalid" if form.calisan_sayisi.errors else ""), placeholder="Örn: 25") }}
+                            {% for error in form.calisan_sayisi.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12 col-md-12 col-lg-9">
+                            <div class="card bg-light border-0">
+                                <div class="card-body py-2 px-3">
+                                    <h6 class="text-muted mb-2"><i class="bi bi-pin-map me-2"></i>Harita Koordinatları (Opsiyonel)</h6>
+                                    <div class="row g-2">
+                                        <div class="col-12 col-md-6">
+                                            {{ form.harita_enlem(class="form-control form-control-sm", placeholder="Enlem (Örn: 41.0082)") }}
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            {{ form.harita_boylam(class="form-control form-control-sm", placeholder="Boylam (Örn: 28.9784)") }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3 text-success"><i class="bi bi-journal-text me-2"></i>Ek Notlar</h5>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">{{ form.notlar.label.text }}</label>
+                            {{ form.notlar(class="form-control" + (" is-invalid" if form.notlar.errors else ""), rows="4", placeholder="Firma hakkında genel notlar, çalışma saatleri vb...") }}
+                            {% for error in form.notlar.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-5 pt-3 border-top">
+                        <a href="{{ url_for('crm.firmalar') }}" class="btn btn-outline-secondary px-4">İptal</a>
+                        {{ form.submit(class="btn btn-success px-5 fw-bold") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function previewImage(input) {
+    const preview = document.getElementById('previewLogo');
+    const box = document.getElementById('previewLogoBox');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('d-none');
+            if (box) box.classList.add('d-none');
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

@@ -1,69 +1,52 @@
 """
-FabrikaOS — KPI Hedef Demo Verileri
-Senaryo: AnadoluTech Metal Sanayi A.Ş.
+FabrikaOS — KPI ve Analitik Demo Verisi (v2)
+Fabrika geneli KPI hedefleri
 """
-
-from datetime import datetime, timezone
+from datetime import date
 from app.extensions import db
 from app.models.analitik import KpiHedef
-from app.models.kullanici import Kullanici
 
 
 def seed():
-    print('[11/12] KPI Hedef demo verileri yükleniyor...')
+    print('[20/22] Analitik (KPI Hedefleri)...')
 
-    admin = Kullanici.query.filter_by(kullanici_adi='admin').first()
-    yil = datetime.now(timezone.utc).year
+    bugun = date.today()
+    yil = bugun.year
+    ay = bugun.month
 
-    # Varsayılan hedef değerleri (endüstriyel standartlar)
-    hedef_verileri = [
-        {'modul': 'makine', 'kpi_kodu': 'ort_oee', 'kpi_adi': 'Ortalama OEE', 'birim': '%', 'yonu': 'yukari',
-         'hedef': 85, 'alt_limit': 75, 'ust_limit': None},
-        {'modul': 'makine', 'kpi_kodu': 'ariza_sayisi', 'kpi_adi': 'Arıza Sayısı', 'birim': 'adet', 'yonu': 'asagi',
-         'hedef': 5, 'alt_limit': None, 'ust_limit': 10},
-        {'modul': 'makine', 'kpi_kodu': 'bakim_maliyeti', 'kpi_adi': 'Bakım Maliyeti', 'birim': 'TL', 'yonu': 'asagi',
-         'hedef': 50000, 'alt_limit': None, 'ust_limit': 75000},
-        {'modul': 'kalite', 'kpi_kodu': 'hata_orani', 'kpi_adi': 'Hata Oranı', 'birim': '%', 'yonu': 'asagi',
-         'hedef': 2.0, 'alt_limit': None, 'ust_limit': 3.5},
-        {'modul': 'kalite', 'kpi_kodu': 'fire_orani', 'kpi_adi': 'Fire Oranı', 'birim': '%', 'yonu': 'asagi',
-         'hedef': 1.5, 'alt_limit': None, 'ust_limit': 2.5},
-        {'modul': 'enerji', 'kpi_kodu': 'toplam_maliyet', 'kpi_adi': 'Enerji Maliyeti', 'birim': 'TL', 'yonu': 'asagi',
-         'hedef': 120000, 'alt_limit': None, 'ust_limit': 150000},
-        {'modul': 'enerji', 'kpi_kodu': 'birim_tuketim', 'kpi_adi': 'Birim Enerji Tüketimi', 'birim': 'kWh/adet', 'yonu': 'asagi',
-         'hedef': 1.0, 'alt_limit': None, 'ust_limit': 1.5},
-        {'modul': 'isg', 'kpi_kodu': 'kaza_sayisi', 'kpi_adi': 'İş Kazası Sayısı', 'birim': 'adet', 'yonu': 'asagi',
-         'hedef': 0, 'alt_limit': None, 'ust_limit': 2},
-        {'modul': 'isg', 'kpi_kodu': 'kayip_gun', 'kpi_adi': 'Kayıp İş Günü', 'birim': 'gün', 'yonu': 'asagi',
-         'hedef': 0, 'alt_limit': None, 'ust_limit': 5},
-        {'modul': 'stok', 'kpi_kodu': 'kritik_malzeme', 'kpi_adi': 'Kritik Stok Malzeme', 'birim': 'adet', 'yonu': 'asagi',
-         'hedef': 3, 'alt_limit': None, 'ust_limit': 6},
-        {'modul': 'personel', 'kpi_kodu': 'devamsizlik', 'kpi_adi': 'Devamsızlık Oranı', 'birim': '%', 'yonu': 'asagi',
-         'hedef': 5, 'alt_limit': None, 'ust_limit': 8},
+    # Son 3 ay için hedefler
+    hedefler = [
+        # OEE Hedefleri
+        {'kpi_kodu': 'ort_oee', 'kpi_adi': 'Fabrika Geneli OEE', 'hedef_deger': 85.0, 'birim': '%', 'modul': 'makine', 'yonu': 'yukari'},
+        {'kpi_kodu': 'hata_orani', 'kpi_adi': 'Hata Oranı', 'hedef_deger': 2.5, 'birim': '%', 'modul': 'kalite', 'yonu': 'asagi'},
+        {'kpi_kodu': 'ariza_sayisi', 'kpi_adi': 'Arıza Sayısı', 'hedef_deger': 15.0, 'birim': 'adet', 'modul': 'makine', 'yonu': 'asagi'},
+        {'kpi_kodu': 'bakim_maliyeti', 'kpi_adi': 'Bakım Maliyeti', 'hedef_deger': 25000.0, 'birim': 'TL', 'modul': 'makine', 'yonu': 'asagi'},
+        {'kpi_kodu': 'toplam_maliyet', 'kpi_adi': 'Enerji Maliyeti', 'hedef_deger': 45000.0, 'birim': 'TL', 'modul': 'enerji', 'yonu': 'asagi'},
+        {'kpi_kodu': 'kaza_sayisi', 'kpi_adi': 'İş Kazası Sayısı', 'hedef_deger': 0.0, 'birim': 'adet', 'modul': 'isg', 'yonu': 'asagi'},
+        {'kpi_kodu': 'devamsizlik', 'kpi_adi': 'Devamsızlık Oranı', 'hedef_deger': 2.0, 'birim': '%', 'modul': 'personel', 'yonu': 'asagi'},
+        {'kpi_kodu': 'kritik_malzeme', 'kpi_adi': 'Kritik Stok Malzeme Sayısı', 'hedef_deger': 5.0, 'birim': 'adet', 'modul': 'stok', 'yonu': 'asagi'},
     ]
 
-    eklenen = 0
-    for veri in hedef_verileri:
-        # Her KPI için 12 aylık hedef oluştur
-        for ay in range(1, 13):
-            mevcut = KpiHedef.query.filter_by(
-                modul=veri['modul'], kpi_kodu=veri['kpi_kodu'], yil=yil, ay=ay
-            ).first()
-            if not mevcut:
-                hedef = KpiHedef(
-                    modul=veri['modul'],
-                    kpi_adi=veri['kpi_adi'],
-                    kpi_kodu=veri['kpi_kodu'],
-                    birim=veri['birim'],
-                    hedef_deger=veri['hedef'],
-                    alt_limit=veri['alt_limit'],
-                    ust_limit=veri['ust_limit'],
-                    yonu=veri['yonu'],
-                    periyot='aylik',
-                    yil=yil,
-                    ay=ay,
-                    olusturan_id=admin.id if admin else None,
-                )
-                db.session.add(hedef)
-                eklenen += 1
+    for offset in range(3):
+        m = ay - offset
+        y = yil
+        if m <= 0:
+            m += 12
+            y -= 1
 
-    print(f'  OK {eklenen} KPI hedefi oluşturuldu ({len(hedef_verileri)} KPI × 12 ay)')
+        for h in hedefler:
+            kpi = KpiHedef(
+                yil=y,
+                ay=m,
+                kpi_kodu=h['kpi_kodu'],
+                kpi_adi=h['kpi_adi'],
+                hedef_deger=h['hedef_deger'],
+                birim=h['birim'],
+                modul=h['modul'],
+                yonu=h['yonu'],
+                periyot='aylik'
+            )
+            db.session.add(kpi)
+
+    db.session.flush()
+    print('  + KPI Hedefleri eklendi\n')

@@ -52,7 +52,7 @@
                             <input type="password" name="smtp_sifre" class="form-control" value="{{ ayarlar.smtp_sifre or '' }}" placeholder="••••••••">
                         </div>
                         <div class="col-12">
-                            <div class="d-flex gap-4">
+                            <div class="d-flex flex-wrap gap-4">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" name="tls_aktif" id="tlsCheck" {{ 'checked' if ayarlar.tls_aktif }}>
                                     <label class="form-check-label" for="tlsCheck">STARTTLS</label>
@@ -126,7 +126,7 @@
             </div>
 
             <!-- Test & Kaydet -->
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
                 <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-check-lg me-1"></i>Kaydet</button>
                 <button type="button" class="btn btn-outline-secondary" id="testBtn" onclick="testSmtp()"><i class="bi bi-send me-1"></i>Test</button>
             </div>

@@ -141,7 +141,7 @@
     
     <!-- Header -->
     <header class="report-header">
-        <div class="brand-logo d-flex align-items-center gap-3">
+        <div class="brand-logo d-flex flex-wrap align-items-center gap-3">
             {% if kurumsal_ayarlar and kurumsal_ayarlar.logo_path %}
             <img src="{{ url_for('static', filename=kurumsal_ayarlar.logo_path) }}" alt="Logo">
             {% else %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Savunma Detay — {{ savunma.konu }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('ik.savunma_liste') }}">Savunma / Tutanaklar</a></li>
+        <li class="breadcrumb-item active">Detay</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1"><i class="bi bi-file-earmark-text me-2 text-warning"></i>{{ savunma.konu }}</h2>
+        <div class="d-flex gap-2 flex-wrap">
+            {% if savunma.tur == 'ihtar' %}<span class="badge bg-danger">{{ savunma.tur_adi }}</span>
+            {% elif savunma.tur == 'uyari' %}<span class="badge bg-warning">{{ savunma.tur_adi }}</span>
+            {% elif savunma.tur == 'disiplin_kurulu' %}<span class="badge bg-danger-subtle">{{ savunma.tur_adi }}</span>
+            {% else %}<span class="badge bg-secondary">{{ savunma.tur_adi }}</span>{% endif %}
+
+            {% if savunma.durum == 'acik' %}<span class="badge bg-warning-subtle">Açık</span>
+            {% elif savunma.durum == 'kapatildi' %}<span class="badge bg-success-subtle">Kapatıldı</span>
+            {% else %}<span class="badge bg-danger-subtle">İtiraz Edildi</span>{% endif %}
+        </div>
+    </div>
+    <a href="{{ url_for('ik.savunma_duzenle', id=savunma.id) }}" class="btn btn-outline-primary">
+        <i class="bi bi-pencil me-1"></i>Düzenle
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 mb-4">
+            <div class="card-header"><h6 class="mb-0">İçerik</h6></div>
+            <div class="card-body">
+                <div style="white-space: pre-wrap;">{{ savunma.icerik }}</div>
+            </div>
+        </div>
+
+        {% if savunma.karar %}
+        <div class="card border-0 mb-4">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-check2-square text-success me-2"></i>Karar</h6></div>
+            <div class="card-body">
+                <div style="white-space: pre-wrap;">{{ savunma.karar }}</div>
+                {% if savunma.karar_tarihi %}
+                <div class="text-muted mt-2"><small>Karar Tarihi: {{ savunma.karar_tarihi.strftime('%d.%m.%Y') }}</small></div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 mb-4">
+            <div class="card-header"><h6 class="mb-0">Bilgiler</h6></div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr><td class="text-muted">Çalışan</td><td class="fw-medium"><a href="{{ url_for('ik.personel_karti', id=savunma.calisan_id) }}">{{ savunma.calisan.ad_soyad }}</a></td></tr>
+                        <tr><td class="text-muted">Sicil No</td><td>{{ savunma.calisan.sicil_no }}</td></tr>
+                        <tr><td class="text-muted">Oluşturma</td><td>{{ savunma.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</td></tr>
+                        <tr><td class="text-muted">Oluşturan</td><td>{{ savunma.olusturan.ad_soyad if savunma.olusturan else '—' }}</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if savunma.taniklar %}
+        <div class="card border-0">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-person-check me-2"></i>Tanıklar</h6></div>
+            <div class="card-body">
+                {% for t in savunma.taniklar %}
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <div class="fdys-avatar" style="width:32px;height:32px;font-size:0.7rem;">{{ t.ad_soyad[:2]|upper }}</div>
+                    <div>
+                        <div class="fw-medium">{{ t.ad_soyad }}</div>
+                        {% if t.sicil_no %}<small class="text-muted">{{ t.sicil_no }}</small>{% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

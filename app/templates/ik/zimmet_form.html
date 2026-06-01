@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('ik.zimmet_liste') }}">Zimmet</a></li>
+    <li class="breadcrumb-item active">{{ title }}</li>
+</ol></nav>
+{% endblock %}
+{% block content %}
+<div class="mb-4"><h2 class="fw-bold"><i class="bi bi-box-seam me-2 text-info"></i>{{ title }}</h2></div>
+<div class="row justify-content-center"><div class="col-12 col-lg-8"><div class="card border-0"><div class="card-body p-4">
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row g-3">
+            <div class="col-12">{{ form.calisan_id.label(class="form-label") }}{{ form.calisan_id(class="form-select") }}</div>
+            <div class="col-12 col-md-8">{{ form.demirbas_adi.label(class="form-label") }}{{ form.demirbas_adi(class="form-control", placeholder="Dell Laptop, İş Telefonu vb.") }}</div>
+            <div class="col-12 col-md-4">{{ form.kategori.label(class="form-label") }}{{ form.kategori(class="form-select") }}</div>
+            <div class="col-6">{{ form.demirbas_kodu.label(class="form-label") }}{{ form.demirbas_kodu(class="form-control", placeholder="Barkod/envanter kodu") }}</div>
+            <div class="col-6">{{ form.seri_no.label(class="form-label") }}{{ form.seri_no(class="form-control", placeholder="Seri numarası") }}</div>
+            <div class="col-6">{{ form.teslim_tarihi.label(class="form-label") }}{{ form.teslim_tarihi(class="form-control") }}</div>
+            <div class="col-6">{{ form.deger.label(class="form-label") }}{{ form.deger(class="form-control", placeholder="0.00") }}</div>
+            <div class="col-12">{{ form.notlar.label(class="form-label") }}{{ form.notlar(class="form-control", rows="2") }}</div>
+            <div class="col-12">
+                <div class="form-check">
+                    {{ form.teslim_alan_imza(class="form-check-input") }}
+                    {{ form.teslim_alan_imza.label(class="form-check-label") }}
+                </div>
+            </div>
+        </div>
+        <div class="d-flex gap-2 mt-4">{{ form.submit(class="btn btn-primary") }}<a href="{{ url_for('ik.zimmet_liste') }}" class="btn btn-outline-secondary">İptal</a></div>
+    </form>
+</div></div></div></div>
+{% endblock %}

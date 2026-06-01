@@ -1,0 +1,130 @@
+{% extends "dis_panel/base_panel.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 col-xxl-11">
+        <div class="d-flex align-items-center mb-4">
+            <a href="{{ url_for('dis_panel.borclarim') }}" class="btn btn-outline-secondary me-3 px-3 rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="mb-0 fw-bold">Güvenli Ödeme</h4>
+                <p class="text-muted mb-0 mt-1">Sanal POS üzerinden kredi kartı ile ödemenizi gerçekleştirebilirsiniz.</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Özet -->
+            <div class="col-12 col-lg-4 order-2 order-lg-1">
+                <div class="card border-0 shadow-sm bg-card h-100">
+                    <div class="card-body p-4 bg-light rounded">
+                        <h6 class="fw-bold text-muted mb-4">Ödenecek Tutar Özeti</h6>
+                        
+                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                            <span class="text-muted">Borç Türü</span>
+                            <span class="fw-medium">{{ borc.borc_turu_adi }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                            <span class="text-muted">Dönem</span>
+                            <span class="fw-medium">{{ borc.donem or '-' }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4 pb-2 border-bottom">
+                            <span class="text-muted">Asıl Borç</span>
+                            <span class="fw-medium">{{ '{:,.2f}'.format(borc.tutar).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺</span>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between align-items-end mt-2">
+                            <span class="fw-bold fs-5 mb-1">Toplam</span>
+                            <span class="fw-bold fs-4 text-primary text-end" style="white-space: nowrap;">
+                                {{ '{:,.2f}'.format(borc.kalan_tutar).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺
+                            </span>
+                        </div>
+                        
+                        <div class="mt-4 pt-3 text-center opacity-50">
+                            <i class="bi bi-shield-lock-fill fs-2 d-block mb-1"></i>
+                            <small class="d-block">256-bit SSL Güvenliği ile korunmaktadır.</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- POS Formu -->
+            <div class="col-12 col-lg-8 order-1 order-lg-2">
+                <div class="card border-0 shadow-sm bg-card h-100 border-primary" style="border-top: 4px solid var(--primary);">
+                    <div class="card-body p-4 p-md-5">
+                        <h5 class="fw-bold mb-4 d-flex align-items-center">
+                            <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Kart Bilgileri
+                        </h5>
+                        
+                        <form action="{{ url_for('dis_panel.odeme_basarili', borc_id=borc.id) }}" method="POST" id="paymentForm">
+                            <!-- Simülasyon için tutar hidden olarak gidiyor -->
+                            <input type="hidden" name="tutar" value="{{ borc.kalan_tutar }}">
+                            
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold mb-1">Kart Üzerindeki İsim</label>
+                                <input type="text" class="form-control form-control-lg fs-6" placeholder="Örn: AHMET YILMAZ" required>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label class="form-label text-muted small fw-bold mb-1">Kart Numarası</label>
+                                <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                                    <span class="input-group-text bg-transparent border-end-0 px-3"><i class="bi bi-credit-card text-muted"></i></span>
+                                    <input type="text" class="form-control fs-6 border-start-0 ps-0" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-7">
+                                    <label class="form-label text-muted small fw-bold mb-1">Son Kullanma (Ay/Yıl)</label>
+                                    <div class="d-flex gap-2">
+                                        <select class="form-select form-select-lg fs-6 shadow-sm" required>
+                                            <option value="" disabled selected>Ay</option>
+                                            {% for i in range(1, 13) %}
+                                            <option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>
+                                            {% endfor %}
+                                        </select>
+                                        <select class="form-select form-select-lg fs-6 shadow-sm" required>
+                                            <option value="" disabled selected>Yıl</option>
+                                            {% for i in range(2026, 2036) %}
+                                            <option value="{{ i }}">{{ i }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-5">
+                                    <label class="form-label text-muted small fw-bold mb-1">CVV</label>
+                                    <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                                        <input type="password" class="form-control fs-6 border-end-0" placeholder="***" maxlength="3" required>
+                                        <span class="input-group-text bg-transparent border-start-0"><i class="bi bi-info-circle text-muted" title="Kartınızın arkasındaki 3 haneli güvenlik kodu"></i></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold fs-5 shadow-sm mt-2" id="payBtn">
+                                Ödemeyi Tamamla
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('paymentForm');
+    const btn = document.getElementById('payBtn');
+    
+    if(form && btn) {
+        form.addEventListener('submit', function(e) {
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>İşleniyor...';
+            btn.disabled = true;
+            // Form native olarak submit olacak ve simülasyon tamamlanacak
+        });
+    }
+});
+</script>
+{% endblock %}

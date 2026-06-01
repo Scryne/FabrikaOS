@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Sağlık Muayenesi Kaydı{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="card shadow-sm border-0 border-top border-4 border-danger">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-heart-pulse me-2 text-danger"></i>Yeni Sağlık Muayenesi</h5>
+                <small class="text-muted">Personel sağlık muayenesi ve uygunluk kaydı</small>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.calisan_id.label }}</label>
+                            {{ form.calisan_id(class="form-select") }}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.muayene_turu.label }}</label>
+                            {{ form.muayene_turu(class="form-select") }}
+                        </div>
+
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-medium">{{ form.muayene_tarihi.label }}</label>
+                            {{ form.muayene_tarihi(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label fw-medium">{{ form.sonraki_muayene_tarihi.label }}</label>
+                            {{ form.sonraki_muayene_tarihi(class="form-control", type="date") }}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.hastane_adi.label }}</label>
+                            {{ form.hastane_adi(class="form-control", placeholder="Hastane / Kurum") }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.doktor_adi.label }}</label>
+                            {{ form.doktor_adi(class="form-control", placeholder="Doktor") }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.sonuc.label }}</label>
+                            {{ form.sonuc(class="form-select") }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.kisitlamalar.label }}</label>
+                            {{ form.kisitlamalar(class="form-control", rows="2") }}
+                            <div class="form-text">{{ form.kisitlamalar.description }}</div>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.hatirlatma_gun.label }}</label>
+                            <div class="input-group">
+                                {{ form.hatirlatma_gun(class="form-control", type="number") }}
+                                <span class="input-group-text">Gün önce</span>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.notlar.label }}</label>
+                            {{ form.notlar(class="form-control", rows="2") }}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-danger btn-lg shadow-sm fw-bold") }}
+                                <a href="{{ url_for('isg.saglik_muayeneleri') }}" class="btn btn-light">İptal</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Yeni Versiyon — {{ dokuman.baslik }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('dys.index') }}">DYS</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('dys.detay', id=dokuman.id) }}">{{ dokuman.baslik[:30] }}</a></li>
+        <li class="breadcrumb-item active">Yeni Versiyon</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <div style="width:56px;height:56px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background:{{ dokuman.tip_rengi }}15;color:{{ dokuman.tip_rengi }};">
+                <i class="{{ dokuman.ikon_sinifi }}"></i>
+            </div>
+            <div>
+                <h3 class="mb-0 fw-bold"><i class="bi bi-arrow-repeat me-2 text-primary"></i>Yeni Versiyon Yükle</h3>
+                <p class="text-muted mb-0 mt-1">
+                    <strong>{{ dokuman.baslik }}</strong> — Mevcut: v{{ dokuman.versiyon }}
+                </p>
+            </div>
+        </div>
+
+        <div class="card border-0 mb-4" style="background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05) !important;">
+            <div class="card-body p-4">
+                <h6 class="fw-bold mb-3"><i class="bi bi-info-circle text-info me-2"></i>Mevcut Versiyon Bilgileri</h6>
+                <div class="row g-3">
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted small">Versiyon</div>
+                        <div class="fw-bold">v{{ dokuman.versiyon }}</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted small">Dosya</div>
+                        <div class="fw-bold text-truncate">{{ dokuman.orijinal_adi }}</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted small">Boyut</div>
+                        <div class="fw-bold">{{ dokuman.boyut_formatli }}</div>
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <div class="text-muted small">Yükleme Tarihi</div>
+                        <div class="fw-bold">{{ dokuman.olusturma_tarihi.strftime('%d.%m.%Y') }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="card border-0" style="background: rgba(59,130,246,0.03); border: 2px dashed rgba(59,130,246,0.3) !important; border-radius: 16px;">
+                <div class="card-body p-4 text-center">
+                    <i class="bi bi-cloud-arrow-up d-block mb-3" style="font-size: 3rem; color: #3b82f6;"></i>
+                    <h5 class="fw-bold text-white mb-1">Yeni Versiyon Dosyası</h5>
+                    <p class="text-muted mb-3">Yeni v{{ dokuman.versiyon + 1 }} dosyasını seçin</p>
+                    <input type="file" name="dosya" class="form-control mx-auto" style="max-width: 400px;" required>
+                </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-primary btn-lg flex-fill">
+                    <i class="bi bi-arrow-repeat me-1"></i> v{{ dokuman.versiyon + 1 }} Olarak Yükle
+                </button>
+                <a href="{{ url_for('dys.detay', id=dokuman.id) }}" class="btn btn-outline-secondary btn-lg">İptal</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

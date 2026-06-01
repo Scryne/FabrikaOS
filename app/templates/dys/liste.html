@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}{{ title|default('Dokümanlar') }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('dys.index') }}">DYS</a></li>
+        <li class="breadcrumb-item active">{{ title|default('Doküman Listesi') }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .doc-list-item {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        transition: all 0.25s ease;
+        margin-bottom: 0.5rem;
+    }
+    .doc-list-item:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+        transform: translateX(3px);
+    }
+    .doc-list-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.3rem;
+        flex-shrink: 0;
+    }
+    .filter-bar {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 14px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+    }
+    .onay-badge-taslak { background: rgba(107,114,128,0.15); color: #9ca3af; }
+    .onay-badge-onay_bekliyor { background: rgba(245,158,11,0.15); color: #f59e0b; }
+    .onay-badge-onaylandi { background: rgba(16,185,129,0.15); color: #10b981; }
+    .onay-badge-reddedildi { background: rgba(239,68,68,0.15); color: #ef4444; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-files me-2 text-primary"></i>{{ title|default('Doküman Listesi') }}</h2>
+        <p class="text-muted mb-0 mt-1">
+            {% if dokumanlar %}{{ dokumanlar.total }} doküman bulundu{% else %}Doküman bulunamadı{% endif %}
+        </p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('dys.yukle') }}" class="btn btn-primary">
+            <i class="bi bi-cloud-upload me-1"></i> Yeni Yükle
+        </a>
+        <a href="{{ url_for('dys.arama') }}" class="btn btn-outline-info">
+            <i class="bi bi-search me-1"></i> Gelişmiş Arama
+        </a>
+    </div>
+</div>
+
+<!-- Filtre Çubuğu -->
+<div class="filter-bar">
+    <form method="get" class="row g-2 align-items-end">
+        <div class="col-12 col-md-3">
+            <label class="form-label small text-muted">Arama</label>
+            <input type="text" name="arama" class="form-control" value="{{ arama }}" placeholder="Başlık veya dosya adı...">
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small text-muted">Kategori</label>
+            <select name="kategori" class="form-select">
+                <option value="">Tümü</option>
+                <option value="prosedur" {{ 'selected' if kategori == 'prosedur' }}>Prosedür</option>
+                <option value="talimat" {{ 'selected' if kategori == 'talimat' }}>Talimat</option>
+                <option value="form" {{ 'selected' if kategori == 'form' }}>Form</option>
+                <option value="rapor" {{ 'selected' if kategori == 'rapor' }}>Rapor</option>
+                <option value="sozlesme" {{ 'selected' if kategori == 'sozlesme' }}>Sözleşme</option>
+                <option value="diger" {{ 'selected' if kategori == 'diger' }}>Diğer</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small text-muted">Departman</label>
+            <select name="departman" class="form-select">
+                <option value="">Tümü</option>
+                <option value="uretim" {{ 'selected' if departman == 'uretim' }}>Üretim</option>
+                <option value="kalite" {{ 'selected' if departman == 'kalite' }}>Kalite</option>
+                <option value="bakim" {{ 'selected' if departman == 'bakim' }}>Bakım</option>
+                <option value="ik" {{ 'selected' if departman == 'ik' }}>İK</option>
+                <option value="isg" {{ 'selected' if departman == 'isg' }}>İSG</option>
+                <option value="idari" {{ 'selected' if departman == 'idari' }}>İdari</option>
+                <option value="muhasebe" {{ 'selected' if departman == 'muhasebe' }}>Muhasebe</option>
+                <option value="genel" {{ 'selected' if departman == 'genel' }}>Genel</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-2">
+            <label class="form-label small text-muted">Onay Durumu</label>
+            <select name="onay_durumu" class="form-select">
+                <option value="">Tümü</option>
+                <option value="taslak" {{ 'selected' if onay_durumu == 'taslak' }}>Taslak</option>
+                <option value="onay_bekliyor" {{ 'selected' if onay_durumu == 'onay_bekliyor' }}>Onay Bekliyor</option>
+                <option value="onaylandi" {{ 'selected' if onay_durumu == 'onaylandi' }}>Onaylandı</option>
+                <option value="reddedildi" {{ 'selected' if onay_durumu == 'reddedildi' }}>Reddedildi</option>
+            </select>
+        </div>
+        <div class="col-6 col-md-3 col-lg-2 d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-fill">
+                <i class="bi bi-funnel me-1"></i> Filtrele
+            </button>
+            <a href="{{ url_for('dys.liste') }}" class="btn btn-outline-secondary" title="Filtreleri Temizle">
+                <i class="bi bi-x-lg"></i>
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Doküman Listesi -->
+{% if dokumanlar and dokumanlar.items %}
+<div class="d-flex flex-column gap-2">
+    {% for d in dokumanlar.items %}
+    <div class="doc-list-item">
+        <div class="d-flex align-items-center gap-3">
+            <div class="doc-list-icon" style="background: {{ d.tip_rengi }}15; color: {{ d.tip_rengi }};">
+                <i class="{{ d.ikon_sinifi }}"></i>
+            </div>
+            <div class="flex-grow-1 min-width-0">
+                <div class="d-flex align-items-center gap-2 mb-1">
+                    <a href="{{ url_for('dys.detay', id=d.id) }}" class="fw-bold text-decoration-none text-truncate" style="color: var(--text-heading); font-size: 0.95rem;">
+                        {{ d.baslik }}
+                    </a>
+                    <span class="badge rounded-pill onay-badge-{{ d.onay_durumu }}" style="font-size:0.68rem; padding: 0.3em 0.6em;">
+                        {{ d.onay_durumu_adi }}
+                    </span>
+                    {% if d.versiyon > 1 %}
+                    <span class="badge bg-primary-subtle" style="font-size:0.65rem;">v{{ d.versiyon }}</span>
+                    {% endif %}
+                </div>
+                <div class="d-flex flex-wrap gap-2 align-items-center" style="font-size: 0.78rem; color: #6b7280;">
+                    <span><i class="bi bi-tag me-1"></i>{{ d.kategori_adi }}</span>
+                    {% if d.departman %}<span><i class="bi bi-diagram-3 me-1"></i>{{ d.departman }}</span>{% endif %}
+                    <span><i class="bi bi-person me-1"></i>{{ d.sahip.ad_soyad if d.sahip else '—' }}</span>
+                    <span><i class="bi bi-calendar me-1"></i>{{ d.olusturma_tarihi.strftime('%d.%m.%Y') }}</span>
+                    <span><i class="bi bi-hdd me-1"></i>{{ d.boyut_formatli }}</span>
+                    <span><i class="bi bi-download me-1"></i>{{ d.indirme_sayisi }}</span>
+                </div>
+                {% if d.etiket_listesi %}
+                <div class="mt-1 d-flex flex-wrap gap-1">
+                    {% for etiket in d.etiket_listesi[:5] %}
+                    <span class="badge bg-dark border border-secondary" style="font-size:0.65rem; font-weight:400;">{{ etiket }}</span>
+                    {% endfor %}
+                    {% if d.etiket_listesi|length > 5 %}
+                    <span class="badge bg-dark border border-secondary" style="font-size:0.65rem;">+{{ d.etiket_listesi|length - 5 }}</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="d-flex gap-1 flex-shrink-0">
+                <a href="{{ url_for('dys.indir', id=d.id) }}" class="btn btn-outline-success btn-sm" title="İndir">
+                    <i class="bi bi-download"></i>
+                </a>
+                <a href="{{ url_for('dys.detay', id=d.id) }}" class="btn btn-outline-primary btn-sm" title="Detay">
+                    <i class="bi bi-eye"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Sayfalama -->
+{% if dokumanlar.pages > 1 %}
+<nav aria-label="Doküman sayfalama" class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if dokumanlar.has_prev %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('dys.liste', page=dokumanlar.prev_num, kategori=kategori, departman=departman, onay_durumu=onay_durumu, arama=arama) }}">&laquo;</a>
+        </li>
+        {% endif %}
+        {% for p in dokumanlar.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+                <li class="page-item {{ 'active' if p == dokumanlar.page }}">
+                    <a class="page-link" href="{{ url_for('dys.liste', page=p, kategori=kategori, departman=departman, onay_durumu=onay_durumu, arama=arama) }}">{{ p }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if dokumanlar.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="{{ url_for('dys.liste', page=dokumanlar.next_num, kategori=kategori, departman=departman, onay_durumu=onay_durumu, arama=arama) }}">&raquo;</a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5 mt-3" style="background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
+    <i class="bi bi-folder2 text-muted" style="font-size: 4rem;"></i>
+    <h4 class="mt-3 fw-bold text-white">Doküman Bulunamadı</h4>
+    <p class="text-muted mb-3">Arama veya filtre kriterlerinize uygun doküman yok.</p>
+    <a href="{{ url_for('dys.yukle') }}" class="btn btn-primary">
+        <i class="bi bi-cloud-upload me-1"></i> İlk Dokümanı Yükle
+    </a>
+</div>
+{% endif %}
+{% endblock %}

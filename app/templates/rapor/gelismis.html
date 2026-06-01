@@ -14,7 +14,7 @@
         </h2>
         <p class="text-muted mb-0" style="font-size:0.88rem;">Tüm modüller için dinamik veri analizi, görselleştirme ve dışa aktarma</p>
     </div>
-    <div class="d-flex gap-2 d-none" id="exportActions">
+    <div class="d-flex flex-wrap gap-2 d-none" id="exportActions">
         <button class="btn btn-secondary" onclick="disaAktar('excel')" title="Excel İndir">
             <i class="bi bi-file-earmark-spreadsheet text-success"></i> Excel
         </button>
@@ -73,11 +73,11 @@
 <!-- Filter Bar -->
 <div class="gr-filter-bar mb-4">
     <div class="d-flex align-items-center gap-3 flex-wrap">
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2">
             <label class="form-label mb-0 text-muted small fw-bold text-nowrap">Başlangıç</label>
             <input type="date" class="form-control form-control-sm" id="raporBaslangic" style="width:160px;">
         </div>
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex flex-wrap align-items-center gap-2">
             <label class="form-label mb-0 text-muted small fw-bold text-nowrap">Bitiş</label>
             <input type="date" class="form-control form-control-sm" id="raporBitis" style="width:160px;">
         </div>
@@ -118,7 +118,7 @@
             <div class="card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 fw-bold"><i class="bi bi-activity me-2 text-muted"></i>Trend Analizi</h6>
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="gr-chart-toggle" role="group">
                             <button class="gr-chart-btn active" data-type="line" onclick="grafikTipiDegistir('line',this)"><i class="bi bi-graph-up"></i></button>
                             <button class="gr-chart-btn" data-type="bar" onclick="grafikTipiDegistir('bar',this)"><i class="bi bi-bar-chart"></i></button>
@@ -143,7 +143,7 @@
     <div class="card">
         <div class="card-header d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold"><i class="bi bi-table me-2 text-muted"></i>Detaylı Veri Dökümü</h6>
-            <div class="d-flex align-items-center gap-2">
+            <div class="d-flex flex-wrap align-items-center gap-2">
                 <div class="position-relative">
                     <input type="text" class="form-control form-control-sm" id="tabloArama" placeholder="Tabloda ara..." style="width:200px;padding-left:2rem;">
                     <i class="bi bi-search position-absolute text-muted" style="left:8px;top:50%;transform:translateY(-50%);font-size:0.75rem;"></i>

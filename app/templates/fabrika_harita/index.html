@@ -8,13 +8,13 @@
 {% block content %}
 <div class="container-fluid">
 <!-- Page Header -->
-<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+<div class="d-flex justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4 flex-wrap gap-3">
     <div>
         <h2 class="mb-1"><i class="bi bi-map me-2 text-primary"></i>Fabrika Haritası</h2>
         <p class="text-muted mb-0">Dijital İkiz — Canlı Yerleşim Planı</p>
     </div>
     <div class="d-flex gap-2 align-items-center flex-wrap">
-        <div class="harita-legend d-flex gap-3 me-3">
+        <div class="harita-legend d-flex flex-wrap gap-3 me-3">
             <span class="legend-item"><span class="legend-dot dot-aktif"></span>Çalışıyor</span>
             <span class="legend-item"><span class="legend-dot dot-bakimda"></span>Bakımda</span>
             <span class="legend-item"><span class="legend-dot dot-arizali"></span>Arızalı</span>
@@ -85,9 +85,9 @@
 
 <!-- Map -->
 <div class="card harita-container-card">
-    <div class="card-header d-flex justify-content-between align-items-center">
+    <div class="card-header d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2">
         <h5 class="mb-0"><i class="bi bi-building me-2"></i>Fabrika Yerleşim Planı</h5>
-        <div class="d-flex gap-2 align-items-center">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
             <span class="badge bg-primary-subtle text-primary-emphasis">
                 <i class="bi bi-broadcast me-1"></i>Canlı
             </span>
@@ -244,7 +244,7 @@
 <!-- Offcanvas Makine Detay -->
 <div class="offcanvas offcanvas-end makine-offcanvas shadow-lg" tabindex="-1" id="makineOffcanvas" aria-labelledby="makineOffcanvasLabel" style="background-color: var(--bg-card); border-left: 1px solid var(--border-color); width: 340px;">
     <div class="offcanvas-header border-bottom border-secondary" style="border-color: var(--border-color) !important;">
-        <div class="d-flex align-items-center gap-3">
+        <div class="d-flex flex-wrap align-items-center gap-3">
             <div class="popup-status-dot" id="popupStatusDot" style="width:12px;height:12px;border-radius:50%;"></div>
             <div>
                 <h5 class="offcanvas-title fw-bold mb-0" id="popupTitle" style="color: var(--text-heading); font-family: 'Outfit', sans-serif;"></h5>
@@ -254,7 +254,7 @@
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Kapat"></button>
     </div>
     <div class="offcanvas-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-3">
             <span class="text-muted small"><i class="bi bi-speedometer2 me-1"></i>OEE (Canlı)</span>
             <span class="fw-bold fs-5" id="popupOEE"></span>
         </div>
@@ -267,15 +267,15 @@
         </div>
         
         <div class="list-group list-group-flush mb-4 border-top border-bottom border-secondary" style="border-color: var(--border-color) !important;">
-            <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3" style="border-color: var(--border-color) !important;">
+            <div class="list-group-item bg-transparent d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 px-0 py-3" style="border-color: var(--border-color) !important;">
                 <span class="text-muted"><i class="bi bi-box-seam me-2"></i>Bugün Üretim</span>
                 <span class="fw-bold text-white" id="popupUretim"></span>
             </div>
-            <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3" style="border-color: var(--border-color) !important;">
+            <div class="list-group-item bg-transparent d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 px-0 py-3" style="border-color: var(--border-color) !important;">
                 <span class="text-muted"><i class="bi bi-person me-2"></i>Operatör</span>
                 <span class="fw-bold text-white" id="popupOperator"></span>
             </div>
-            <div class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3" style="border-color: var(--border-color) !important;">
+            <div class="list-group-item bg-transparent d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 px-0 py-3" style="border-color: var(--border-color) !important;">
                 <span class="text-muted"><i class="bi bi-tools me-2"></i>Son Bakım</span>
                 <span class="fw-bold text-white" id="popupBakim"></span>
             </div>

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Zimmet Takip{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+    <li class="breadcrumb-item active">Zimmet Takip</li>
+</ol></nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-info"></i>Zimmet Takip</h2>
+        <p class="text-muted mb-0 mt-1">Personele teslim edilen demirbaş/cihaz takibi</p>
+    </div>
+    <a href="{{ url_for('ik.zimmet_ekle') }}" class="btn btn-primary shadow-sm"><i class="bi bi-plus-circle me-1"></i>Yeni Zimmet</a>
+</div>
+
+<div class="card border-0 mb-4"><div class="card-body p-3">
+    <form method="GET" class="row g-3">
+        <div class="col-12 col-md-4">
+            <select name="durum" class="form-select">
+                <option value="">Tüm Durumlar</option>
+                <option value="teslim_edildi" {% if durum == 'teslim_edildi' %}selected{% endif %}>Teslim Edildi</option>
+                <option value="iade_edildi" {% if durum == 'iade_edildi' %}selected{% endif %}>İade Edildi</option>
+                <option value="kayip" {% if durum == 'kayip' %}selected{% endif %}>Kayıp</option>
+                <option value="hasar" {% if durum == 'hasar' %}selected{% endif %}>Hasarlı</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-4">
+            <select name="kategori" class="form-select">
+                <option value="">Tüm Kategoriler</option>
+                <option value="bilisim" {% if kategori == 'bilisim' %}selected{% endif %}>Bilişim</option>
+                <option value="otopark" {% if kategori == 'otopark' %}selected{% endif %}>Otopark</option>
+                <option value="anahtar" {% if kategori == 'anahtar' %}selected{% endif %}>Anahtar/Kart</option>
+                <option value="kiyafet" {% if kategori == 'kiyafet' %}selected{% endif %}>Kıyafet/KKD</option>
+                <option value="alet" {% if kategori == 'alet' %}selected{% endif %}>Alet/Ekipman</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-4"><button type="submit" class="btn btn-secondary w-100">Filtrele</button></div>
+    </form>
+</div></div>
+
+<div class="card border-0"><div class="card-body p-0">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Çalışan</th><th>Demirbaş</th><th>Kod</th><th>Kategori</th>
+                    <th>Teslim</th><th>İade</th><th>Değer</th><th>Durum</th><th class="text-end pe-4">İşlem</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for z in zimmetler.items %}
+                <tr class="{% if z.iade_edilmedi_mi %}{% endif %}">
+                    <td class="ps-4 fw-medium"><a href="{{ url_for('ik.personel_karti', id=z.calisan_id) }}" class="text-decoration-none">{{ z.calisan.ad_soyad }}</a></td>
+                    <td class="fw-medium">{{ z.demirbas_adi }}</td>
+                    <td class="text-muted">{{ z.demirbas_kodu or '—' }}</td>
+                    <td><span class="badge bg-secondary">{{ z.kategori_adi }}</span></td>
+                    <td>{{ z.teslim_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td>{{ z.iade_tarihi.strftime('%d.%m.%Y') if z.iade_tarihi else '—' }}</td>
+                    <td>{% if z.deger %}{{ '{:,.2f}'.format(z.deger) }} ₺{% else %}—{% endif %}</td>
+                    <td>
+                        {% if z.durum == 'teslim_edildi' %}<span class="badge bg-primary-subtle">Teslim Edildi</span>
+                        {% elif z.durum == 'iade_edildi' %}<span class="badge bg-success-subtle">İade Edildi</span>
+                        {% elif z.durum == 'kayip' %}<span class="badge bg-danger">Kayıp</span>
+                        {% else %}<span class="badge bg-warning">Hasarlı</span>{% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                        {% if z.durum == 'teslim_edildi' %}
+                        <form method="POST" action="{{ url_for('ik.zimmet_iade', id=z.id) }}" class="d-inline" onsubmit="return confirm('Bu zimmeti iade almak istiyor musunuz?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button class="btn btn-outline-success btn-sm" title="İade Al"><i class="bi bi-arrow-return-left"></i></button>
+                        </form>
+                        {% else %}—{% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="9" class="text-center py-5 text-muted">
+                    <i class="bi bi-box-seam fs-1 d-block mb-2"></i><p>Zimmet kaydı bulunamadı.</p>
+                </td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% if zimmetler.pages > 1 %}
+<div class="card-footer d-flex justify-content-center pt-3 pb-3">
+    <nav><ul class="pagination pagination-sm mb-0">
+        <li class="page-item {% if not zimmetler.has_prev %}disabled{% endif %}"><a class="page-link" href="{{ url_for('ik.zimmet_liste', page=zimmetler.prev_num, durum=durum, kategori=kategori) }}">Önceki</a></li>
+        {% for pn in zimmetler.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if pn %}<li class="page-item {% if pn == zimmetler.page %}active{% endif %}"><a class="page-link" href="{{ url_for('ik.zimmet_liste', page=pn, durum=durum, kategori=kategori) }}">{{ pn }}</a></li>
+            {% else %}<li class="page-item disabled"><span class="page-link">...</span></li>{% endif %}
+        {% endfor %}
+        <li class="page-item {% if not zimmetler.has_next %}disabled{% endif %}"><a class="page-link" href="{{ url_for('ik.zimmet_liste', page=zimmetler.next_num, durum=durum, kategori=kategori) }}">Sonraki</a></li>
+    </ul></nav>
+</div>
+{% endif %}
+</div>
+{% endblock %}

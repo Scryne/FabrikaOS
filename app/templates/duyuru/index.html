@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block title %}Duyuru & İletişim{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Duyuru & İletişim</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .duyuru-stat-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .duyuru-stat-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        border-color: rgba(255,255,255,0.1);
+    }
+    .duyuru-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 14px;
+        padding: 1.25rem 1.5rem;
+        transition: all 0.25s ease;
+        position: relative;
+        overflow: hidden;
+        text-decoration: none;
+        display: block;
+        color: inherit;
+        margin-bottom: 0.75rem;
+    }
+    .duyuru-card::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 4px;
+    }
+    .duyuru-card:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+        transform: translateX(3px);
+        color: inherit;
+    }
+    .duyuru-card.pinned {
+        background: rgba(245,158,11,0.04);
+        border-color: rgba(245,158,11,0.15);
+    }
+    .duyuru-card .type-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.72rem;
+        padding: 0.25em 0.6em;
+        border-radius: 6px;
+    }
+    .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.4rem 0.9rem;
+        border-radius: 20px;
+        font-size: 0.82rem;
+        font-weight: 500;
+        border: 1px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03);
+        color: #adb5bd;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .filter-chip:hover, .filter-chip.active {
+        background: rgba(59,130,246,0.15);
+        border-color: #3b82f6;
+        color: #3b82f6;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-megaphone me-2 text-info"></i>Duyuru & İletişim</h2>
+        <p class="text-muted mb-0 mt-1">Kurumsal duyurular, bildirimler ve iletişim</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        {% if current_user.modul_erisim_var_mi('duyuru', 'yazma') or current_user.yonetici_mi() %}
+        <a href="{{ url_for('duyuru.ekle') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Yeni Duyuru
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- KPI Kartları -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="duyuru-stat-card">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#3b82f6;border-radius:16px 16px 0 0;"></div>
+            <div class="d-flex align-items-center gap-3">
+                <div style="width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:rgba(59,130,246,0.12);color:#3b82f6;">
+                    <i class="bi bi-megaphone"></i>
+                </div>
+                <div>
+                    <div style="font-size:1.5rem;font-weight:800;color:var(--text-heading);line-height:1;">{{ toplam }}</div>
+                    <div style="font-size:0.75rem;color:#6b7280;margin-top:2px;">Toplam Duyuru</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="duyuru-stat-card">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#10b981;border-radius:16px 16px 0 0;"></div>
+            <div class="d-flex align-items-center gap-3">
+                <div style="width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:rgba(16,185,129,0.12);color:#10b981;">
+                    <i class="bi bi-broadcast"></i>
+                </div>
+                <div>
+                    <div style="font-size:1.5rem;font-weight:800;color:var(--text-heading);line-height:1;">{{ aktif }}</div>
+                    <div style="font-size:0.75rem;color:#6b7280;margin-top:2px;">Aktif Duyuru</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="duyuru-stat-card">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f59e0b;border-radius:16px 16px 0 0;"></div>
+            <div class="d-flex align-items-center gap-3">
+                <div style="width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:rgba(245,158,11,0.12);color:#f59e0b;">
+                    <i class="bi bi-pin-angle"></i>
+                </div>
+                <div>
+                    <div style="font-size:1.5rem;font-weight:800;color:var(--text-heading);line-height:1;">{{ sabitlenmis }}</div>
+                    <div style="font-size:0.75rem;color:#6b7280;margin-top:2px;">Sabitlenmiş</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="duyuru-stat-card">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#8b5cf6;border-radius:16px 16px 0 0;"></div>
+            <div class="d-flex align-items-center gap-3">
+                <div style="width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:rgba(139,92,246,0.12);color:#8b5cf6;">
+                    <i class="bi bi-eye"></i>
+                </div>
+                <div>
+                    <div style="font-size:1.5rem;font-weight:800;color:var(--text-heading);line-height:1;">{{ toplam_okunma }}</div>
+                    <div style="font-size:0.75rem;color:#6b7280;margin-top:2px;">Toplam Okunma</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tür Filtresi -->
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a href="{{ url_for('duyuru.index') }}" class="filter-chip {{ 'active' if not tur }}">
+        <i class="bi bi-grid"></i> Tümü
+    </a>
+    <a href="{{ url_for('duyuru.index', tur='bilgi') }}" class="filter-chip {{ 'active' if tur == 'bilgi' }}">
+        <i class="bi bi-info-circle"></i> Bilgilendirme
+    </a>
+    <a href="{{ url_for('duyuru.index', tur='acil') }}" class="filter-chip {{ 'active' if tur == 'acil' }}">
+        <i class="bi bi-exclamation-triangle"></i> Acil
+    </a>
+    <a href="{{ url_for('duyuru.index', tur='etkinlik') }}" class="filter-chip {{ 'active' if tur == 'etkinlik' }}">
+        <i class="bi bi-calendar-event"></i> Etkinlik
+    </a>
+    <a href="{{ url_for('duyuru.index', tur='bakim') }}" class="filter-chip {{ 'active' if tur == 'bakim' }}">
+        <i class="bi bi-wrench-adjustable"></i> Bakım
+    </a>
+    <a href="{{ url_for('duyuru.index', tur='toplanti') }}" class="filter-chip {{ 'active' if tur == 'toplanti' }}">
+        <i class="bi bi-people"></i> Toplantı
+    </a>
+</div>
+
+<!-- Duyuru Listesi -->
+{% if duyurular and duyurular.items %}
+<div class="d-flex flex-column">
+    {% for d in duyurular.items %}
+    <a href="{{ url_for('duyuru.detay', id=d.id) }}" class="duyuru-card {{ 'pinned' if d.sabitle }}">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:4px;background:{{ d.tur_rengi }};border-radius:14px 0 0 14px;"></div>
+        <div class="d-flex align-items-start gap-3">
+            <div style="width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;background:{{ d.tur_rengi }}15;color:{{ d.tur_rengi }};flex-shrink:0;">
+                <i class="{{ d.tur_ikonu }}"></i>
+            </div>
+            <div class="flex-grow-1 min-width-0">
+                <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                    {% if d.sabitle %}
+                    <i class="bi bi-pin-fill text-warning" style="font-size:0.85rem;" title="Sabitlenmiş"></i>
+                    {% endif %}
+                    <span class="fw-bold" style="color: var(--text-heading); font-size: 0.95rem;">{{ d.baslik }}</span>
+                    <span class="type-badge" style="background:{{ d.tur_rengi }}15; color:{{ d.tur_rengi }};">
+                        <i class="{{ d.tur_ikonu }}" style="font-size:0.7rem;"></i> {{ d.tur_adi }}
+                    </span>
+                    <span class="badge rounded-pill {{ d.oncelik_bilgi.badge }}" style="font-size:0.65rem;">
+                        {{ d.oncelik_adi }}
+                    </span>
+                </div>
+                <p class="text-muted mb-1" style="font-size:0.82rem;">{{ d.icerik_onizleme }}</p>
+                <div class="d-flex flex-wrap gap-3" style="font-size:0.75rem; color:#6b7280;">
+                    <span><i class="bi bi-person me-1"></i>{{ d.yayinlayan.ad_soyad if d.yayinlayan else '—' }}</span>
+                    <span><i class="bi bi-calendar me-1"></i>{{ d.yayin_tarihi.strftime('%d.%m.%Y %H:%M') }}</span>
+                    <span><i class="bi bi-eye me-1"></i>{{ d.okunma_sayisi }} okunma</span>
+                    <span><i class="bi bi-people me-1"></i>{{ d.hedef_kitle_adi }}</span>
+                    {% if d.bitis_tarihi %}
+                    <span><i class="bi bi-clock me-1"></i>Bitiş: {{ d.bitis_tarihi.strftime('%d.%m.%Y') }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="flex-shrink-0 d-none d-md-block">
+                <i class="bi bi-chevron-right text-muted"></i>
+            </div>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+<!-- Sayfalama -->
+{% if duyurular.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if duyurular.has_prev %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('duyuru.index', page=duyurular.prev_num, tur=tur) }}">&laquo;</a></li>
+        {% endif %}
+        {% for p in duyurular.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <li class="page-item {{ 'active' if p == duyurular.page }}"><a class="page-link" href="{{ url_for('duyuru.index', page=p, tur=tur) }}">{{ p }}</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">…</span></li>
+            {% endif %}
+        {% endfor %}
+        {% if duyurular.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('duyuru.index', page=duyurular.next_num, tur=tur) }}">&raquo;</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5 mt-2" style="background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
+    <i class="bi bi-megaphone text-muted" style="font-size: 4rem;"></i>
+    <h4 class="mt-3 fw-bold text-white">Duyuru Bulunamadı</h4>
+    <p class="text-muted mb-3">Henüz yayınlanmış duyuru yok.</p>
+    {% if current_user.modul_erisim_var_mi('duyuru', 'yazma') or current_user.yonetici_mi() %}
+    <a href="{{ url_for('duyuru.ekle') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-1"></i> İlk Duyuruyu Oluştur
+    </a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

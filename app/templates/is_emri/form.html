@@ -35,15 +35,15 @@
                     </div>
 
                     <div class="row g-3 mb-3">
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             {{ form.kategori.label(class="form-label") }}
                             {{ form.kategori(class="form-select") }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             {{ form.oncelik.label(class="form-label") }}
                             {{ form.oncelik(class="form-select") }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             {{ form.sla_saat.label(class="form-label") }}
                             {{ form.sla_saat(class="form-control", placeholder="Otomatik") }}
                             <small class="text-muted">{{ form.sla_saat.description }}</small>
@@ -61,7 +61,7 @@
                         {{ form.atanan_id(class="form-select", id="atananIdSelect") }}
                     </div>
 
-                    <div class="d-flex gap-2">
+                    <div class="d-flex flex-wrap gap-2">
                         {{ form.submit(class="btn btn-primary") }}
                         <a href="{{ url_for('is_emri.index') }}" class="btn btn-outline-secondary">İptal</a>
                     </div>
@@ -143,7 +143,7 @@ function showAiSuggestions() {
                                 </div>
                             </div>
                             <div class="d-flex flex-column align-items-end">
-                                <span class="badge bg-${item.skor_renk} text-dark fs-5 fw-bold rounded-3 px-3 py-2 shadow-sm d-flex align-items-center gap-1">
+                                <span class="badge bg-${item.skor_renk} text-dark fs-5 fw-bold rounded-3 px-3 py-2 shadow-sm d-flex flex-wrap align-items-center gap-1">
                                     %${item.skor}
                                 </span>
                             </div>

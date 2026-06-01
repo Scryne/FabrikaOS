@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}İSG Dokümanı Yükle{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="card shadow-sm border-0 border-top border-4 border-info">
+            <div class="card-header bg-white py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-upload me-2 text-info"></i>Yeni İSG Dokümanı</h5>
+                <small class="text-muted">Prosedür, talimat veya tutanak yükleme</small>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.baslik.label }}</label>
+                            {{ form.baslik(class="form-control" + (" is-invalid" if form.baslik.errors else ""), placeholder="Örn: Acil Durum Eylem Planı") }}
+                            {% for error in form.baslik.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.kategori.label }}</label>
+                            {{ form.kategori(class="form-select") }}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.ilgili_bolum.label }}</label>
+                            {{ form.ilgili_bolum(class="form-control", placeholder="Tüm fabrika, depo, üretim vb.") }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.aciklama.label }}</label>
+                            {{ form.aciklama(class="form-control", rows="3") }}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-medium">{{ form.versiyon.label }}</label>
+                            {{ form.versiyon(class="form-control") }}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-medium">{{ form.gecerlilik_tarihi.label }}</label>
+                            {{ form.gecerlilik_tarihi(class="form-control", type="date") }}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label fw-medium">{{ form.onay_durumu.label }}</label>
+                            {{ form.onay_durumu(class="form-select") }}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <div class="d-grid gap-2">
+                                {{ form.submit(class="btn btn-info btn-lg shadow-sm text-white fw-bold") }}
+                                <a href="{{ url_for('isg.dokumanlar') }}" class="btn btn-light">İptal</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

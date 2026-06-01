@@ -1,0 +1,477 @@
+{% extends "base.html" %}
+{% block title %}İK İşlemleri{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">İK İşlemleri</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Gerçekten Premium ve Zarif Kart Tasarımı */
+    .premium-grid-card {
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border: 1px solid rgba(255, 255, 255, 0.03) !important;
+    }
+
+    .premium-grid-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+        background-color: #23272f !important;
+        border-color: rgba(255, 255, 255, 0.08) !important;
+    }
+
+    .avatar-circle {
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.2);
+        transition: transform 0.3s ease;
+    }
+
+    .premium-grid-card:hover .avatar-circle {
+        transform: scale(1.05);
+    }
+
+    .premium-view-btn {
+        border-color: rgba(255, 255, 255, 0.1);
+        color: #adb5bd;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .premium-grid-card:hover .premium-view-btn {
+        background-color: var(--bs-primary);
+        border-color: var(--bs-primary);
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    }
+
+    .form-control-solid {
+        transition: all 0.2s ease;
+    }
+
+    .form-control-solid:focus {
+        background-color: rgba(255, 255, 255, 0.08) !important;
+        box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.15);
+        color: #fff;
+        outline: none;
+    }
+
+    .custom-badge {
+        background-color: rgba(0, 0, 0, 0.2) !important;
+        border: 1px solid rgba(255, 255, 255, 0.05) !important;
+        font-size: 0.75rem;
+        letter-spacing: 0.3px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div
+    class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-person-badge me-2 text-primary"></i>İnsan Kaynakları</h2>
+        <p class="text-muted mb-0 mt-1">İzin, savunma, mesai, sertifika, maaş ve zimmet takibi</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('ik.izin_bakiye') }}" class="btn btn-outline-info" title="İzin Bakiyeleri">
+            <i class="bi bi-calendar-check"></i> <span class="d-none d-md-inline ms-1">İzin Bakiye</span>
+        </a>
+        <a href="{{ url_for('ik.raporlar') }}" class="btn btn-outline-warning" title="İK Raporları">
+            <i class="bi bi-bar-chart-line"></i> <span class="d-none d-md-inline ms-1">Raporlar</span>
+        </a>
+    </div>
+</div>
+
+<!-- KPI Kartları -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="kpi-mini-card">
+            <div class="kpi-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ toplam_personel }}</div>
+                <div class="kpi-label">Toplam Personel</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{{ url_for('personel.izinler') }}" class="kpi-mini-card text-decoration-none">
+            <div class="kpi-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ bekleyen_izin }}</div>
+                <div class="kpi-label">Bekleyen İzin</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{{ url_for('ik.sertifika_liste', durum='suresi_doldu_yaklasan') }}" class="kpi-mini-card text-decoration-none">
+            <div class="kpi-icon" style="background: rgba(239,68,68,0.12); color: #ef4444;">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ suresi_dolan_sayisi }}</div>
+                <div class="kpi-label">Süresi Dolan Sertifika</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{{ url_for('ik.fazla_mesai_liste', durum='bekliyor', ay=0, yil=0) }}" class="kpi-mini-card text-decoration-none">
+            <div class="kpi-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ bekleyen_mesai }}</div>
+                <div class="kpi-label">Bekleyen Mesai Onayı</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- İkinci sıra KPI -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="kpi-mini-card">
+            <div class="kpi-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                <i class="bi bi-clock"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ bu_ay_mesai|round(1) }}h</div>
+                <div class="kpi-label">Bu Ay Mesai (Onaylı)</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{{ url_for('ik.zimmet_liste') }}" class="kpi-mini-card text-decoration-none">
+            <div class="kpi-icon" style="background: rgba(6,182,212,0.12); color: #06b6d4;">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ aktif_zimmet }}</div>
+                <div class="kpi-label">Aktif Zimmet</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{{ url_for('ik.savunma_liste') }}" class="kpi-mini-card text-decoration-none">
+            <div class="kpi-icon" style="background: rgba(251,146,60,0.12); color: #fb923c;">
+                <i class="bi bi-file-earmark-text"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ acik_savunma }}</div>
+                <div class="kpi-label">Açık Savunma/Tutanak</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-mini-card">
+            <div class="kpi-icon" style="background: rgba(168,85,247,0.12); color: #a855f7;">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </div>
+            <div>
+                <div class="kpi-value">6</div>
+                <div class="kpi-label">İK Alt Modülleri</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hızlı İşlemler -->
+<div class="row g-3 mb-4">
+    <div class="col-12">
+        <div class="card border-0">
+            <div class="card-body py-3">
+                <div class="d-flex flex-wrap gap-2">
+                    <a href="{{ url_for('ik.savunma_ekle') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Savunma/Tutanak
+                    </a>
+                    <a href="{{ url_for('ik.fazla_mesai_ekle') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Fazla Mesai
+                    </a>
+                    <a href="{{ url_for('ik.sertifika_ekle') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Sertifika
+                    </a>
+                    <a href="{{ url_for('ik.maas_ekle') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Maaş Kaydı
+                    </a>
+                    <a href="{{ url_for('ik.zimmet_ekle') }}" class="btn btn-outline-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Zimmet
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Süresi Dolan Sertifikalar -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Süresi Dolmak Üzere Olan
+                    Sertifikalar</h6>
+                <a href="{{ url_for('ik.sertifika_liste', durum='suresi_doldu_yaklasan') }}" class="btn btn-outline-secondary btn-sm">Tümü</a>
+            </div>
+            <div class="card-body p-0">
+                {% if suresi_dolan_sertifikalar %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Çalışan</th>
+                                <th>Sertifika</th>
+                                <th>Kalan Gün</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in suresi_dolan_sertifikalar %}
+                            <tr>
+                                <td class="ps-4 fw-medium">{{ item.calisan.ad_soyad }}</td>
+                                <td>{{ item.sertifika.sertifika_adi }}</td>
+                                <td>
+                                    {% if item.kalan_gun < 0 %} <span class="badge bg-danger">{{ item.kalan_gun|abs }}
+                                        gün geçti</span>
+                                        {% elif item.kalan_gun == 0 %}
+                                        <span class="badge bg-danger">Bugün doluyor!</span>
+                                        {% elif item.kalan_gun <= 7 %} <span class="badge bg-warning">{{ item.kalan_gun
+                                            }} gün</span>
+                                            {% else %}
+                                            <span class="badge bg-primary-subtle">{{ item.kalan_gun }} gün</span>
+                                            {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                    <p class="mb-0">Süresi dolmak üzere sertifika yok.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Savunma/Tutanaklar -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-file-earmark-text text-info me-2"></i>Son Savunma / Tutanaklar</h6>
+                <a href="{{ url_for('ik.savunma_liste') }}" class="btn btn-outline-secondary btn-sm">Tümü</a>
+            </div>
+            <div class="card-body p-0">
+                {% if son_savunmalar %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Çalışan</th>
+                                <th>Tür</th>
+                                <th>Konu</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in son_savunmalar %}
+                            <tr>
+                                <td class="ps-4 fw-medium">
+                                    <a href="{{ url_for('ik.savunma_detay', id=s.id) }}" class="text-decoration-none">{{
+                                        s.calisan.ad_soyad }}</a>
+                                </td>
+                                <td><span class="badge bg-secondary">{{ s.tur_adi }}</span></td>
+                                <td class="text-muted">{{ s.konu[:40] }}{% if s.konu|length > 40 %}...{% endif %}</td>
+                                <td>
+                                    {% if s.durum == 'acik' %}
+                                    <span class="badge bg-warning-subtle">Açık</span>
+                                    {% elif s.durum == 'kapatildi' %}
+                                    <span class="badge bg-success-subtle">Kapatıldı</span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle">İtiraz</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                    <p class="mb-0">Henüz savunma/tutanak kaydı yok.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Fazla Mesai Kayıtları -->
+    <div class="col-12">
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Son Fazla Mesai Kayıtları</h6>
+                <a href="{{ url_for('ik.fazla_mesai_liste') }}" class="btn btn-outline-secondary btn-sm">Tümü</a>
+            </div>
+            <div class="card-body p-0">
+                {% if son_mesailer %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Çalışan</th>
+                                <th>Tarih</th>
+                                <th>Saat Aralığı</th>
+                                <th>Toplam</th>
+                                <th>Tür</th>
+                                <th>Onay</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for m in son_mesailer %}
+                            <tr>
+                                <td class="ps-4 fw-medium">{{ m.calisan.ad_soyad }}</td>
+                                <td>{{ m.tarih.strftime('%d.%m.%Y') }}</td>
+                                <td class="text-muted">{{ m.baslangic_saati.strftime('%H:%M') }} — {{
+                                    m.bitis_saati.strftime('%H:%M') }}</td>
+                                <td><span class="fw-bold">{{ m.toplam_saat }}h</span></td>
+                                <td><span class="badge bg-secondary">{{ m.mesai_turu_adi }}</span></td>
+                                <td>
+                                    {% if m.onay_durumu == 'bekliyor' %}
+                                    <span class="badge bg-warning-subtle">Bekliyor</span>
+                                    {% elif m.onay_durumu == 'onaylandi' %}
+                                    <span class="badge bg-success-subtle">Onaylandı</span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle">Reddedildi</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-clock fs-1 d-block mb-2"></i>
+                    <p class="mb-0">Henüz fazla mesai kaydı yok.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Premium Ekip Kartları -->
+    <div class="col-12 mt-4">
+        <!-- Header & Search -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end gap-3 mb-4">
+            <div>
+                <h5 class="fw-bold mb-1 text-white"><i class="bi bi-people-fill text-primary me-2"></i>360° Ekip
+                    Kartları</h5>
+                <p class="text-muted small mb-0">Tüm personel verilerine (izin, maaş, performans) hızlı erişim sağlayın.
+                </p>
+            </div>
+            <div class="position-relative" style="width: 100%; max-width: 320px;">
+                <i class="bi bi-search position-absolute top-50 translate-middle-y text-muted" style="left: 16px;"></i>
+                <input type="text" id="personelSearch"
+                    class="form-control form-control-solid rounded-pill ps-5 py-2 border-0"
+                    placeholder="İsim veya sicil no ile ara..."
+                    style="background-color: rgba(255,255,255,0.04); color: #fff;">
+            </div>
+        </div>
+
+        <!-- Grid -->
+        <div class="row g-4" id="personelGrid">
+            {% set bs_colors = ['primary', 'success', 'warning', 'danger', 'info'] %}
+
+            {% for c in calisanlar %}
+            {% set c_color = bs_colors[loop.index0 % bs_colors|length] %}
+
+            <div class="col-12 col-sm-6 col-lg-4 col-xl-3 personel-card-item"
+                data-search="{{ c.ad_soyad | lower }} {{ c.sicil_no | lower }}">
+                <div class="card h-100 border-0 rounded-4 premium-grid-card position-relative overflow-hidden"
+                    style="background-color: #1a1d21;">
+                    <!-- Renkli Üst Çizgi -->
+                    <div class="position-absolute top-0 start-0 w-100 bg-{{ c_color }}"
+                        style="height: 4px; opacity: 0.85;"></div>
+
+                    <div class="card-body p-4 d-flex flex-column align-items-center text-center">
+                        <!-- Avatar -->
+                        <div class="avatar-circle bg-{{ c_color }}-subtle text-{{ c_color }} mb-3 d-flex align-items-center justify-content-center fw-bold"
+                            style="width: 72px; height: 72px; border-radius: 50%; font-size: 1.5rem;">
+                            {{ c.ad_soyad.split(' ')[0][0] }}{% if c.ad_soyad.split(' ')|length > 1 %}{{
+                            c.ad_soyad.split(' ')[-1][0] }}{% endif %}
+                        </div>
+
+                        <!-- Info -->
+                        <h6 class="fw-bold text-white mb-1 w-100 text-truncate fs-5">{{ c.ad_soyad }}</h6>
+                        <p class="text-muted small mb-3 w-100 text-truncate">{{ c.unvan or 'Unvan Belirtilmemiş' }}</p>
+
+                        <div class="d-flex justify-content-center flex-wrap gap-2 mb-4 w-100">
+                            <span class="badge custom-badge text-light fw-normal px-2 py-1 rounded-pill"><i
+                                    class="bi bi-diagram-3 me-1 text-muted"></i>{{ c.departman }}</span>
+                            <span class="badge custom-badge text-light fw-normal px-2 py-1 rounded-pill"><i
+                                    class="bi bi-hash me-1 text-muted"></i>{{ c.sicil_no }}</span>
+                        </div>
+
+                        <!-- Action Button -->
+                        <a href="{{ url_for('ik.personel_karti', id=c.id) }}"
+                            class="btn w-100 rounded-pill btn-sm stretched-link premium-view-btn mt-auto py-2">
+                            Profili İncele
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div id="noPersonelFound" class="text-center py-5 d-none mt-4 rounded-4"
+            style="background-color: rgba(255,255,255,0.02); border: 1px dashed rgba(255,255,255,0.1);">
+            <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3"
+                style="width: 80px; height: 80px; background: rgba(255,255,255,0.03);">
+                <i class="bi bi-search text-muted fs-1"></i>
+            </div>
+            <h5 class="text-white fw-bold">Kayıt Bulunamadı</h5>
+            <p class="text-muted mb-0">Arama kriterlerinize ("<span id="searchQueryEcho" class="text-light"></span>")
+                uygun personel eşleşmedi.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const searchInput = document.getElementById('personelSearch');
+        const cards = document.querySelectorAll('.personel-card-item');
+        const noResults = document.getElementById('noPersonelFound');
+
+        searchInput.addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const searchData = card.getAttribute('data-search');
+
+                if (searchData.includes(searchTerm)) {
+                    card.classList.remove('d-none');
+                    visibleCount++;
+                } else {
+                    card.classList.add('d-none');
+                }
+            });
+
+            if (visibleCount === 0) {
+                document.getElementById('searchQueryEcho').textContent = searchTerm;
+                noResults.classList.remove('d-none');
+            } else {
+                noResults.classList.add('d-none');
+            }
+        });
+    });
+</script>
+{% endblock %}

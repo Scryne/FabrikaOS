@@ -29,6 +29,7 @@
 <!-- Tablo -->
 <div class="card border-0 shadow-sm">
     <div class="card-body p-0">
+        <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
@@ -71,7 +72,7 @@
                         {% endif %}
                     </td>
                     <td>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
                             <div class="progress" style="height:6px; width:60px;">
                                 <div class="progress-bar bg-{{ 'danger' if s.risk_skoru >= 75 else 'warning' if s.risk_skoru >= 50 else 'info' if s.risk_skoru >= 25 else 'success' }}"
                                      style="width:{{ s.risk_skoru }}%"></div>

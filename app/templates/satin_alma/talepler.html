@@ -1,0 +1,130 @@
+{% extends"base.html" %}
+{% block title %}Satın Alma Talepleri{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('satin_alma.index') }}">Satın Alma</a></li>
+        <li class="breadcrumb-item active">Talepler</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold">Satın Alma Talepleri</h2>
+        <p class="text-muted mb-0 mt-1">Tüm satın alma taleplerinin listesi</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+        {% if current_user.modul_erisim_var_mi('satin_alma', 'yazma') %}
+        <a href="{{ url_for('satin_alma.talep_ekle') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Yeni Talep
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-muted small">Arama</label>
+                <div class="input-group">
+                    <span class="input-group-text text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Talep No veya Kalem Adı" value="{{ arama }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="bekliyor" {% if durum == 'bekliyor' %}selected{% endif %}>Onay Bekleyenler</option>
+                    <option value="onaylandi" {% if durum == 'onaylandi' %}selected{% endif %}>Onaylananlar</option>
+                    <option value="siparis_verildi" {% if durum == 'siparis_verildi' %}selected{% endif %}>Sipariş Verilenler</option>
+                    <option value="teslim_alindi" {% if durum == 'teslim_alindi' %}selected{% endif %}>Teslim Alınanlar</option>
+                    <option value="reddedildi" {% if durum == 'reddedildi' %}selected{% endif %}>Reddedilenler</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">Filtrele</button>
+            </div>
+            {% if arama or durum %}
+            <div class="col-md-2">
+                <a href="{{ url_for('satin_alma.talepler') }}" class="btn btn-outline-secondary w-100">Temizle</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr class="text-muted small text-uppercase">
+                    <th class="py-3 ps-4">Talep No</th>
+                    <th class="py-3">Tarih</th>
+                    <th class="py-3">Kalem Adı</th>
+                    <th class="py-3">Talep Eden</th>
+                    <th class="py-3">Miktar</th>
+                    <th class="py-3">Durum</th>
+                    <th class="py-3 text-end pe-4">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for talep in talepler.items %}
+                <tr>
+                    <td class="ps-4">
+                        <a href="{{ url_for('satin_alma.talep_detay', id=talep.id) }}" class="fw-bold text-decoration-none">{{ talep.talep_no }}</a>
+                    </td>
+                    <td >{{ talep.olusturma_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td >
+                        {{ talep.kalem_adi[:40] }}{% if talep.kalem_adi|length > 40 %}...{% endif %}
+                        {% if talep.aciliyet == 'acil' %}<span class="badge bg-danger ms-1">Acil</span>{% endif %}
+                    </td>
+                    <td >{{ talep.talep_eden.ad_soyad if talep.talep_eden else '—' }}</td>
+                    <td >{{ talep.miktar }} {{ talep.birim_adi }}</td>
+                    <td >
+                        <span class="badge {{ talep.durum_badge }}"><i class="bi {{ talep.durum_ikonu }} me-1"></i>{{ talep.durum_adi }}</span>
+                    </td>
+                    <td class="text-end pe-4">
+                        <a href="{{ url_for('satin_alma.talep_detay', id=talep.id) }}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-eye"></i> Detay
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">Kriterlere uygun talep bulunamadı.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Sayfalama -->
+{% if talepler.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if talepler.has_prev %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('satin_alma.talepler', page=talepler.prev_num, q=arama, durum=durum) }}">&laquo;</a></li>
+        {% endif %}
+        
+        {% for p in talepler.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <li class="page-item {{ 'active' if p == talepler.page }}"><a class="page-link {% if p != talepler.page %} {% endif %}" href="{{ url_for('satin_alma.talepler', page=p, q=arama, durum=durum) }}">{{ p }}</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link text-muted">…</span></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if talepler.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('satin_alma.talepler', page=talepler.next_num, q=arama, durum=durum) }}">&raquo;</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

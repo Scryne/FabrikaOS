@@ -10,6 +10,7 @@
   [![Flask](https://img.shields.io/badge/Flask-3.1.1-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
   [![SQLite](https://img.shields.io/badge/SQLite-003B57?style=for-the-badge&logo=sqlite&logoColor=white)](https://sqlite.org/)
   [![Bootstrap](https://img.shields.io/badge/Bootstrap-5.3-7952B3?style=for-the-badge&logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+  [![JWT](https://img.shields.io/badge/JWT-REST_API-f7931a?style=for-the-badge&logo=jsonwebtokens&logoColor=white)](#-rest-api-v1)
   [![Status](https://img.shields.io/badge/Status-Enterprise_Ready-10b981?style=for-the-badge)](#)
 </div>
 
@@ -31,6 +32,7 @@ Sistem, modern endüstrinin ihtiyaçlarını karşılayacak şekilde ölçeklene
 - **Kestirimci Bakım:** Makine kullanım verilerine dayanarak gelecekteki olası arızaları tahmin eder.
 - **AI Operatör Önerisi:** İş emrinin niteliğine (zorluk, gereken beceri seti) ve operatörlerin geçmiş performanslarına (OEE, hata oranı) göre en uygun personeli yapay zeka ile eşleştirir.
 - **OEE Trend Analizi:** Son 30 günlük verileri analiz ederek gelecekteki verimlilik düşüşlerini proaktif olarak bildirir.
+- **Stok Tahmin:** Tüketim trendlerini analiz ederek kritik stok seviyelerini önceden bildirir.
 
 ### 🏭 İnteraktif & Dijital İkiz Destekli Fabrika Haritası
 - Sahadaki makinelerin durumunu (Çalışıyor, Durdu, Arızalı) canlı olarak SVG tabanlı **İnteraktif Fabrika Haritası** üzerinde gösterir.
@@ -42,10 +44,60 @@ Sistem, modern endüstrinin ihtiyaçlarını karşılayacak şekilde ölçeklene
 - Makinelerin Kullanılabilirlik (Availability), Performans (Performance) ve Kalite (Quality) verilerini hesaplayan **Dinamik OEE Motoru**.
 - Socket.IO mimarisi sayesinde anlık veri akışı ve "Marquee" (Kayan yazı) şeklinde acil durum bildirimleri.
 
+### 👥 CRM & Ortak/Firma Yönetimi
+- **Ortak yönetimi:** Malik, kiracı, yetkili, vekil tiplerine göre ortak takibi.
+- **Firma yönetimi:** Sektör bazlı firma kayıtları, yetkili kişiler, iletişim geçmişi.
+- **Harita entegrasyonu:** Leaflet.js ile ortakların/firmaların konum bilgisi görselleştirmesi.
+
+### 📋 Sözleşme Yönetimi
+- Kira kontratı, sigorta poliçesi ve genel sözleşme türleri.
+- **Otomatik yenileme** ve **süre bitiş hatırlatma** sistemi.
+- Ödeme periyodu takibi (aylık/3-aylık/yıllık).
+- Standart metin şablonları ile hızlı sözleşme oluşturma.
+
+### 🎫 Talep Yönetimi (Helpdesk)
+- Dahili ve harici kaynaklardan talep girişi (arıza, öneri, şikayet, bilgi talebi).
+- **Dış panel** ile vatandaş/müşteri talep takibi (kimlik doğrulamalı).
+- SMS ve e-posta bildirim desteği.
+- Talep geçmişi, durum akışı ve memnuniyet puanı.
+
+### 👔 İnsan Kaynakları (İK)
+- Savunma/tutanak yönetimi, fazla mesai takibi.
+- Sertifika ve belge takip sistemi.
+- Maaş skalası yönetimi, zimmet kayıtları.
+- Giriş-çıkış evrak takibi.
+
+### 📄 Doküman Yönetim Sistemi (DYS)
+- Merkezi doküman deposu, sürüm kontrolü.
+- Kategori ve etiket bazlı organizasyon.
+- Erişim kontrolü (departman/rol bazlı).
+
+### 📢 Duyuru Sistemi
+- Şirket içi duyuru yayınlama ve takibi.
+- Öncelik ve hedef kitle belirleme.
+- Okunma takibi ve raporlama.
+
+### 🛒 Satın Alma Yönetimi
+- Satın alma talebi oluşturma ve onay akışı.
+- Sipariş yönetimi ve teklif karşılaştırma.
+- Tedarikçi performans değerlendirme.
+
+### 🗺️ Site Harita & Alan Yönetimi
+- Leaflet.js tabanlı interaktif site haritası.
+- Alan, bina, blok ve daire hiyerarşisi.
+- Konum bazlı varlık izleme.
+
 ### 🛡️ Kurumsal Güvenlik ve RBAC (Rol Bazlı Erişim)
 - Yönetici (Admin), Operatör ve Teknisyen için sıkı bir şekilde izole edilmiş yetkilendirme sistemi.
 - OWASP standartlarında güvenlik: CSRF koruması, Rate Limiting (Flask-Limiter), güvenli oturum yönetimi ve SQL Injection önlemleri.
 - Veri bütünlüğünü sağlamak adına SQLite WAL (Write-Ahead Logging) üretim modu aktivasyonu.
+
+### 🔌 REST API v1 (JWT)
+- **JWT tabanlı kimlik doğrulama** (access + refresh token).
+- Tüm ana modüller için CRUD endpoint'leri.
+- Sayfalama, filtreleme, sıralama, arama desteği.
+- Rate limiting ile API güvenliği.
+- Detaylı bilgi için: [`API_DOKUMANTASYONU.md`](API_DOKUMANTASYONU.md)
 
 ---
 
@@ -54,21 +106,33 @@ Sistem, modern endüstrinin ihtiyaçlarını karşılayacak şekilde ölçeklene
 ```mermaid
 graph TD
     Client[Web Tarayıcı / Mobil Tablet / Kiosk]
+    API[REST API İstemcisi]
     Web[Web Sunucusu - Gunicorn/Eventlet]
     App[FabrikaOS Core - Flask]
-    DB[(SQLite WAL)]
+    DB[(SQLite WAL / PostgreSQL)]
     Cache[(Redis/In-Memory Cache)]
+    Queue[Celery + Redis]
     
     Client <-->|HTTPS / WSS| Web
+    API <-->|JWT / HTTPS| Web
     Web <--> App
     
-    subgraph "Modüller (Enterprise Layer)"
+    subgraph "27 Blueprint Modülü"
         Auth[RBAC & Güvenlik]
         Mod1[Makine & OEE Motoru]
         Mod2[AI Karar & İş Emri]
         Mod3[İSG & Kalite Modülü]
         Map[İnteraktif Fabrika Haritası]
         Kiosk[Gerçek Zamanlı Kiosk]
+        CRM[CRM & Ortak/Firma]
+        IK[İnsan Kaynakları]
+        Sozlesme[Sözleşme Yönetimi]
+        Talep[Talep Yönetimi]
+        DYS[Doküman Yönetimi]
+        Duyuru[Duyuru Sistemi]
+        SatinAlma[Satın Alma]
+        SiteHarita[Site Harita]
+        APIv1[REST API v1]
     end
     
     App --> Auth
@@ -77,9 +141,19 @@ graph TD
     App --> Mod3
     App --> Map
     App --> Kiosk
+    App --> CRM
+    App --> IK
+    App --> Sozlesme
+    App --> Talep
+    App --> DYS
+    App --> Duyuru
+    App --> SatinAlma
+    App --> SiteHarita
+    App --> APIv1
     
     App <--> DB
     App <--> Cache
+    App <--> Queue
 ```
 
 ---
@@ -126,112 +200,81 @@ python run.py
 ```
 Sistem `http://localhost:5000` adresinde aktif olacaktır.
 
+### 6. (Opsiyonel) Redis & Celery
+Asenkron görevler (bildirim, rapor oluşturma) için Redis ve Celery çalıştırın:
+```bash
+# Redis sunucusunu başlatın (ayrı terminal)
+redis-server
+
+# Celery worker'ı başlatın (ayrı terminal)
+celery -A celery_worker.celery worker --loglevel=info
+```
+
 ---
 
 ### 🔑 Giriş Bilgileri (Demo Hesapları)
 
 Sistemi çalıştırdıktan sonra, rol bazlı erişim mekanizmasını (RBAC) ve her role özel tasarlanmış dashboard panellerini test etmek için aşağıdaki ön tanımlı hesapları kullanabilirsiniz:
 
-#### 1. Sistem Yöneticisi (Admin)
-- **Kullanıcı Adı:** `admin`
-- **Şifre:** `admin123`
-- **Rolü:** Yönetici (Admin)
-- **Erişebildiği Modüller:** Tüm modüller, Sistem Ayarları, Raporlar, AI Tahminleme, Gelişmiş Analitik.
+#### 🏢 İç Kullanıcılar (Fabrika Çalışanları)
 
-#### 2. Operatörler (Üretim Girişi ve İzin Talepleri İçin)
-- **Hesap 1 (Kıdemli Operatör)**
-  - **Kullanıcı Adı:** `ahmet.yilmaz`
-  - **Şifre:** `demo123`
-  - **Erişebildiği Modüller:** Personel, Makine & Üretim, Stok, Kalite
-- **Hesap 2 (Operatör)**
-  - **Kullanıcı Adı:** `fatma.demir`
-  - **Şifre:** `demo123`
-  - **Erişebildiği Modüller:** Personel, Makine & Üretim, Stok
+| Ad Soyad | Kullanıcı Adı | Rol | Şifre |
+| :--- | :--- | :--- | :--- |
+| Deniz Yazar | `admin` | Yönetici | `admin123` |
+| Ahmet Yılmaz | `ahmet.yilmaz` | Operatör (Üretim) | `demo123` |
+| Fatma Demir | `fatma.demir` | Operatör (Üretim) | `demo123` |
+| Mehmet Kaya | `mehmet.kaya` | Teknisyen (Bakım) | `demo123` |
+| Ayşe Özkan | `ayse.ozkan` | Teknisyen (Bakım) | `demo123` |
+| Selin Aktaş | `selin.aktas` | İSG Uzmanı | `demo123` |
+| Zeynep Arslan | `zeynep.arslan` | İK Uzmanı | `demo123` |
+| Elif Yıldız | `elif.yildiz` | Muhasebe | `demo123` |
+| Deniz Korkmaz | `deniz.korkmaz` | CRM Yetkilisi | `demo123` |
+| Mustafa Şahin | `mustafa.sahin` | Satın Alma | `demo123` |
 
-#### 3. Teknisyenler (Bakım ve Arıza Takibi İçin)
-- **Hesap 1 (Kıdemli Teknisyen)**
-  - **Kullanıcı Adı:** `mehmet.kaya`
-  - **Şifre:** `demo123`
-  - **Erişebildiği Modüller:** Makine & Üretim, İSG
-- **Hesap 2 (Elektrik Teknisyeni)**
-  - **Kullanıcı Adı:** `ayse.ozkan`
-  - **Şifre:** `demo123`
-  - **Erişebildiği Modüller:** Makine & Üretim, Enerji, İSG
+#### 🌐 Dış Kullanıcılar (Müşteri, Tedarikçi, Taşeron)
+
+| Ad Soyad | Kullanıcı Adı | Firma (Tipi) | Şifre |
+| :--- | :--- | :--- | :--- |
+| Merve Aydın | `merve.aydin` | Ford (Müşteri) | `musteri123` |
+| Seda Yılmaz | `seda.yilmaz` | Renault (Müşteri) | `musteri123` |
+| Ercan Koçak | `ercan.kocak` | Borusan (Tedarikçi) | `tedarikci123` |
+| Hakan Demir | `hakan.demir` | Kardemir (Tedarikçi) | `tedarikci123` |
+| Ali Vefa | `ali.vefa` | ABC Makina (Taşeron) | `taseron123` |
+
+#### 4. REST API Erişimi
+Demo hesaplarının herhangi biriyle JWT token alabilirsiniz:
+```bash
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"kullanici_adi": "admin", "sifre": "admin123"}'
+```
 
 ---
 
-## 🎨 UI/UX Tasarım Dili: "Metal" Teması
+## 🎨 UI/UX Tasarım Dili: "Cinematic Industrial" Teması
 FabrikaOS, metal sanayisinin güçlü ve ağır yapısını yansıtan, profesyonel B2B sunumlarına tam uyumlu **premium dark mode** tasarım diline sahiptir.
 - Derin lacivert ve siyah tonlarının karışımı (`#0f172a`, `#1e293b`).
 - Mavi neon ve cam efektleri (Glassmorphism) ile desteklenmiş vurgular.
 - Göz yormayan kontrast ayarları ve profesyonel tipografi.
+- Loading skeleton'ları, toast notification animasyonları, print CSS desteği.
 
 ---
 
-## 🤝 Katkıda Bulunma & Geliştirme Standartları
+## 🏛️ Teknik Mimari
 
-Bu proje, yüksek kurumsal kalite standartlarına göre sürdürülmektedir. Pull Request (PR) oluşturmadan önce:
-1. Kodun mevcut mimari yaklaşımlara (Blueprints, Flask MVC) uygun olduğundan emin olun.
-2. Pytest üzerinden tüm entegrasyon testlerinin geçtiğini doğrulayın: `pytest tests/ -v`.
-3. Yeni özellikler eklerken responsive tasarım kurallarına uyun.
-
----
-
----
-
-<div align="center">
-
-# 📽️ PROJE SUNUM DOSYASI
-
-### FabrikaOS — Kapsamlı Proje Sunumu
-*Bu bölüm, FabrikaOS projesinin teknik mimarisini, modül yapısını ve kurumsal özelliklerini detaylı şekilde açıklamak üzere hazırlanmıştır.*
-
-</div>
-
----
-
-## 📌 1. Proje Tanıtımı ve Problem Tanımı
-
-### 1.1. Problem
-
-Türkiye'deki metal sanayi ve ağır sanayi tesislerinin büyük çoğunluğu hâlâ **kâğıt tabanlı**, **Excel'e bağımlı** ve **birbirinden kopuk** süreçlerle yönetilmektedir. Bu durum:
-
-| Problem | Sonuç |
-|---------|-------|
-| Manuel üretim takibi | Veri kaybı, gecikmiş raporlar |
-| Reaktif bakım anlayışı | Beklenmedik duruşlar, yüksek maliyet |
-| Dağınık kalite kontrol | Müşteri şikâyetleri, fire artışı |
-| Görünürlük eksikliği | Yönetim kararlarının sezgisel kalması |
-| İSG takibinin yetersizliği | İş kazaları, yasal cezalar |
-
-### 1.2. Çözüm: FabrikaOS
-
-**FabrikaOS**, yukarıdaki tüm sorunları **tek bir platformda** çözen, **Endüstri 4.0** standartlarında geliştirilmiş bir **MES + ERP hibrit çözümüdür**.
-
-> **Vizyon:** *Geleneksel üretim tesislerini, yapay zeka destekli dijital fabrikalara dönüştürmek.*
-
-### 1.3. Hedef Sektör ve Kullanıcı Profili
-
-- **Birincil Sektör:** Metal Sanayi (Otomotiv Yan Sanayi, CNC İşleme, Dövme-Döküm)
-- **Ölçek:** 50-500 çalışanlı KOBİ ve orta ölçekli üretim tesisleri
-- **Kullanıcılar:** Fabrika Müdürleri, Üretim Planlamacılar, Operatörler, Bakım Teknisyenleri, İSG Uzmanları
-
----
-
-## 🏛️ 2. Teknik Mimari
-
-### 2.1. Teknoloji Yığını (Tech Stack)
+### Teknoloji Yığını (Tech Stack)
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                      FRONTEND KATMANI                       │
 ├─────────────────────────────────────────────────────────────┤
 │  HTML5 + Jinja2 Templating Engine                           │
-│  CSS3 (Custom Dark Theme - "Metal" Design Language)         │
+│  CSS3 (Custom Dark Theme - "Cinematic Industrial")          │
 │  Bootstrap 5.3 (Responsive Grid & Components)               │
 │  Chart.js (Dinamik Grafikler & OEE Göstergeleri)            │
 │  Vanilla JS + Socket.IO Client (Gerçek Zamanlı UI)          │
 │  SVG (İnteraktif Fabrika Haritası & Dijital İkiz)           │
+│  Leaflet.js (Site Harita & CRM Konum Görselleştirme)        │
 ├─────────────────────────────────────────────────────────────┤
 │                      BACKEND KATMANI                        │
 ├─────────────────────────────────────────────────────────────┤
@@ -245,12 +288,15 @@ Türkiye'deki metal sanayi ve ağır sanayi tesislerinin büyük çoğunluğu h�
 │  Flask-Limiter (Brute-Force Koruması)                       │
 │  Flask-Caching (Performans Optimizasyonu)                   │
 │  Flask-Migrate / Alembic (DB Migrasyon)                     │
+│  Flask-JWT-Extended (REST API Kimlik Doğrulama)             │
+│  Flask-CORS (Cross-Origin Resource Sharing)                 │
+│  Celery + Redis (Asenkron Görevler)                         │
 ├─────────────────────────────────────────────────────────────┤
 │                    VERİTABANI KATMANI                        │
 ├─────────────────────────────────────────────────────────────┤
 │  SQLite (WAL Mode) — Geliştirme & Demo                      │
 │  PostgreSQL — Üretim Ortamı Desteği (psycopg2)              │
-│  18+ İlişkisel Tablo, Foreign Key Bütünlüğü                │
+│  35+ İlişkisel Tablo, Foreign Key Bütünlüğü                │
 ├─────────────────────────────────────────────────────────────┤
 │                   YAPAY ZEKA KATMANI                         │
 ├─────────────────────────────────────────────────────────────┤
@@ -260,7 +306,7 @@ Türkiye'deki metal sanayi ve ağır sanayi tesislerinin büyük çoğunluğu h�
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 2.2. Mimari Desen: Application Factory + Blueprint MVC
+### Mimari Desen: Application Factory + Blueprint MVC
 
 ```mermaid
 graph LR
@@ -272,13 +318,21 @@ graph LR
         A --> F[SQLite WAL]
     end
     
-    subgraph "17 Blueprint Modülü"
+    subgraph "27 Blueprint Modülü"
         D --> G[auth_bp]
         D --> H[dashboard_bp]
         D --> I[makine_bp]
         D --> J[personel_bp]
         D --> K[is_emri_bp]
-        D --> L[... +12 diğer]
+        D --> L1[crm_bp]
+        D --> L2[sozlesme_bp]
+        D --> L3[talep_bp]
+        D --> L4[ik_bp]
+        D --> L5[dys_bp]
+        D --> L6[duyuru_bp]
+        D --> L7[satin_alma_bp]
+        D --> L8[api_v1_bp]
+        D --> L[... +14 diğer]
     end
 ```
 
@@ -287,23 +341,31 @@ graph LR
 - ✅ Döngüsel import sorunları önlenir
 - ✅ Her ortam için farklı yapılandırma (`DevelopmentConfig`, `ProductionConfig`, `TestingConfig`)
 
-### 2.3. Veritabanı Şeması (ER Özeti)
+### Veritabanı Şeması (ER Özeti)
 
-Sistem **18+ ilişkisel tablodan** oluşmaktadır:
+Sistem **35+ ilişkisel tablodan** oluşmaktadır:
 
 | Modül | Tablolar | Açıklama |
 |-------|----------|----------|
-| **Kullanıcı & Personel** | `Kullanici`, `Calisan`, `VardiyaPlani`, `IzinTalebi` | RBAC, vardiya yönetimi |
-| **Makine & Üretim** | `Makine`, `UretimVerisi`, `ArizaKaydi` | OEE hesaplamalı üretim takibi |
+| **Kullanıcı & Personel** | `Kullanici`, `DenetimIzi`, `Calisan`, `VardiyaPlani`, `IzinTalebi` | RBAC, vardiya yönetimi |
+| **İnsan Kaynakları** | `SavunmaTutanak`, `FazlaMesai`, `SertifikaTakip`, `MaasSkalasi`, `ZimmetKaydi`, `GirisCikisEvrak` | İK süreçleri |
+| **Makine & Üretim** | `Makine`, `UretimVerisi`, `ArizaKaydi`, `BakimKaydi`, `DurusKaydi` | OEE hesaplamalı üretim takibi |
 | **Stok** | `Malzeme`, `StokHareketi`, `Tedarikci` | Tedarik zinciri yönetimi |
 | **Kalite** | `HataKaydi`, `DuzelticiFaaliyet` | CAPA düzeltici eylemler |
 | **Enerji** | `EnerjiTuketimi` | Makine bazlı tüketim izleme |
-| **İSG** | `IsKazasi`, `RiskDegerlendirme`, `IsgEgitimi` | İş güvenliği & eğitim |
+| **İSG** | `IsKazasi`, `RiskDegerlendirme`, `IsgEgitimi`, `SaglikMuayenesi`, `IsgDokumani` | İş güvenliği & eğitim |
 | **İş Emri** | `IsEmri`, `IsEmriYorum` | SLA takipli iş yönetimi |
-| **Kurumsal** | `KurumsalAyarlar` | Çoklu şirket desteği |
-| **AI & Analitik** | `KPI Hedefleri`, `Tahmin Kayıtları` | 11 KPI × 12 ay, 14 tahmin |
+| **CRM** | `Ortak`, `Firma`, `FirmaYetkilisi`, `CrmIletisimGecmisi` | Paydaş ilişki yönetimi |
+| **Sözleşme** | `Sozlesme`, `KiraKontrat`, `SigortaPolice`, `StandartMetin` | Sözleşme lifecycle yönetimi |
+| **Talep** | `Talep`, `TalepGecmisi` | Helpdesk & talep akışı |
+| **DYS** | `Dokuman` | Doküman yönetimi |
+| **Duyuru** | `Duyuru`, `DuyuruOkunma` | Şirket içi iletişim |
+| **Satın Alma** | `SatinAlmaTalebi`, `SatinAlmaSiparis`, `TeklifKarsilastirma` | Tedarik yönetimi |
+| **Dış Kullanıcı** | `DisKullanici`, `Borc`, `Tahsilat` | Dış paydaş erişimi |
+| **Kurumsal** | `KurumsalAyarlar`, `EpostaAyarlari`, `DosyaEki` | Sistem ayarları |
+| **AI & Analitik** | `KpiHedef`, `TahminKaydi` | 11 KPI × 12 ay, 14 tahmin |
 
-### 2.4. Gerçek Zamanlı İletişim Mimarisi
+### Gerçek Zamanlı İletişim Mimarisi
 
 ```mermaid
 sequenceDiagram
@@ -321,9 +383,9 @@ sequenceDiagram
 
 ---
 
-## ⚙️ 3. Modül Detayları
+## ⚙️ Modül Detayları
 
-### 3.1. 🤖 Yapay Zeka & Tahminleme Motoru
+### 🤖 Yapay Zeka & Tahminleme Motoru
 
 FabrikaOS, **4 ayrı AI motoru** barındırır:
 
@@ -336,7 +398,7 @@ FabrikaOS, **4 ayrı AI motoru** barındırır:
 
 **AI Operatör Önerisi:** İş emri oluşturulurken, operatörlerin geçmiş performansı (OEE, hata oranı) ve iş emrinin gereksinimleri (zorluk, beceri seti) analiz edilerek en uygun personel **yapay zeka ile eşleştirilir**.
 
-### 3.2. 🏭 İnteraktif Fabrika Haritası (Dijital İkiz)
+### 🏭 İnteraktif Fabrika Haritası (Dijital İkiz)
 
 - **SVG tabanlı** gerçek zamanlı fabrika görselleştirmesi
 - **Sürükle-Bırak** ile makine konumlandırma
@@ -344,7 +406,7 @@ FabrikaOS, **4 ayrı AI motoru** barındırır:
 - Donanım hızlandırmalı CSS transform animasyonları
 - Hover ile anlık makine detay kartları
 
-### 3.3. 📊 OEE Motoru & Kiosk Modu
+### 📊 OEE Motoru & Kiosk Modu
 
 **OEE (Overall Equipment Effectiveness)** hesaplama formülü:
 
@@ -362,7 +424,7 @@ Kalite             = (Toplam Üretim - Fire) / Toplam Üretim
 - Kayan yazı (Marquee) ile acil durum bildirimleri
 - Socket.IO ile anlık veri akışı
 
-### 3.4. 📋 İş Emri Yönetimi
+### 📋 İş Emri Yönetimi
 
 - Öncelik seviyeleri: Düşük → Orta → Yüksek → Kritik
 - **SLA (Service Level Agreement)** takibi ile süre aşımı bildirimleri
@@ -370,7 +432,7 @@ Kalite             = (Toplam Üretim - Fire) / Toplam Üretim
 - AI destekli operatör atama önerisi
 - Durum akışı: `Oluşturuldu → Atandı → Devam Ediyor → Tamamlandı`
 
-### 3.5. 📈 Gelişmiş Analitik & Raporlama
+### 📈 Gelişmiş Analitik & Raporlama
 
 | Analitik Servisi | Açıklama |
 |------------------|----------|
@@ -384,21 +446,22 @@ Kalite             = (Toplam Üretim - Fire) / Toplam Üretim
 - 📊 Excel rapor dışa aktarma (openpyxl)
 - 📈 Etkileşimli Chart.js grafikleri
 
-### 3.6. 🛡️ İş Sağlığı ve Güvenliği (İSG)
+### 🛡️ İş Sağlığı ve Güvenliği (İSG)
 
 - İş kazası ve ramak kala olay kayıtları
 - Risk değerlendirme matrisi (Olasılık × Şiddet)
 - İSG eğitim takibi ve sertifika yönetimi
+- Sağlık muayenesi ve İSG doküman yönetimi
 - Risk puanlama servisi ile otomatik önceliklendirme
 
-### 3.7. 🔌 Enerji Yönetimi
+### 🔌 Enerji Yönetimi
 
 - Makine bazlı enerji tüketim izleme (kWh)
 - 5 farklı enerji türü takibi (Elektrik, Doğalgaz, Basınçlı Hava vb.)
 - Aylık/yıllık tüketim trend analizi
 - Enerji maliyeti raporlama
 
-### 3.8. 📦 Stok & Tedarik Zinciri
+### 📦 Stok & Tedarik Zinciri
 
 - Malzeme giriş-çıkış hareketleri
 - Kritik stok seviyesi uyarıları
@@ -407,7 +470,50 @@ Kalite             = (Toplam Üretim - Fire) / Toplam Üretim
 
 ---
 
-## 🔒 4. Güvenlik Mimarisi
+## 🔌 REST API v1
+
+FabrikaOS, üçüncü parti sistemlerle entegrasyon için **JWT tabanlı REST API** sunar.
+
+### Hızlı Başlangıç
+
+```bash
+# 1. Token al
+curl -X POST http://localhost:5000/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"kullanici_adi": "admin", "sifre": "admin123"}'
+
+# 2. Korumalı endpoint'e eriş
+curl http://localhost:5000/api/v1/ortaklar \
+  -H "Authorization: Bearer <access_token>"
+```
+
+### Endpoint Özeti
+
+| Modül | Endpoint | Metotlar |
+|-------|----------|----------|
+| **Auth** | `/api/v1/auth/login` | POST |
+| **Auth** | `/api/v1/auth/refresh` | POST |
+| **Auth** | `/api/v1/auth/me` | GET |
+| **Ortaklar** | `/api/v1/ortaklar` | GET, POST |
+| **Ortaklar** | `/api/v1/ortaklar/{id}` | GET, PUT, DELETE |
+| **Firmalar** | `/api/v1/firmalar` | GET, POST |
+| **Firmalar** | `/api/v1/firmalar/{id}` | GET, PUT, DELETE |
+| **Sözleşmeler** | `/api/v1/sozlesmeler` | GET |
+| **Sözleşmeler** | `/api/v1/sozlesmeler/{id}` | GET |
+| **Talepler** | `/api/v1/talepler` | GET, POST |
+| **Talepler** | `/api/v1/talepler/{id}` | GET |
+| **Personel** | `/api/v1/personel` | GET |
+| **Makineler** | `/api/v1/makineler` | GET |
+| **Malzemeler** | `/api/v1/malzemeler` | GET |
+| **İş Emirleri** | `/api/v1/is-emirleri` | GET |
+| **Duyurular** | `/api/v1/duyurular` | GET |
+| **İstatistik** | `/api/v1/istatistik/ozet` | GET |
+
+> 📖 Detaylı API dokümantasyonu için: [`API_DOKUMANTASYONU.md`](API_DOKUMANTASYONU.md)
+
+---
+
+## 🔒 Güvenlik Mimarisi
 
 FabrikaOS, **OWASP Top 10** standartlarına uygun güvenlik katmanlarıyla donatılmıştır:
 
@@ -415,7 +521,7 @@ FabrikaOS, **OWASP Top 10** standartlarına uygun güvenlik katmanlarıyla donat
 graph TD
     A[HTTP İsteği] --> B{Rate Limiter}
     B -->|Limit Aşıldı| C[429 Too Many Requests]
-    B -->|OK| D{CSRF Token}
+    B -->|OK| D{CSRF Token / JWT}
     D -->|Geçersiz| E[403 Forbidden]
     D -->|OK| F{Authentication}
     F -->|Oturum Yok| G[Login Yönlendirme]
@@ -426,34 +532,48 @@ graph TD
 
 | Güvenlik Katmanı | Teknoloji | Açıklama |
 |-------------------|-----------|----------|
-| **Kimlik Doğrulama** | Flask-Login + Bcrypt | Güçlü session, parola hashleme |
+| **Kimlik Doğrulama** | Flask-Login + Bcrypt + JWT | Güçlü session, parola hashleme, API token |
 | **RBAC** | 3 Rol (Admin, Operatör, Teknisyen) | İzole yetkilendirme |
 | **CSRF** | Flask-WTF CSRFProtect | Tüm formlarda token doğrulama |
 | **Rate Limiting** | Flask-Limiter | Brute-force saldırı önleme |
 | **Security Headers** | Custom Middleware | X-Frame, HSTS, CSP, XSS Protection |
 | **Veri Bütünlüğü** | SQLite WAL + FK | Write-Ahead Logging, Foreign Key |
 | **Session** | HTTPOnly + SameSite=Lax | Cookie güvenliği |
+| **API** | JWT Bearer Token | REST API için token tabanlı kimlik doğrulama |
 
 ---
 
-## 🧩 5. Proje Yapısı
+## 🧩 Proje Yapısı
 
 ```
 FabrikaOS/
 ├── app/
 │   ├── __init__.py              # Application Factory
 │   ├── extensions.py            # Flask uzantı tanımları
-│   ├── models/                  # 15 veri modeli (SQLAlchemy ORM)
-│   │   ├── kullanici.py         #   Kullanıcı & RBAC
+│   ├── models/                  # 23 veri modeli dosyası (SQLAlchemy ORM)
+│   │   ├── kullanici.py         #   Kullanıcı & RBAC & DenetimIzi
 │   │   ├── makine.py            #   Makine, Üretim, Arıza, Bakım, Duruş
 │   │   ├── personel.py          #   Çalışan, Vardiya, İzin
 │   │   ├── is_emri.py           #   İş emri & yorumlar
 │   │   ├── kalite.py            #   Hata & CAPA
 │   │   ├── stok.py              #   Malzeme, Hareket, Tedarikçi
 │   │   ├── enerji.py            #   Enerji tüketimi
-│   │   ├── isg.py               #   İş kazası, Risk, Eğitim
-│   │   └── analitik.py          #   KPI hedefleri & tahminler
-│   ├── routes/                  # 17 Blueprint (URL & Controller)
+│   │   ├── isg.py               #   İş kazası, Risk, Eğitim, Sağlık, Doküman
+│   │   ├── analitik.py          #   KPI hedefleri & tahminler
+│   │   ├── crm.py               #   Ortak, Firma, Yetkili, İletişim Geçmişi
+│   │   ├── sozlesme.py          #   Sözleşme, Kira, Sigorta, Standart Metin
+│   │   ├── talep.py             #   Talep & Geçmiş
+│   │   ├── ik.py                #   Savunma, Mesai, Sertifika, Maaş, Zimmet
+│   │   ├── dys.py               #   Doküman yönetimi
+│   │   ├── duyuru.py            #   Duyuru & Okunma
+│   │   ├── satin_alma.py        #   Satın Alma Talebi, Sipariş, Teklif
+│   │   ├── dis_kullanici.py     #   Dış Kullanıcı, Borç, Tahsilat
+│   │   ├── dosya.py             #   Dosya ekleri
+│   │   ├── eposta.py            #   E-posta ayarları
+│   │   ├── bildirim.py          #   Bildirim sistemi
+│   │   ├── tahmin.py            #   AI tahmin kayıtları
+│   │   └── kurumsal.py          #   Kurumsal ayarlar
+│   ├── routes/                  # 27 Blueprint (URL & Controller)
 │   │   ├── auth.py              #   Giriş/Çıkış
 │   │   ├── dashboard.py         #   Rol bazlı dashboard'lar
 │   │   ├── makine.py            #   Makine CRUD & OEE
@@ -464,6 +584,16 @@ FabrikaOS/
 │   │   ├── analitik.py          #   Gelişmiş analitik
 │   │   ├── rapor.py             #   PDF/Excel raporlama
 │   │   ├── admin.py             #   Yönetici paneli
+│   │   ├── crm.py               #   CRM & Ortak/Firma yönetimi
+│   │   ├── sozlesme.py          #   Sözleşme yönetimi
+│   │   ├── talep.py             #   Talep yönetimi
+│   │   ├── ik.py                #   İnsan Kaynakları
+│   │   ├── dys.py               #   Doküman Yönetim Sistemi
+│   │   ├── duyuru.py            #   Duyuru sistemi
+│   │   ├── satin_alma.py        #   Satın alma yönetimi
+│   │   ├── dis_panel.py         #   Dış kullanıcı paneli
+│   │   ├── site_harita.py       #   Site harita & alan yönetimi
+│   │   ├── api_v1.py            #   REST API v1 (JWT)
 │   │   └── ...                  #   +7 diğer modül
 │   ├── services/                # İş mantığı servisleri
 │   │   ├── ai/                  #   4 AI motoru
@@ -481,21 +611,27 @@ FabrikaOS/
 │   │   ├── bildirim_motoru.py   #   Bildirim sistemi
 │   │   ├── oee_hesaplama.py     #   OEE formül motoru
 │   │   └── mock_engine.py       #   Canlı demo veri üreteci
-│   ├── templates/               # 19 template dizini (Jinja2)
+│   ├── templates/               # 27+ template dizini (Jinja2)
 │   ├── static/                  # CSS, JS, görseller
 │   └── forms/                   # WTForms form sınıfları
-├── seeds/                       # 13 modül demo verisi
+├── seeds/                       # 20 modül demo verisi
 ├── migrations/                  # Alembic DB migration'ları
 ├── tests/                       # Pytest test suite
+├── deployment/                  # Üretim deployment dosyaları
 ├── config.py                    # 3 ortam yapılandırması
 ├── run.py                       # Uygulama giriş noktası
-├── seed_data.py                 # Demo veri orkestratörü
-└── requirements.txt             # 25+ Python bağımlılığı
+├── seed_data.py                 # Demo veri orkestratörü (20 modül)
+├── celery_worker.py             # Celery asenkron görev worker'ı
+├── requirements.txt             # 30+ Python bağımlılığı
+├── KURULUM_VE_KULLANIM_REHBERI.md  # Kullanım rehberi
+├── API_DOKUMANTASYONU.md        # REST API dokümantasyonu
+├── OWASP_Guvenlik_Kontrol_Listesi.md  # Güvenlik kontrol listesi
+└── DESIGN.md                    # Tasarım dokümanı
 ```
 
 ---
 
-## 📊 6. Demo Senaryosu
+## 📊 Demo Senaryosu
 
 Demo ortamı, gerçekçi bir **metal sanayi tesisi** senaryosunu simüle eder:
 
@@ -503,7 +639,7 @@ Demo ortamı, gerçekçi bir **metal sanayi tesisi** senaryosunu simüle eder:
 > **Konum:** Kocaeli Organize Sanayi Bölgesi  
 > **Sektör:** Otomotiv Yan Sanayi — CNC İşleme & Metal Şekillendirme
 
-### Yüklenen Demo Verileri
+### Yüklenen Demo Verileri (20 Modül)
 
 | Veri Seti | Miktar | Detay |
 |-----------|--------|-------|
@@ -520,42 +656,26 @@ Demo ortamı, gerçekçi bir **metal sanayi tesisi** senaryosunu simüle eder:
 | İş Emirleri | 10 emir | 5 yorum, SLA takipli |
 | KPI Hedefleri | 132 kayıt | 11 KPI × 12 ay |
 | AI Tahminleri | 14 tahmin | Bakım, OEE, stok, anomali |
+| Satın Alma | 26 kayıt | 17 talep, 9 sipariş |
+| CRM | Ortaklar & Firmalar | Yetkililer, iletişim geçmişi |
+| Sözleşmeler | Kira & Sigorta | Kontrat, poliçe, standart metin |
+| Talepler | Arıza & Öneri | Durum akışı, geçmiş kaydı |
+| DYS | Dokümanlar | Kategorize edilmiş dosyalar |
+| Duyurular | Şirket içi | Farklı öncelik ve türlerde |
+| Site Harita | Alan/Bina/Blok | Hiyerarşik yapı |
 
 ---
 
-## 🎨 7. UI/UX Tasarım Felsefesi
-
-### "Metal" Tasarım Dili
-
-FabrikaOS, **B2B kurumsal satış sunumlarına** tam uyumlu, sektör kimliğini yansıtan bir arayüze sahiptir:
-
-```
-Renk Paleti:
-──────────────────────────────
-▓▓▓▓ #0f172a  → Ana Arka Plan (Derin Lacivert-Siyah)
-▓▓▓▓ #1e293b  → Kart Arka Planı
-▓▓▓▓ #334155  → Kenarlıklar
-▓▓▓▓ #38bdf8  → Birincil Vurgu (Neon Mavi)
-▓▓▓▓ #10b981  → Başarı Durumu (Yeşil)
-▓▓▓▓ #f59e0b  → Uyarı (Amber)
-▓▓▓▓ #ef4444  → Hata / Kritik (Kırmızı)
-──────────────────────────────
-```
-
-- **Glassmorphism:** Yarı saydam kartlar, blur efektleri
-- **Dark Mode:** Göz yormayan, 7/24 fabrika ortamına uygun
-- **Responsive:** Masaüstü, tablet ve kiosk ekranlarına uyumlu
-- **Mikro-animasyonlar:** Hover efektleri, geçiş animasyonları
-
----
-
-## 📈 8. Rekabet Avantajları
+## 📈 Rekabet Avantajları
 
 | Özellik | FabrikaOS | Geleneksel ERP | Rakip MES |
 |---------|:---------:|:--------------:|:---------:|
 | Yapay Zeka Tahminleme | ✅ | ❌ | ⚠️ Kısıtlı |
 | Gerçek Zamanlı (WebSocket) | ✅ | ❌ | ⚠️ Polling |
 | İnteraktif Fabrika Haritası | ✅ | ❌ | ❌ |
+| REST API (JWT) | ✅ | ⚠️ Ek Modül | ⚠️ Kısıtlı |
+| CRM & Sözleşme Yönetimi | ✅ | ⚠️ Ayrı Sistem | ❌ |
+| Talep Yönetimi (Helpdesk) | ✅ | ❌ | ❌ |
 | Kiosk Modu | ✅ | ❌ | ⚠️ Ek Modül |
 | Rol Bazlı Dashboard | ✅ 3 Rol | ⚠️ Tek Panel | ⚠️ 2 Rol |
 | Metal Sektör Optimizasyonu | ✅ | ❌ Genel | ❌ Genel |
@@ -565,7 +685,7 @@ Renk Paleti:
 
 ---
 
-## 🔮 9. Gelecek Yol Haritası (Roadmap)
+## 🔮 Gelecek Yol Haritası (Roadmap)
 
 ```mermaid
 gantt
@@ -577,9 +697,10 @@ gantt
     Çekirdek MES + ERP Modülleri        :done, 2026-Q1, 2026-Q2
     AI Tahminleme Motoru                :done, 2026-Q1, 2026-Q2
     İnteraktif Fabrika Haritası         :done, 2026-Q1, 2026-Q2
+    CRM & Sözleşme & Talep Modülleri    :done, 2026-Q1, 2026-Q2
+    REST API v1 (JWT)                   :done, 2026-Q1, 2026-Q2
 
     section v1.5 (Planlanan)
-    REST API Katmanı                    :active, 2026-Q3, 2026-Q3
     Mobil Uygulama (PWA)                :2026-Q3, 2026-Q4
     Çoklu Dil Desteği (i18n)            :2026-Q3, 2026-Q4
 
@@ -591,7 +712,6 @@ gantt
 
 ### Planlanan Geliştirmeler
 
-- 🔌 **REST API:** Üçüncü parti sistemlerle entegrasyon katmanı
 - 📱 **PWA Mobil:** Saha operatörleri için Progressive Web App
 - 🌐 **i18n:** Çoklu dil desteği (İngilizce, Almanca)
 - 🔗 **IoT Gateway:** PLC ve sensörlerden doğrudan veri toplama
@@ -600,7 +720,16 @@ gantt
 
 ---
 
-## 🏆 10. Sonuç
+## 🤝 Katkıda Bulunma & Geliştirme Standartları
+
+Bu proje, yüksek kurumsal kalite standartlarına göre sürdürülmektedir. Pull Request (PR) oluşturmadan önce:
+1. Kodun mevcut mimari yaklaşımlara (Blueprints, Flask MVC) uygun olduğundan emin olun.
+2. Pytest üzerinden tüm entegrasyon testlerinin geçtiğini doğrulayın: `pytest tests/ -v`.
+3. Yeni özellikler eklerken responsive tasarım kurallarına uyun.
+
+---
+
+## 🏆 Sonuç
 
 **FabrikaOS**, metal sanayi tesislerinin dijital dönüşüm ihtiyacını karşılamak üzere sıfırdan tasarlanmış, **modüler**, **ölçeklenebilir** ve **yapay zeka destekli** bir üretim yönetim platformudur.
 

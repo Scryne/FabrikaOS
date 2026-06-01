@@ -1,0 +1,406 @@
+{% extends"base.html" %}
+{% block title %}Talep Detayı — {{ talep.talep_no }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('satin_alma.index') }}">Satın Alma</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('satin_alma.talepler') }}">Talepler</a></li>
+        <li class="breadcrumb-item active">{{ talep.talep_no }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start mb-4">
+    <div>
+        <h2 class="mb-1 fw-bold d-flex align-items-center gap-3">
+            {{ talep.talep_no }}
+            <span class="badge {{ talep.durum_badge }} fs-6">{{ talep.durum_adi }}</span>
+            {% if talep.aciliyet == 'acil' %}<span class="badge bg-danger fs-6">Acil</span>{% endif %}
+        </h2>
+        <h5 class="text-muted mb-0">{{ talep.kalem_adi }}</h5>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-3 mt-md-0">
+        {% if talep.onay_bekliyor_mu and current_user.modul_erisim_var_mi('satin_alma', 'yazma') %}
+            <a href="{{ url_for('satin_alma.talep_duzenle', id=talep.id) }}" class="btn btn-outline-warning">
+                <i class="bi bi-pencil me-1"></i> Düzenle
+            </a>
+            <!-- Yöneticiler veya onaycılar için onay butonları -->
+            <form method="post" action="{{ url_for('satin_alma.onayla', id=talep.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-success"><i class="bi bi-check-circle me-1"></i> Onayla</button>
+            </form>
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#redModal">
+                <i class="bi bi-x-circle me-1"></i> Reddet
+            </button>
+            <form method="post" action="{{ url_for('satin_alma.iptal', id=talep.id) }}" class="d-inline" onsubmit="return confirm('Talebi iptal etmek istediğinize emin misiniz?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-dash-circle me-1"></i> İptal Et</button>
+            </form>
+        {% endif %}
+        
+        {% if talep.siparis_olusturulabilir_mi and current_user.modul_erisim_var_mi('satin_alma', 'yazma') %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#siparisModal">
+                <i class="bi bi-cart-plus me-1"></i> Sipariş Oluştur
+            </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sol Kolon: Talep Bilgileri -->
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 h-100 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-info-circle me-2 text-info"></i>Talep Bilgileri</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush bg-transparent">
+                    <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                        <span class="text-muted small">Talep Eden:</span>
+                        <span class="fw-medium">{{ talep.talep_eden.ad_soyad if talep.talep_eden else '—' }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                        <span class="text-muted small">Departman:</span>
+                        <span class="fw-medium">{{ talep.departman or '—' }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                        <span class="text-muted small">Oluşturma:</span>
+                        <span class="fw-medium">{{ talep.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                        <span class="text-muted small">Tür:</span>
+                        <span class="fw-medium">{{ talep.tur_adi }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                        <span class="text-muted small">Miktar:</span>
+                        <span class="fw-medium text-warning">{{ talep.miktar }} {{ talep.birim_adi }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                        <span class="text-muted small">Tahmini Fiyat:</span>
+                        <span class="fw-medium">{{"₺{:,.2f}".format(talep.tahmini_birim_fiyat) if talep.tahmini_birim_fiyat else '—' }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                        <span class="text-muted small">Tahmini Toplam:</span>
+                        <span class="fw-bold text-success">{{"₺{:,.2f}".format(talep.tahmini_toplam) if talep.tahmini_toplam else '—' }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                        <span class="text-muted small">İstenen Teslim:</span>
+                        <span class="fw-medium">{{ talep.istenen_teslim_tarihi.strftime('%d.%m.%Y') if talep.istenen_teslim_tarihi else 'Belirtilmedi' }}</span>
+                    </li>
+                    <li class="list-group-item bg-transparent px-0 d-flex justify-content-between">
+                        <span class="text-muted small">Önerilen Tedarikçi:</span>
+                        <span class="fw-medium">{{ talep.tedarikci.ad if talep.tedarikci else 'Belirtilmedi' }}</span>
+                    </li>
+                </ul>
+
+                {% if talep.aciklama %}
+                <div class="mt-3">
+                    <span class="text-muted small d-block mb-1">Açıklama:</span>
+                    <p class="mb-0 fs-7 p-2 rounded" style="background: rgba(255,255,255,0.03);">{{ talep.aciklama }}</p>
+                </div>
+                {% endif %}
+                
+                {% if talep.gerekce %}
+                <div class="mt-3">
+                    <span class="text-muted small d-block mb-1">Satın Alma Gerekçesi:</span>
+                    <p class="mb-0 fs-7 p-2 rounded border border-warning border-opacity-25" style="background: rgba(255,193,7,0.05);">{{ talep.gerekce }}</p>
+                </div>
+                {% endif %}
+
+                {% if talep.red_nedeni %}
+                <div class="mt-3">
+                    <span class="text-danger small d-block mb-1">Red Nedeni:</span>
+                    <p class="mb-0 fs-7 p-2 rounded border border-danger border-opacity-50 text-danger" style="background: rgba(220,53,69,0.1);">{{ talep.red_nedeni }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Sağ Kolon: Teklifler ve Siparişler -->
+    <div class="col-12 col-lg-8">
+        <!-- Siparişler -->
+        {% if talep.siparisler.count() > 0 %}
+        <div class="card border-0 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-truck me-2 text-primary"></i>Bağlı Siparişler</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th class="ps-3">Sipariş No</th>
+                                <th>Tedarikçi</th>
+                                <th>Tarih</th>
+                                <th>Durum</th>
+                                <th>Tutar</th>
+                                <th class="pe-3 text-end">İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for siparis in talep.siparisler %}
+                            <tr>
+                                <td class="ps-3"><a href="{{ url_for('satin_alma.siparis_detay', id=siparis.id) }}" class="fw-bold">{{ siparis.siparis_no }}</a></td>
+                                <td>{{ siparis.tedarikci.ad if siparis.tedarikci else '—' }}</td>
+                                <td>{{ siparis.siparis_tarihi.strftime('%d.%m.%Y') }}</td>
+                                <td><span class="badge {{ siparis.durum_badge }}">{{ siparis.durum_adi }}</span></td>
+                                <td class="fw-medium text-success">{{"₺{:,.2f}".format(siparis.genel_toplam) if siparis.genel_toplam else '—' }}</td>
+                                <td class="pe-3 text-end">
+                                    <a href="{{ url_for('satin_alma.siparis_detay', id=siparis.id) }}" class="btn btn-sm btn-outline-info">Görüntüle</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Teklif Karşılaştırma -->
+        <div class="card border-0 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-file-earmark-spreadsheet me-2 text-warning"></i>Teklif Karşılaştırma</h5>
+                {% if talep.durum in ['bekliyor', 'onaylandi'] and current_user.modul_erisim_var_mi('satin_alma', 'yazma') %}
+                <button type="button" class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#teklifModal">
+                    <i class="bi bi-plus"></i> Teklif Ekle
+                </button>
+                {% endif %}
+            </div>
+            <div class="card-body p-0">
+                {% if talep.teklifler.count() > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead>
+                            <tr class="text-muted small">
+                                <th class="ps-3">Tedarikçi</th>
+                                <th>Birim Fiyat</th>
+                                <th>Toplam</th>
+                                <th>Termin</th>
+                                <th>Garanti</th>
+                                <th>Durum</th>
+                                {% if talep.durum in ['bekliyor', 'onaylandi'] and current_user.modul_erisim_var_mi('satin_alma', 'yazma') %}
+                                <th class="pe-3 text-end">İşlem</th>
+                                {% endif %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for teklif in talep.teklifler %}
+                            <tr class="{% if teklif.secildi_mi %}table-active{% endif %}">
+                                <td class="ps-3 fw-medium">{{ teklif.tedarikci_adi }}</td>
+                                <td>{{"₺{:,.2f}".format(teklif.birim_fiyat) if teklif.birim_fiyat else '—' }}</td>
+                                <td class="fw-bold" style="color: {{ teklif.fiyat_avantaj_rengi }}">{{"₺{:,.2f}".format(teklif.toplam_fiyat) if teklif.toplam_fiyat else '—' }}</td>
+                                <td>{{ teklif.teslimat_suresi ~ ' Gün' if teklif.teslimat_suresi else '—' }}</td>
+                                <td>{{ teklif.garanti_suresi ~ ' Ay' if teklif.garanti_suresi else '—' }}</td>
+                                <td>
+                                    {% if teklif.secildi_mi %}
+                                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Seçildi</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">Bekliyor</span>
+                                    {% endif %}
+                                </td>
+                                {% if talep.durum in ['bekliyor', 'onaylandi'] and current_user.modul_erisim_var_mi('satin_alma', 'yazma') %}
+                                <td class="pe-3 text-end">
+                                    <div class="d-flex gap-1 justify-content-end">
+                                        {% if not teklif.secildi_mi %}
+                                        <form method="post" action="{{ url_for('satin_alma.teklif_sec_route', teklif_id=teklif.id) }}">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success" title="Bu teklifi seç"><i class="bi bi-check2"></i></button>
+                                        </form>
+                                        {% endif %}
+                                        <form method="post" action="{{ url_for('satin_alma.teklif_sil_route', teklif_id=teklif.id) }}" onsubmit="return confirm('Emin misiniz?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil"><i class="bi bi-trash"></i></button>
+                                        </form>
+                                    </div>
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% if teklif.notlar %}
+                            <tr class="{% if teklif.secildi_mi %}table-active{% endif %}">
+                                <td colspan="7" class="border-top-0 pt-0 pb-3 ps-3 pe-3 text-muted small">
+                                    <i class="bi bi-chat-text me-1"></i> {{ teklif.notlar }}
+                                </td>
+                            </tr>
+                            {% endif %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-file-earmark-spreadsheet fs-2 mb-2 d-block opacity-50"></i>
+                    Henüz teklif girilmemiş.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Red Modal -->
+<div class="modal fade" id="redModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger"><i class="bi bi-x-circle me-2"></i>Talebi Reddet</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{{ url_for('satin_alma.reddet', id=talep.id) }}">
+                <div class="modal-body">
+                    {{ red_form.hidden_tag() }}
+                    <div class="mb-3">
+                        {{ red_form.red_nedeni.label(class="form-label") }}
+                        {{ red_form.red_nedeni(class="form-control", rows="3", required=True) }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-danger">Reddet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Teklif Ekle Modal -->
+<div class="modal fade" id="teklifModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-warning"><i class="bi bi-plus-circle me-2"></i>Yeni Teklif Ekle</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{{ url_for('satin_alma.teklif_ekle_route', id=talep.id) }}">
+                <div class="modal-body">
+                    {{ teklif_form.hidden_tag() }}
+                    
+                    <div class="mb-3">
+                        {{ teklif_form.tedarikci_id.label(class="form-label") }}
+                        {{ teklif_form.tedarikci_id(class="form-select") }}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            {{ teklif_form.birim_fiyat.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text text-muted">₺</span>
+                                {{ teklif_form.birim_fiyat(class="form-control", type="number", step="0.01") }}
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            {{ teklif_form.toplam_fiyat.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text text-muted">₺</span>
+                                {{ teklif_form.toplam_fiyat(class="form-control", type="number", step="0.01") }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            {{ teklif_form.teslimat_suresi.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ teklif_form.teslimat_suresi(class="form-control", type="number") }}
+                                <span class="input-group-text text-muted">Gün</span>
+                            </div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            {{ teklif_form.garanti_suresi.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ teklif_form.garanti_suresi(class="form-control", type="number") }}
+                                <span class="input-group-text text-muted">Ay</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ teklif_form.notlar.label(class="form-label") }}
+                        {{ teklif_form.notlar(class="form-control", rows="2") }}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-warning">Ekle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Sipariş Oluştur Modal -->
+<div class="modal fade" id="siparisModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary bg-opacity-10">
+                <h5 class="modal-title text-primary"><i class="bi bi-cart-check me-2"></i>Sipariş Oluştur</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{{ url_for('satin_alma.siparis_olustur_route') }}">
+                <div class="modal-body">
+                    {{ siparis_form.hidden_tag() }}
+                    
+                    {% if not talep.secilen_teklif %}
+                    <div class="alert alert-warning py-2 mb-4 text-dark fs-7">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>Herhangi bir teklif seçilmemiş. Formu manuel doldurabilirsiniz.
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-2">
+                            {{ siparis_form.tedarikci_id.label(class="form-label") }}
+                            {{ siparis_form.tedarikci_id(class="form-select") }}
+                        </div>
+                        <div class="col-md-6 mb-2">
+                            {{ siparis_form.fatura_no.label(class="form-label") }}
+                            {{ siparis_form.fatura_no(class="form-control") }}
+                        </div>
+                        
+                        <div class="col-md-4 mb-2">
+                            {{ siparis_form.miktar.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ siparis_form.miktar(class="form-control", type="number", step="0.01") }}
+                                <span class="input-group-text text-muted">{{ talep.birim_adi }}</span>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            {{ siparis_form.birim_fiyat.label(class="form-label") }}
+                            <div class="input-group">
+                                <span class="input-group-text text-muted">₺</span>
+                                {{ siparis_form.birim_fiyat(class="form-control", type="number", step="0.01") }}
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-2">
+                            {{ siparis_form.kdv_orani.label(class="form-label") }}
+                            <div class="input-group">
+                                {{ siparis_form.kdv_orani(class="form-control", type="number", step="0.01") }}
+                                <span class="input-group-text text-muted">%</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-2">
+                            {{ siparis_form.beklenen_teslim.label(class="form-label") }}
+                            {{ siparis_form.beklenen_teslim(class="form-control", type="date") }}
+                        </div>
+                        
+                        <div class="col-12 mb-2">
+                            {{ siparis_form.notlar.label(class="form-label") }}
+                            {{ siparis_form.notlar(class="form-control", rows="2") }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Siparişi Onayla ve Oluştur</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

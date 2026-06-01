@@ -29,6 +29,10 @@ def create_app(config_name=None):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
 
+    # ── Merkezi Logging Başlat ──
+    from app.utils.logger import setup_logger
+    setup_logger(app)
+
     # ── Uzantıları Başlat ──
     _register_extensions(app)
 
@@ -59,12 +63,13 @@ def create_app(config_name=None):
 def _register_extensions(app):
     """Tüm Flask uzantılarını uygulamaya bağlar."""
     from app.extensions import (
-        db, migrate, login_manager, bcrypt,
+        db, migrate, jwt, login_manager, bcrypt,
         csrf, cache, limiter, socketio
     )
 
     db.init_app(app)
     migrate.init_app(app, db, render_as_batch=True)
+    jwt.init_app(app)
     login_manager.init_app(app)
     bcrypt.init_app(app)
     csrf.init_app(app)
@@ -100,6 +105,16 @@ def _register_blueprints(app):
     from app.routes.dosya import dosya_bp
     from app.routes.takvim import takvim_bp
     from app.routes.landing import landing_bp
+    from app.routes.ik import ik_bp
+    from app.routes.crm import crm_bp
+    from app.routes.sozlesme import sozlesme_bp
+    from app.routes.talep import talep_bp
+    from app.routes.dis_panel import dis_panel_bp
+    from app.routes.dys import dys_bp
+    from app.routes.duyuru import duyuru_bp
+    from app.routes.satin_alma import satin_alma_bp
+    from app.routes.site_harita import site_harita_bp
+    from app.routes.api_v1 import api_v1_bp
 
     app.register_blueprint(auth_bp)
     app.register_blueprint(landing_bp)
@@ -119,6 +134,16 @@ def _register_blueprints(app):
     app.register_blueprint(otomasyon_bp)
     app.register_blueprint(dosya_bp)
     app.register_blueprint(takvim_bp)
+    app.register_blueprint(ik_bp)
+    app.register_blueprint(crm_bp)
+    app.register_blueprint(sozlesme_bp)
+    app.register_blueprint(talep_bp)
+    app.register_blueprint(dis_panel_bp)
+    app.register_blueprint(dys_bp)
+    app.register_blueprint(duyuru_bp)
+    app.register_blueprint(satin_alma_bp)
+    app.register_blueprint(site_harita_bp)
+    app.register_blueprint(api_v1_bp)
 
 
 def _register_error_handlers(app):
@@ -149,6 +174,7 @@ def _register_shell_context(app):
     from app.models.enerji import EnerjiTuketimi
     from app.models.isg import IsKazasi, RiskDegerlendirme, IsgEgitimi
     from app.models.is_emri import IsEmri, IsEmriYorum
+    from app.models.crm import Ortak, Firma
 
     @app.shell_context_processor
     def make_shell_context():
@@ -172,6 +198,8 @@ def _register_shell_context(app):
             'IsgEgitimi': IsgEgitimi,
             'IsEmri': IsEmri,
             'IsEmriYorum': IsEmriYorum,
+            'Ortak': Ortak,
+            'Firma': Firma,
         }
 
 
@@ -179,6 +207,7 @@ def _register_template_helpers(app):
     """Jinja2 template yardımcı fonksiyonlarını kaydeder."""
     from datetime import datetime
     from app.models.kurumsal import KurumsalAyarlar
+    from markupsafe import Markup, escape
 
     @app.context_processor
     def utility_processor():
@@ -196,6 +225,12 @@ def _register_template_helpers(app):
             'now': datetime.now,
             'kurumsal_ayarlar': kurumsal,
         }
+        
+    @app.template_filter('nl2br')
+    def nl2br_filter(s):
+        if s is None:
+            return ""
+        return Markup(str(escape(s)).replace('\n', '<br>\n'))
 
 def _register_security_headers(app):
     """Güvenlik başlıklarını (Security Headers) tüm yanıtlara ekler."""
@@ -210,10 +245,10 @@ def _register_security_headers(app):
         # Geliştirme kolaylığı için şimdilik biraz esnek, production'da sıkılaştırılabilir.
         csp = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.socket.io; "
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdn.socket.io https://unpkg.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://unpkg.com; "
             "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
-            "img-src 'self' data: blob:; "
+            "img-src 'self' data: blob: https://*.cartocdn.com https://*.openstreetmap.org; "
             "connect-src 'self' ws: wss:;"
         )
         response.headers['Content-Security-Policy'] = csp

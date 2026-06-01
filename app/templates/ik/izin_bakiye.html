@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+{% block title %}İzin Bakiyeleri{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+    <li class="breadcrumb-item active">İzin Bakiyeleri</li>
+</ol></nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-calendar-check me-2 text-info"></i>İzin Bakiyeleri</h2>
+        <p class="text-muted mb-0 mt-1">Tüm çalışanların kıdem ve izin hak ediş durumları</p>
+    </div>
+    <form method="GET" class="d-flex gap-2">
+        <select name="yil" class="form-select" onchange="this.form.submit()">
+            <option value="{{ yil - 1 }}">{{ yil - 1 }}</option>
+            <option value="{{ yil }}" selected>{{ yil }}</option>
+            <option value="{{ yil + 1 }}">{{ yil + 1 }}</option>
+        </select>
+    </form>
+</div>
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Çalışan</th>
+                        <th>İşe Başlama</th>
+                        <th>Kıdem Yılı</th>
+                        <th class="text-center">Yıllık İzin (Kalan / Hak)</th>
+                        <th class="text-center">Mazeret (Kalan / Hak)</th>
+                        <th class="text-center">Sağlık (Kalan / Hak)</th>
+                        <th class="text-center pe-4">Toplam Kullanılan</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bakiyeler %}
+                    <tr>
+                        <td class="ps-4 fw-medium">
+                            <a href="{{ url_for('ik.personel_karti', id=b.calisan.id) }}" class="text-decoration-none">{{ b.calisan.ad_soyad }}</a>
+                            <br><small class="text-muted">{{ b.calisan.sicil_no }}</small>
+                        </td>
+                        <td>{{ b.calisan.ise_baslama.strftime('%d.%m.%Y') if b.calisan.ise_baslama else '—' }}</td>
+                        <td>
+                            <span class="badge {% if b.kidem > 0 %}bg-info-subtle{% else %}bg-secondary{% endif %}">{{ b.kidem }} Yıl</span>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <span class="fw-bold {% if b.bakiye.yillik.kalan <= 3 and b.bakiye.yillik.hak > 0 %}text-danger{% else %}text-primary{% endif %}">{{ b.bakiye.yillik.kalan }}</span>
+                                <span class="text-muted">/ {{ b.bakiye.yillik.hak }}</span>
+                            </div>
+                            <div class="progress mt-1" style="height: 4px; width: 80px; margin: 0 auto;">
+                                <div class="progress-bar bg-primary" style="width: {{ (b.bakiye.yillik.kullanilan / b.bakiye.yillik.hak * 100) if b.bakiye.yillik.hak else 0 }}%;"></div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <span class="fw-bold text-warning">{{ b.bakiye.mazeret.kalan }}</span>
+                                <span class="text-muted">/ {{ b.bakiye.mazeret.hak }}</span>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <span class="fw-bold text-success">{{ b.bakiye.saglik.kalan }}</span>
+                                <span class="text-muted">/ {{ b.bakiye.saglik.hak }}</span>
+                            </div>
+                        </td>
+                        <td class="text-center pe-4 fw-bold text-danger">{{ b.bakiye.toplam_kullanilan }} Gün</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-calendar-x fs-1 d-block mb-2"></i><p>Çalışan kaydı bulunamadı.</p>
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

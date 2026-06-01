@@ -3,135 +3,330 @@
 
 {% block extra_css %}
 <style>
-    .module-icon-container {
-        display: inline-flex;
+    /* Professional Dark Theme Adjustments for Matris */
+    .matris-wrapper {
+        animation: fadeIn 0.4s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .matris-card {
+        background: var(--bg-card, #1c1e22);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 16px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+    
+    .matris-table th {
+        background: rgba(255,255,255,0.02);
+        border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+        font-weight: 600;
+        font-size: 0.65rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: #9ca3af;
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+    
+    .matris-table td {
+        border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+        vertical-align: middle;
+        transition: background-color 0.2s;
+    }
+    
+    .matris-table tbody tr:hover td {
+        background-color: rgba(255,255,255,0.02);
+    }
+    
+    .matris-table tbody tr:last-child td {
+        border-bottom: none !important;
+    }
+
+    /* Module Header Styling */
+    .module-header {
+        display: flex;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
+        gap: 8px;
+    }
+    
+    .module-icon-wrap {
         width: 32px;
         height: 32px;
         border-radius: 8px;
-        margin-bottom: 8px;
-        background: var(--bg-card-hover);
-        border: 1px solid var(--border-color);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        transition: transform 0.2s ease, box-shadow 0.2s;
+    }
+    
+    .module-icon-wrap:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
+
+    /* Premium Switches */
+    .premium-switch {
+        display: flex;
+        justify-content: center;
+        margin: 0;
+    }
+    .premium-switch .form-check-input {
+        width: 34px;
+        height: 18px;
+        background-color: rgba(255,255,255,0.08);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        position: relative;
+    }
+    .premium-switch .form-check-input:checked {
+        background-color: #3b82f6; 
+        border-color: #3b82f6;
+        box-shadow: 0 0 12px rgba(59, 130, 246, 0.5);
+    }
+    
+    .premium-switch .form-check-input:focus {
+        box-shadow: none;
+        outline: none;
+    }
+
+    /* User Avatar */
+    .user-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        color: white;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .user-avatar::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: linear-gradient(135deg, rgba(255,255,255,0.2), transparent);
+    }
+
+    /* Badges */
+    .role-badge {
+        font-size: 0.68rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        background: rgba(255,255,255,0.08);
+        color: #d1d5db;
+        border: 1px solid rgba(255,255,255,0.05);
+    }
+    .dept-badge {
+        font-size: 0.68rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 600;
+        background: rgba(59, 130, 246, 0.15);
+        color: #93c5fd;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+
+    /* Top Section */
+    .page-title {
+        font-size: 1.5rem;
+        background: linear-gradient(to right, #ffffff, #93c5fd);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+    }
+    
+    .btn-template {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #f3f4f6;
+        border-radius: 10px;
+        padding: 8px 16px;
+        font-weight: 600;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-template:hover, .btn-template:focus, .btn-template.show {
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.2);
+        color: white;
+    }
+    
+    .dropdown-menu-dark-custom {
+        background: #1f2228;
+        border: 1px solid rgba(255,255,255,0.1);
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    .dropdown-menu-dark-custom .dropdown-item {
+        color: #e5e7eb;
+        transition: background 0.2s;
+        padding: 8px 16px;
+    }
+    .dropdown-menu-dark-custom .dropdown-item:hover {
+        background: rgba(255,255,255,0.05);
+        color: white;
+    }
+    
+    .btn-save-primary {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 30px;
+        box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .btn-save-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(37, 99, 235, 0.6);
+        color: white;
     }
 </style>
 {% endblock %}
 
 {% block breadcrumb %}
-<nav aria-label="breadcrumb" class="mb-4">
+<nav aria-label="breadcrumb" class="mb-4 mt-2">
     <ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-decoration-none"><i class="bi bi-house"></i></a></li>
-        <li class="breadcrumb-item active">Yönetim</li>
-        <li class="breadcrumb-item active" aria-current="page">Yetki Matrisi</li>
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}" class="text-decoration-none text-muted"><i class="bi bi-house"></i></a></li>
+        <li class="breadcrumb-item text-muted">Yönetim</li>
+        <li class="breadcrumb-item active text-primary" aria-current="page">Yetki Matrisi</li>
     </ol>
 </nav>
 {% endblock %}
 
 {% block content %}
-<div class="row mb-4">
-    <div class="col-12 d-flex justify-content-between align-items-center">
+<div class="matris-wrapper">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
         <div>
-            <h2 class="h4 mb-1 fw-bold"><i class="bi bi-shield-lock me-2 text-primary"></i>Kapsamlı Yetki Matrisi</h2>
-            <p class="text-muted mb-0">Kurumunuza özel rolleri ve modül erişimlerini profesyonel arayüzden yönetin.</p>
-        </div>
-        
-        <!-- Rol Şablonları -->
-        <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle px-4 fw-bold shadow-sm" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-magic me-2 text-warning"></i>Hızlı Şablon Uygula
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow-lg">
-                <li><h6 class="dropdown-header">Hazır Profiller</h6></li>
-                <li><button class="dropdown-item template-btn" data-role="kalite_muduru"><i class="bi bi-patch-check me-2 text-warning"></i>Kalite Müdürü</button></li>
-                <li><button class="dropdown-item template-btn" data-role="vardiya_amiri"><i class="bi bi-people me-2 text-info"></i>Vardiya Amiri</button></li>
-                <li><button class="dropdown-item template-btn" data-role="bakim_sefi"><i class="bi bi-tools me-2 text-primary"></i>Bakım Şefi</button></li>
-                <li><hr class="dropdown-divider"></li>
-                <li><button class="dropdown-item text-danger template-btn" data-role="temizle"><i class="bi bi-eraser me-2"></i>Tüm İzinleri Kaldır</button></li>
-            </ul>
+            <h2 class="page-title mb-2"><i class="bi bi-shield-check me-2 text-primary"></i>Kapsamlı Yetki Matrisi</h2>
+            <p class="text-muted mb-0" style="font-size: 0.95rem;">Kurumunuza özel rolleri ve modül erişimlerini profesyonel arayüzden yönetin.</p>
         </div>
     </div>
-</div>
 
-<form method="POST" action="{{ url_for('admin.yetki_matrisi') }}">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    
-    <div class="card shadow-lg mb-4 border-0">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle text-center">
-                <thead>
-                    <tr>
-                        <th class="text-start px-4 py-4" style="min-width: 280px;">Kullanıcı & Departman</th>
-                        {% for m in moduller %}
-                            {% set icon = 'bi-grid' %}
-                            {% set color = 'text-light' %}
-                            {% if m == 'personel' %}{% set icon = 'bi-people' %}{% set color = 'text-info' %}{% endif %}
-                            {% if m == 'makine' %}{% set icon = 'bi-gear-wide-connected' %}{% set color = 'text-primary' %}{% endif %}
-                            {% if m == 'stok' %}{% set icon = 'bi-box-seam' %}{% set color = 'text-success' %}{% endif %}
-                            {% if m == 'kalite' %}{% set icon = 'bi-patch-check' %}{% set color = 'text-warning' %}{% endif %}
-                            {% if m == 'enerji' %}{% set icon = 'bi-lightning-charge' %}{% set color = 'text-danger' %}{% endif %}
-                            {% if m == 'isg' %}{% set icon = 'bi-shield-exclamation' %}{% set color = 'text-danger' %}{% endif %}
-                        <th class="py-3 px-2">
-                            <div class="d-flex flex-column align-items-center">
-                                <div class="module-icon-container shadow-sm">
-                                    <i class="bi {{ icon }} {{ color }} fs-6"></i>
-                                </div>
-                                <span class="mb-3">{{ m|capitalize }}</span>
-                                <div class="form-check form-switch premium-switch m-0 p-0 d-flex justify-content-center">
-                                    <input class="form-check-input col-select m-0" type="checkbox" role="switch" data-col="{{ m }}" title="Tümünü Seç">
-                                </div>
-                            </div>
-                        </th>
-                        {% endfor %}
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for k in kullanicilar %}
-                    <tr>
-                        <td class="text-start px-4 py-3">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="fdys-avatar fs-6">
-                                    {{ k.ad_soyad[0]|upper }}
-                                </div>
-                                <div>
-                                    <div class="fw-bold fs-6 text-heading mb-1">{{ k.ad_soyad }}</div>
-                                    <div class="text-muted d-flex align-items-center" style="font-size: 0.82rem;">
-                                        <i class="bi bi-envelope me-1"></i>{{ k.kullanici_adi }}
-                                        <span class="badge bg-secondary ms-2 px-2 rounded-pill fw-normal" style="font-size: 0.75rem;">{{ k.rol|capitalize }}</span>
+    <form method="POST" action="{{ url_for('admin.yetki_matrisi') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        
+        <div class="matris-card mb-5">
+            <div class="table-responsive">
+                <table class="table table-borderless matris-table mb-0 align-middle text-center">
+                    <thead>
+                        <tr>
+                            <th class="text-start px-3" style="min-width: 200px;">Kullanıcı & Departman</th>
+                            {% for m in moduller %}
+                                {% set icon = 'bi-grid' %}
+                                {% set icon_color = '#adb5bd' %}
+                                {% set icon_bg = 'rgba(255,255,255,0.05)' %}
+                                
+                                {% if m == 'personel' %}{% set icon = 'bi-people' %}{% set icon_color = '#38bdf8' %}{% set icon_bg = 'rgba(56, 189, 248, 0.15)' %}{% endif %}
+                                {% if m == 'ik' %}{% set icon = 'bi-person-badge' %}{% set icon_color = '#818cf8' %}{% set icon_bg = 'rgba(129, 140, 248, 0.15)' %}{% endif %}
+                                {% if m == 'makine' %}{% set icon = 'bi-gear-wide-connected' %}{% set icon_color = '#c084fc' %}{% set icon_bg = 'rgba(192, 132, 252, 0.15)' %}{% endif %}
+                                {% if m == 'stok' %}{% set icon = 'bi-box-seam' %}{% set icon_color = '#34d399' %}{% set icon_bg = 'rgba(52, 211, 153, 0.15)' %}{% endif %}
+                                {% if m == 'kalite' %}{% set icon = 'bi-patch-check' %}{% set icon_color = '#fbbf24' %}{% set icon_bg = 'rgba(251, 191, 36, 0.15)' %}{% endif %}
+                                {% if m == 'enerji' %}{% set icon = 'bi-lightning-charge' %}{% set icon_color = '#f87171' %}{% set icon_bg = 'rgba(248, 113, 113, 0.15)' %}{% endif %}
+                                {% if m == 'isg' %}{% set icon = 'bi-shield-exclamation' %}{% set icon_color = '#ef4444' %}{% set icon_bg = 'rgba(239, 68, 68, 0.15)' %}{% endif %}
+                                {% if m == 'crm' %}{% set icon = 'bi-building' %}{% set icon_color = '#2dd4bf' %}{% set icon_bg = 'rgba(45, 212, 191, 0.15)' %}{% endif %}
+                                {% if m == 'sozlesme' %}{% set icon = 'bi-file-earmark-text' %}{% set icon_color = '#94a3b8' %}{% set icon_bg = 'rgba(148, 163, 184, 0.15)' %}{% endif %}
+                                {% if m == 'talep' %}{% set icon = 'bi-headset' %}{% set icon_color = '#facc15' %}{% set icon_bg = 'rgba(250, 204, 21, 0.15)' %}{% endif %}
+                                {% if m == 'satin_alma' %}{% set icon = 'bi-cart-check' %}{% set icon_color = '#4ade80' %}{% set icon_bg = 'rgba(74, 222, 128, 0.15)' %}{% endif %}
+                                {% if m == 'dys' %}{% set icon = 'bi-folder' %}{% set icon_color = '#60a5fa' %}{% set icon_bg = 'rgba(96, 165, 250, 0.15)' %}{% endif %}
+                                {% if m == 'duyuru' %}{% set icon = 'bi-megaphone' %}{% set icon_color = '#22d3ee' %}{% set icon_bg = 'rgba(34, 211, 238, 0.15)' %}{% endif %}
+                                
+                            <th class="px-1" style="min-width: 65px;">
+                                <div class="module-header">
+                                    <div class="module-icon-wrap" style="background: {{ icon_bg }}; color: {{ icon_color }};">
+                                        <i class="bi {{ icon }}"></i>
+                                    </div>
+                                    <span class="mt-1 mb-2" style="font-size: 0.65rem;">{{ m|replace('_', ' ')|capitalize }}</span>
+                                    <div class="form-check form-switch premium-switch">
+                                        <input class="form-check-input col-select" type="checkbox" role="switch" data-col="{{ m }}" title="Tümünü Seç">
                                     </div>
                                 </div>
-                            </div>
-                        </td>
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set colors = ['#4f46e5, #7c3aed', '#0ea5e9, #3b82f6', '#10b981, #059669', '#f59e0b, #d97706', '#ec4899, #e11d48', '#8b5cf6, #6d28d9'] %}
                         
-                        {% for m in moduller %}
-                        <td class="px-2">
-                            <div class="form-check form-switch premium-switch m-0 p-0 d-flex justify-content-center">
-                                <input class="form-check-input auth-checkbox m-0" type="checkbox" role="switch"
-                                       name="user_{{ k.id }}_{{ m }}" 
-                                       data-module="{{ m }}"
-                                       id="check_{{ k.id }}_{{ m }}"
-                                       {% if k.modul_erisim.get(m) %}checked{% endif %}>
-                            </div>
-                        </td>
+                        {% for k in kullanicilar %}
+                        {% set avatar_color = colors[loop.index0 % colors|length] %}
+                        <tr>
+                            <td class="text-start px-4 py-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="user-avatar" style="background: linear-gradient(135deg, {{ avatar_color }});">
+                                        {{ k.ad_soyad[0]|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="fw-bold fs-6 text-white mb-1" style="letter-spacing: 0.3px;">{{ k.ad_soyad }}</div>
+                                        <div class="d-flex align-items-center flex-wrap gap-2">
+                                            <span class="text-muted" style="font-size: 0.75rem;">
+                                                <i class="bi bi-envelope me-1 opacity-75"></i>{{ k.kullanici_adi }}
+                                            </span>
+                                            <span class="role-badge">{{ k.rol_adi }}</span>
+                                            {% if k.departman %}
+                                            <span class="dept-badge">{{ k.departman }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            
+                            {% for m in moduller %}
+                            <td class="px-2 py-3">
+                                <div class="form-check form-switch premium-switch">
+                                    <input class="form-check-input auth-checkbox" type="checkbox" role="switch"
+                                           name="user_{{ k.id }}_{{ m }}" 
+                                           data-module="{{ m }}"
+                                           id="check_{{ k.id }}_{{ m }}"
+                                           {% if k.modul_erisim_var_mi(m) %}checked{% endif %}>
+                                </div>
+                            </td>
+                            {% endfor %}
+                        </tr>
                         {% endfor %}
-                    </tr>
-                    {% endfor %}
-                    
-                    {% if not kullanicilar %}
-                    <tr>
-                        <td colspan="7" class="text-center py-5 text-muted">Yönetici harici kullanıcı bulunamadı.</td>
-                    </tr>
-                    {% endif %}
-                </tbody>
-            </table>
+                        
+                        {% if not kullanicilar %}
+                        <tr>
+                            <td colspan="15" class="text-center py-5">
+                                <i class="bi bi-people mb-3 d-block" style="font-size: 3rem; color: rgba(255,255,255,0.1);"></i>
+                                <span class="text-muted">Yönetici harici kullanıcı bulunamadı.</span>
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="p-4 bg-dark bg-opacity-25 border-top border-secondary border-opacity-25 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="text-muted" style="font-size: 0.85rem;">
+                    <i class="bi bi-info-circle me-1 text-primary"></i>
+                    Değişikliklerin aktif olması için kaydetmeniz gereklidir.
+                </div>
+                <button type="submit" class="btn btn-save-primary">
+                    <i class="bi bi-check2-circle me-2"></i>Matrisi Kaydet
+                </button>
+            </div>
         </div>
-        <div class="card-footer py-3 px-4 d-flex justify-content-between align-items-center">
-            <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Değişikliklerin aktif olması için kaydetmeniz gereklidir.</span>
-            <button type="submit" class="btn btn-primary px-5 fw-bold shadow-sm rounded-pill hover-lift">
-                <i class="bi bi-save me-2"></i>Matrisi Kaydet
-            </button>
-        </div>
-    </div>
-</form>
+    </form>
+</div>
 
 {% block extra_js %}
 <script>
@@ -143,55 +338,24 @@ document.addEventListener('DOMContentLoaded', function() {
             const isChecked = this.checked;
             document.querySelectorAll(`.auth-checkbox[data-module="${module}"]`).forEach(box => {
                 box.checked = isChecked;
+                // Add a small animation effect when toggled via column
+                box.style.transform = 'scale(1.1)';
+                setTimeout(() => box.style.transform = 'none', 150);
             });
         });
     });
     
-    // Rol Şablonları Uygulama
-    document.querySelectorAll('.template-btn').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const role = this.dataset.role;
-            const allCheckboxes = document.querySelectorAll('.auth-checkbox');
-            
-            if(role === 'temizle') {
-                allCheckboxes.forEach(cb => cb.checked = false);
-            } 
-            else if(role === 'kalite_muduru') {
-                allCheckboxes.forEach(cb => cb.checked = false);
-                document.querySelectorAll('.auth-checkbox[data-module="kalite"]').forEach(cb => cb.checked = true);
-                document.querySelectorAll('.auth-checkbox[data-module="isg"]').forEach(cb => cb.checked = true);
-            }
-            else if(role === 'vardiya_amiri') {
-                allCheckboxes.forEach(cb => cb.checked = false);
-                document.querySelectorAll('.auth-checkbox[data-module="personel"]').forEach(cb => cb.checked = true);
-                document.querySelectorAll('.auth-checkbox[data-module="makine"]').forEach(cb => cb.checked = true);
-            }
-            else if(role === 'bakim_sefi') {
-                allCheckboxes.forEach(cb => cb.checked = false);
-                document.querySelectorAll('.auth-checkbox[data-module="makine"]').forEach(cb => cb.checked = true);
-                document.querySelectorAll('.auth-checkbox[data-module="stok"]').forEach(cb => cb.checked = true);
-            }
-            
-            // Eğer bir şablon uygulandıysa sütun başlıklarındaki "Tümünü Seç" switchlerini güncelle (opsiyonel)
-            document.querySelectorAll('.col-select').forEach(colCb => {
-                const module = colCb.dataset.col;
-                const totalBoxes = document.querySelectorAll(`.auth-checkbox[data-module="${module}"]`);
-                const checkedBoxes = document.querySelectorAll(`.auth-checkbox[data-module="${module}"]:checked`);
-                colCb.checked = (totalBoxes.length > 0 && totalBoxes.length === checkedBoxes.length);
-            });
-        });
+    
+    // Initial check for column selectors based on loaded state
+    document.querySelectorAll('.col-select').forEach(colCb => {
+        const module = colCb.dataset.col;
+        const totalBoxes = document.querySelectorAll(`.auth-checkbox[data-module="${module}"]`);
+        const checkedBoxes = document.querySelectorAll(`.auth-checkbox[data-module="${module}"]:checked`);
+        if(totalBoxes.length > 0 && totalBoxes.length === checkedBoxes.length) {
+            colCb.checked = true;
+        }
     });
 });
 </script>
-<style>
-.hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-.hover-lift:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3) !important;
-}
-</style>
 {% endblock %}
 {% endblock %}

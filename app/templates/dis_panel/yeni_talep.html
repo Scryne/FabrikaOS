@@ -1,0 +1,66 @@
+{% extends "dis_panel/base_panel.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+        <div class="mb-4">
+            <a href="{{ url_for('dis_panel.taleplerim') }}" class="btn btn-sm btn-outline-secondary mb-3"><i class="bi bi-arrow-left me-1"></i>Taleplerime Dön</a>
+            <h4 class="mb-0 fw-bold">Yeni Talep Oluştur</h4>
+            <p class="text-muted mt-1">Yönetim ofisine iletmek istediğiniz arıza, şikayet veya isteğinizi form aracılığıyla bildirebilirsiniz.</p>
+        </div>
+        
+        <div class="card border-0 shadow-sm bg-card">
+            <div class="card-body p-4 p-md-5">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.baslik.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.baslik(class="form-control form-control-lg" + (" is-invalid" if form.baslik.errors else ""), placeholder="Sorununuzu veya talebinizi kısaca özetleyin (Örn: A Blok Ortak Alan Aydınlatma Arızası)") }}
+                            {% for error in form.baslik.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.kategori.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.kategori(class="form-select" + (" is-invalid" if form.kategori.errors else "")) }}
+                            {% for error in form.kategori.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">Konum Bilgisi</label>
+                            <input type="text" class="form-control" name="konum_bilgi" placeholder="Opsiyonel (Örn: B Blok, Zemin Kat)">
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control" + (" is-invalid" if form.aciklama.errors else ""), rows="6", placeholder="Talebinizin detaylarını, gördüğünüz sorunu veya iletmek istediğiniz mesajı buraya yazabilirsiniz...") }}
+                            {% for error in form.aciklama.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="alert alert-info border-0 shadow-sm mb-0 d-flex align-items-center">
+                                <i class="bi bi-info-circle-fill fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="alert-heading fw-bold mb-1">Bilgilendirme</h6>
+                                    <p class="mb-0 small">Talebiniz oluşturulduktan sonra ilgili departmana yönlendirilecek ve size süreç hakkında SMS ile bilgi verilecektir.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end mt-4 pt-3 border-top">
+                        <button type="submit" class="btn btn-primary btn-lg shadow-sm px-5"><i class="bi bi-send me-2"></i>Gönder</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Maaş Geçmişi — {{ calisan.ad_soyad }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+        <li class="breadcrumb-item active">Maaş Geçmişi</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-currency-exchange me-2 text-success"></i>Maaş Geçmişi</h2>
+        <p class="text-muted mb-0 mt-1">{{ calisan.ad_soyad }} — {{ calisan.sicil_no }}</p>
+    </div>
+    <a href="{{ url_for('ik.maas_ekle', calisan_id=calisan.id) }}" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Maaş Kaydı
+    </a>
+</div>
+
+<!-- Maaş Grafiği -->
+{% if maaslar|length > 1 %}
+<div class="card border-0 mb-4">
+    <div class="card-body">
+        <canvas id="maasChart" height="120"></canvas>
+    </div>
+</div>
+{% endif %}
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Dönem</th>
+                        <th>Brüt Maaş</th>
+                        <th>Net Maaş</th>
+                        <th>Ek Ödeme</th>
+                        <th>Artış</th>
+                        <th>Derece/Kademe</th>
+                        <th>Durum</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for m in maaslar %}
+                    <tr class="{% if m.guncel_mi %}table-active{% endif %}">
+                        <td class="ps-4 fw-medium">
+                            {{ m.donem_baslangic.strftime('%d.%m.%Y') }}
+                            {% if m.donem_bitis %} — {{ m.donem_bitis.strftime('%d.%m.%Y') }}{% endif %}
+                        </td>
+                        <td class="fw-bold">{{ '{:,.2f}'.format(m.brut_maas) }} ₺</td>
+                        <td>{{ '{:,.2f}'.format(m.net_maas) if m.net_maas else '—' }} ₺</td>
+                        <td>
+                            {% if m.ek_odeme and m.ek_odeme > 0 %}
+                                <span class="text-success">+{{ '{:,.2f}'.format(m.ek_odeme) }} ₺</span>
+                                {% if m.ek_odeme_aciklama %}<br><small class="text-muted">{{ m.ek_odeme_aciklama }}</small>{% endif %}
+                            {% else %}—{% endif %}
+                        </td>
+                        <td>
+                            {% if m.artis_orani %}
+                                <span class="{% if m.artis_orani > 0 %}text-success{% else %}text-danger{% endif %}">
+                                    {% if m.artis_orani > 0 %}+{% endif %}{{ m.artis_orani }}%
+                                </span>
+                            {% else %}—{% endif %}
+                        </td>
+                        <td class="text-muted">{{ m.derece or '—' }} / {{ m.kademe or '—' }}</td>
+                        <td>
+                            {% if m.guncel_mi %}<span class="badge bg-success">Güncel</span>
+                            {% else %}<span class="badge bg-secondary">Geçmiş</span>{% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-currency-exchange fs-1 d-block mb-2"></i><p>Maaş kaydı bulunamadı.</p>
+                    </td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{% if maaslar|length > 1 %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('maasChart').getContext('2d');
+    const maaslar = {{ maaslar|reverse|list|tojson(indent=None) if false else '[]' }};
+
+    // Maaş verilerini hazırla (reversed order — eski → yeni)
+    const labels = [{% for m in maaslar|reverse %}'{{ m.donem_baslangic.strftime("%m/%Y") }}'{% if not loop.last %},{% endif %}{% endfor %}];
+    const brutData = [{% for m in maaslar|reverse %}{{ m.brut_maas }}{% if not loop.last %},{% endif %}{% endfor %}];
+    const netData = [{% for m in maaslar|reverse %}{{ m.net_maas or 0 }}{% if not loop.last %},{% endif %}{% endfor %}];
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Brüt Maaş (₺)',
+                    data: brutData,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59,130,246,0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#3b82f6',
+                },
+                {
+                    label: 'Net Maaş (₺)',
+                    data: netData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16,185,129,0.1)',
+                    fill: true,
+                    tension: 0.3,
+                    pointRadius: 5,
+                    pointBackgroundColor: '#10b981',
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#a3a3a3' } } },
+            scales: {
+                x: { ticks: { color: '#737373' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#737373', callback: v => v.toLocaleString('tr-TR') + ' ₺' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+        }
+    });
+});
+</script>
+{% endif %}
+{% endblock %}

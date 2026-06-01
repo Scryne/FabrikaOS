@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% block title %}{{ duyuru.baslik }} — Duyuru{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('duyuru.index') }}">Duyurular</a></li>
+        <li class="breadcrumb-item active">{{ duyuru.baslik[:40] }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .duyuru-hero {
+        border-radius: 20px;
+        padding: 2rem 2.5rem;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+    .duyuru-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 5px;
+        border-radius: 20px 20px 0 0;
+    }
+    .duyuru-content {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 14px;
+        padding: 2rem;
+        line-height: 1.8;
+        color: #d1d5db;
+        font-size: 0.95rem;
+    }
+    .duyuru-content h1, .duyuru-content h2, .duyuru-content h3 { color: var(--text-heading); }
+    .duyuru-content a { color: #3b82f6; }
+    .duyuru-content ul, .duyuru-content ol { padding-left: 1.5rem; }
+
+    .stat-mini {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 0.9rem;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.03);
+        border: 1px solid rgba(255,255,255,0.05);
+        font-size: 0.82rem;
+    }
+    .okunma-list-item {
+        padding: 0.5rem 0;
+        border-bottom: 1px solid rgba(255,255,255,0.04);
+        font-size: 0.82rem;
+    }
+    .okunma-list-item:last-child { border-bottom: none; }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="duyuru-hero mb-4" style="background: linear-gradient(135deg, {{ duyuru.tur_rengi }}08 0%, {{ duyuru.tur_rengi }}04 100%);">
+    <div style="position:absolute;top:0;left:0;right:0;height:5px;background:{{ duyuru.tur_rengi }};border-radius:20px 20px 0 0;"></div>
+
+    <div class="d-flex flex-column flex-md-row gap-3 align-items-start">
+        <div style="width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:1.8rem;background:{{ duyuru.tur_rengi }}15;color:{{ duyuru.tur_rengi }};flex-shrink:0;">
+            <i class="{{ duyuru.tur_ikonu }}"></i>
+        </div>
+        <div class="flex-grow-1">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
+                {% if duyuru.sabitle %}
+                <i class="bi bi-pin-fill text-warning" style="font-size:1rem;" title="Sabitlenmiş"></i>
+                {% endif %}
+                <h2 class="mb-0 fw-bold">{{ duyuru.baslik }}</h2>
+            </div>
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                <span class="badge rounded-pill" style="background:{{ duyuru.tur_rengi }}15; color:{{ duyuru.tur_rengi }}; font-size:0.78rem;">
+                    <i class="{{ duyuru.tur_ikonu }} me-1" style="font-size:0.72rem;"></i>{{ duyuru.tur_adi }}
+                </span>
+                <span class="badge rounded-pill {{ duyuru.oncelik_bilgi.badge }}" style="font-size:0.72rem;">{{ duyuru.oncelik_adi }}</span>
+                <span class="badge rounded-pill bg-dark border border-secondary" style="font-size:0.72rem;">
+                    <i class="bi bi-people me-1"></i>{{ duyuru.hedef_kitle_adi }}
+                </span>
+                {% if duyuru.suresi_doldu_mu %}
+                <span class="badge rounded-pill bg-danger" style="font-size:0.72rem;"><i class="bi bi-clock me-1"></i>Süresi Dolmuş</span>
+                {% endif %}
+            </div>
+            <div class="d-flex flex-wrap gap-3" style="font-size:0.82rem; color:#6b7280;">
+                <span><i class="bi bi-person me-1"></i>{{ duyuru.yayinlayan.ad_soyad if duyuru.yayinlayan else '—' }}</span>
+                <span><i class="bi bi-calendar me-1"></i>{{ duyuru.yayin_tarihi.strftime('%d.%m.%Y %H:%M') }}</span>
+                {% if duyuru.bitis_tarihi %}
+                <span><i class="bi bi-clock me-1"></i>Bitiş: {{ duyuru.bitis_tarihi.strftime('%d.%m.%Y %H:%M') }}</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="d-flex flex-wrap gap-2 flex-shrink-0">
+            {% if duyuru.yayinlayan_id == current_user.id or current_user.yonetici_mi() %}
+            <a href="{{ url_for('duyuru.duzenle', id=duyuru.id) }}" class="btn btn-outline-warning btn-sm">
+                <i class="bi bi-pencil me-1"></i> Düzenle
+            </a>
+            {% if current_user.yonetici_mi() %}
+            <form method="post" action="{{ url_for('duyuru.sabitle', id=duyuru.id) }}" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-{{ 'danger' if duyuru.sabitle else 'warning' }} btn-sm" title="{{ 'Sabitlemeyi Kaldır' if duyuru.sabitle else 'Sabitle' }}">
+                    <i class="bi bi-pin{{ '-fill' if duyuru.sabitle else '' }} me-1"></i>
+                    {{ 'Çöz' if duyuru.sabitle else 'Sabitle' }}
+                </button>
+            </form>
+            {% endif %}
+            <form method="post" action="{{ url_for('duyuru.sil', id=duyuru.id) }}" class="d-inline" onsubmit="return confirm('Bu duyuruyu silmek istediğinizden emin misiniz?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-trash me-1"></i> Sil
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- İçerik -->
+    <div class="col-12 col-lg-8">
+        <div class="duyuru-content">
+            {{ duyuru.icerik | safe }}
+        </div>
+    </div>
+
+    <!-- Sağ Panel -->
+    <div class="col-12 col-lg-4">
+        <!-- İstatistikler -->
+        <div class="d-flex flex-column gap-2 mb-4">
+            <div class="stat-mini">
+                <i class="bi bi-eye text-primary"></i>
+                <span class="fw-bold">{{ duyuru.okunma_sayisi }}</span>
+                <span class="text-muted">okunma</span>
+            </div>
+            <div class="stat-mini">
+                <i class="bi bi-people text-success"></i>
+                <span class="fw-bold">{{ duyuru.hedef_kitle_adi }}</span>
+                {% if duyuru.hedef_deger %}
+                <span class="text-muted">— {{ duyuru.hedef_deger[:30] }}</span>
+                {% endif %}
+            </div>
+            <div class="stat-mini">
+                <i class="bi bi-pin{{ '-fill text-warning' if duyuru.sabitle else ' text-muted' }}"></i>
+                <span>{{ 'Sabitlenmiş' if duyuru.sabitle else 'Sabitlenmemiş' }}</span>
+            </div>
+        </div>
+
+        <!-- Okunma Detayları (Yöneticiler) -->
+        {% if current_user.yonetici_mi() and okunma_kayitlari %}
+        <div class="card border-0">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-eye text-info me-2"></i>Okunma Detayları
+                    <span class="badge bg-primary rounded-pill ms-1">{{ okunma_kayitlari|length }}</span>
+                </h6>
+            </div>
+            <div class="card-body" style="max-height: 350px; overflow-y: auto;">
+                {% for o in okunma_kayitlari %}
+                <div class="okunma-list-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <span class="fw-medium">{{ o.kullanici.ad_soyad }}</span>
+                        <span class="text-muted ms-1" style="font-size:0.72rem;">{{ o.kullanici.rol_adi }}</span>
+                    </div>
+                    <span class="text-muted" style="font-size:0.72rem;">{{ o.tarih.strftime('%d.%m.%Y %H:%M') }}</span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% elif current_user.yonetici_mi() %}
+        <div class="card border-0">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-eye text-info me-2"></i>Okunma Detayları</h6>
+            </div>
+            <div class="card-body text-center py-3">
+                <p class="text-muted mb-0 small">Henüz kimse okumadı.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

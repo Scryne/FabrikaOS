@@ -1,9 +1,6 @@
 """
-FabrikaOS — Vardiya Planı ve İzin Talebi Demo Verisi
-Senaryo: AnadoluTech Metal Sanayi — 3 vardiya sistemi, 15 çalışan
-
-- 2 haftalık vardiya planı (geçmiş 3 gün + gelecek 11 gün)
-- 8 izin talebi (yıllık, mazeret, sağlık, ücretsiz — çeşitli durumlar)
+FabrikaOS — Vardiya Planı ve İzin Talebi Demo Verisi (v2 — 20 Çalışan)
+3 haftalık vardiya planı, 12 izin talebi (tüm durum ve türler)
 """
 from datetime import date, time, timedelta, datetime, timezone
 from app.extensions import db
@@ -12,7 +9,7 @@ from app.models.kullanici import Kullanici
 
 
 def seed():
-    print('[8/12] Vardiyalar ve İzinler...')
+    print('[8/22] Vardiyalar ve İzinler...')
 
     calisanlar = Calisan.query.filter_by(aktif=True).all()
     bugun = date.today()
@@ -25,35 +22,27 @@ def seed():
     }
     turler = ['sabah', 'ogleden_sonra', 'gece']
 
-    # ── 2 HAFTALIK VARDİYA PLANI ──
-    # Geçmiş 3 gün + gelecek 11 gün
-    for gun in range(-3, 11):
+    # ── 3 HAFTALIK VARDİYA PLANI ──
+    # Geçmiş 7 gün + gelecek 14 gün
+    for gun in range(-7, 14):
         tarih = bugun + timedelta(days=gun)
-        # Pazar: üretim yok
-        if tarih.weekday() == 6:
+        if tarih.weekday() == 6:  # Pazar
             continue
         for i, calisan in enumerate(calisanlar):
-            # Cumartesi sadece sabah vardiyası
             if tarih.weekday() == 5:
                 tur = 'sabah'
             else:
-                # Rotasyonlu vardiya dağılımı
                 tur = turler[(i + gun) % 3]
 
             bas, bit = vardiya_map[tur]
 
-            mevcut = VardiyaPlani.query.filter_by(
-                calisan_id=calisan.id, tarih=tarih, vardiya_turu=tur
-            ).first()
-            if mevcut:
-                continue
-
-            # Bazı vardiyalara not ekle
             notlar = None
-            if gun == 0:
-                notlar = 'Bugünkü vardiya'
-            elif gun == -1 and i == 0:
-                notlar = 'Fazla mesai (2 saat)'
+            if gun == 0 and i == 0:
+                notlar = 'Bugünkü vardiya — fazla mesai planlandı (+2 saat)'
+            elif gun == 1 and i == 2:
+                notlar = 'Müşteri denetimi — özel dikkat'
+            elif gun == -1 and i == 3:
+                notlar = 'Fazla mesai tamamlandı (2 saat)'
 
             vp = VardiyaPlani(
                 calisan_id=calisan.id,
@@ -66,83 +55,68 @@ def seed():
             db.session.add(vp)
 
     db.session.flush()
-    print('  + 2 haftalık vardiya planı oluşturuldu')
+    print('  + 3 haftalık vardiya planı oluşturuldu (20 çalışan)')
 
-    # ── İZİN TALEPLERİ (8 adet) ──
+    # ── İZİN TALEPLERİ (12 adet — 4 bekliyor, 5 onaylandı, 3 reddedildi) ──
     izinler = [
-        # Bekleyen talepler
+        # Bekleyen talepler (4)
         {
-            'sicil': 'P001',
-            'bas': bugun + timedelta(days=15),
-            'bit': bugun + timedelta(days=21),
-            'tur': 'yillik',
-            'aciklama': 'Ailece tatil planı — Antalya',
-            'durum': 'bekliyor',
+            'sicil': 'P001', 'bas': bugun + timedelta(days=15), 'bit': bugun + timedelta(days=21),
+            'tur': 'yillik', 'aciklama': 'Ailece tatil planı — Antalya', 'durum': 'bekliyor',
         },
         {
-            'sicil': 'P005',
-            'bas': bugun + timedelta(days=8),
-            'bit': bugun + timedelta(days=8),
-            'tur': 'mazeret',
-            'aciklama': 'Kardeş nikah töreni',
-            'durum': 'bekliyor',
+            'sicil': 'P005', 'bas': bugun + timedelta(days=8), 'bit': bugun + timedelta(days=8),
+            'tur': 'mazeret', 'aciklama': 'Kardeş nikah töreni — İstanbul', 'durum': 'bekliyor',
         },
         {
-            'sicil': 'P012',
-            'bas': bugun + timedelta(days=12),
-            'bit': bugun + timedelta(days=14),
-            'tur': 'yillik',
-            'aciklama': 'Kişisel işler — Karabük seyahati',
-            'durum': 'bekliyor',
+            'sicil': 'P012', 'bas': bugun + timedelta(days=12), 'bit': bugun + timedelta(days=14),
+            'tur': 'yillik', 'aciklama': 'Kişisel işler — Karabük seyahati', 'durum': 'bekliyor',
+        },
+        {
+            'sicil': 'P016', 'bas': bugun + timedelta(days=5), 'bit': bugun + timedelta(days=5),
+            'tur': 'saglik', 'aciklama': 'Hastane randevusu — göz muayenesi', 'durum': 'bekliyor',
         },
 
-        # Onaylanmış talepler
+        # Onaylanmış talepler (5)
         {
-            'sicil': 'P002',
-            'bas': bugun - timedelta(days=5),
-            'bit': bugun - timedelta(days=3),
-            'tur': 'saglik',
-            'aciklama': 'Diş ameliyatı ve istirahat raporu (3 gün)',
-            'durum': 'onaylandi',
+            'sicil': 'P002', 'bas': bugun - timedelta(days=5), 'bit': bugun - timedelta(days=3),
+            'tur': 'saglik', 'aciklama': 'Diş ameliyatı ve istirahat raporu (3 gün)', 'durum': 'onaylandi',
         },
         {
-            'sicil': 'P003',
-            'bas': bugun - timedelta(days=22),
-            'bit': bugun - timedelta(days=16),
-            'tur': 'yillik',
-            'aciklama': 'Yıllık izin kullanımı — memleket ziyareti',
-            'durum': 'onaylandi',
+            'sicil': 'P003', 'bas': bugun - timedelta(days=22), 'bit': bugun - timedelta(days=16),
+            'tur': 'yillik', 'aciklama': 'Yıllık izin kullanımı — memleket ziyareti (Trabzon)', 'durum': 'onaylandi',
         },
         {
-            'sicil': 'P009',
-            'bas': bugun + timedelta(days=3),
-            'bit': bugun + timedelta(days=4),
-            'tur': 'mazeret',
-            'aciklama': 'Ev taşınma',
-            'durum': 'onaylandi',
+            'sicil': 'P009', 'bas': bugun + timedelta(days=3), 'bit': bugun + timedelta(days=4),
+            'tur': 'mazeret', 'aciklama': 'Ev taşınma — taşınma firması organizasyonu', 'durum': 'onaylandi',
+        },
+        {
+            'sicil': 'P011', 'bas': bugun - timedelta(days=10), 'bit': bugun - timedelta(days=9),
+            'tur': 'mazeret', 'aciklama': 'Eşinin hastane randevusuna refakat', 'durum': 'onaylandi',
+        },
+        {
+            'sicil': 'P017', 'bas': bugun - timedelta(days=3), 'bit': bugun - timedelta(days=1),
+            'tur': 'yillik', 'aciklama': 'Kısa tatil — Bolu Abant', 'durum': 'onaylandi',
         },
 
-        # Reddedilmiş talep
+        # Reddedilmiş talepler (3)
         {
-            'sicil': 'P006',
-            'bas': bugun + timedelta(days=30),
-            'bit': bugun + timedelta(days=44),
-            'tur': 'ucretsiz',
-            'aciklama': 'Kişisel nedenler — yurt dışı seyahat',
+            'sicil': 'P006', 'bas': bugun + timedelta(days=30), 'bit': bugun + timedelta(days=44),
+            'tur': 'ucretsiz', 'aciklama': 'Kişisel nedenler — yurt dışı seyahat',
             'durum': 'reddedildi',
-            'red_nedeni': 'Mayıs-Haziran dönemi üretim yoğunluğu nedeniyle '
-                          '15 günlük ücretsiz izin uygun bulunmamıştır. '
-                          'Daha kısa süreli yıllık izin değerlendirilebilir.',
+            'red_nedeni': 'Mayıs-Haziran dönemi üretim yoğunluğu nedeniyle 15 günlük ücretsiz izin uygun bulunmamıştır. Daha kısa süreli yıllık izin değerlendirilebilir.',
         },
-
-        # Ek onaylı talep
         {
-            'sicil': 'P011',
-            'bas': bugun - timedelta(days=10),
-            'bit': bugun - timedelta(days=9),
-            'tur': 'mazeret',
-            'aciklama': 'Eşinin hastane randevusuna refakat',
-            'durum': 'onaylandi',
+            'sicil': 'P007', 'bas': bugun + timedelta(days=10), 'bit': bugun + timedelta(days=17),
+            'tur': 'yillik', 'aciklama': 'Aile düğünü — İzmir',
+            'durum': 'reddedildi',
+            'red_nedeni': 'Müşteri denetimi dönemine denk gelmektedir. Bir hafta sonrası için yeniden başvurabilirsiniz.',
+        },
+        {
+            'sicil': 'P013', 'bas': bugun + timedelta(days=20), 'bit': bugun + timedelta(days=20),
+            'tur': 'mazeret', 'aciklama': 'Arkadaş düğünü',
+            'durum': 'reddedildi',
+            'red_nedeni': 'Aynı tarihte kalite kontrol departmanından başka izinli yoktur. Departmanda en az 1 kişi bulunmalıdır.',
         },
     ]
 
@@ -153,7 +127,6 @@ def seed():
         onaylayan_id = admin.id if admin and iz['durum'] != 'bekliyor' else None
         onay_tarihi = None
         if onaylayan_id:
-            # Onay tarihi başvurudan 1 gün sonra
             onay_tarihi = datetime.combine(
                 iz['bas'] - timedelta(days=2), time(10, 0)
             ).replace(tzinfo=timezone.utc)

@@ -1,0 +1,372 @@
+{% extends "base.html" %}
+{% block title %}Talep Detayı - {{ talep.talep_no }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .timeline {
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 2rem;
+    }
+    .timeline::before {
+        content: '';
+        position: absolute;
+        left: 0.5rem;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: var(--border-color);
+        border-radius: 2px;
+    }
+    .timeline-item {
+        position: relative;
+        margin-bottom: 1.5rem;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: -2rem;
+        top: 0.25rem;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background: var(--bg-body);
+        border: 2px solid var(--border-color);
+        z-index: 1;
+    }
+    .timeline-icon {
+        position: absolute;
+        left: -2.25rem;
+        top: 0;
+        width: 1.5rem;
+        height: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--bg-body);
+        z-index: 2;
+    }
+    .timeline-date {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+    }
+    .timeline-content {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 0.5rem;
+        padding: 1rem;
+    }
+    .talep-meta-item {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1rem;
+    }
+    .talep-meta-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+    }
+    .talep-meta-value {
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('talep.index') }}">Talep & İş Takip</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('talep.liste') }}">Talepler</a></li>
+        <li class="breadcrumb-item active">{{ talep.talep_no }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="mb-0 fw-bold d-flex align-items-center">
+            {{ talep.talep_no }} 
+            <span class="badge bg-{{ talep.durum_sinif }} ms-3 fs-6 rounded-pill"><i class="bi {{ talep.durum_icon }} me-1"></i>{{ talep.durum_adi }}</span>
+            <span class="badge bg-{{ talep.oncelik_sinif }} ms-2 fs-6 rounded-pill">{{ talep.oncelik_adi }}</span>
+        </h3>
+        <p class="text-muted mb-0 mt-1">{{ talep.baslik }}</p>
+    </div>
+    <div class="d-flex gap-2">
+        {% if talep.durum not in ('kapandi', 'tamamlandi', 'reddedildi') %}
+        <button type="button" class="btn btn-outline-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#yonlendirModal">
+            <i class="bi bi-arrow-right-circle me-1"></i>Yönlendir
+        </button>
+        <button type="button" class="btn btn-success shadow-sm" data-bs-toggle="modal" data-bs-target="#durumModal">
+            <i class="bi bi-pencil-square me-1"></i>Durum Güncelle
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sol Taraf: Detaylar -->
+    <div class="col-12 col-lg-4 order-2 order-lg-1">
+        <div class="card border-0 shadow-sm bg-card mb-4">
+            <div class="card-header bg-transparent border-bottom pt-4 pb-3">
+                <h6 class="mb-0 fw-bold">Talep Bilgileri</h6>
+            </div>
+            <div class="card-body">
+                <div class="talep-meta-item">
+                    <span class="talep-meta-label">Talep Eden</span>
+                    <span class="talep-meta-value">
+                        <i class="bi bi-person me-1 text-muted"></i>{{ talep.talep_eden_adi }}
+                        <span class="badge bg-secondary ms-1">{{ talep.talep_eden_tip_adi }}</span>
+                    </span>
+                </div>
+                
+                <div class="talep-meta-item">
+                    <span class="talep-meta-label">Kategori / Alt Kategori</span>
+                    <span class="talep-meta-value">{{ talep.kategori_adi }} {% if talep.alt_kategori %} / <span class="text-muted">{{ talep.alt_kategori }}</span>{% endif %}</span>
+                </div>
+                
+                <div class="talep-meta-item">
+                    <span class="talep-meta-label">Konum</span>
+                    <span class="talep-meta-value">
+                        {% if talep.konum_bilgi %}
+                        <i class="bi bi-geo-alt me-1 text-muted"></i>{{ talep.konum_bilgi }}
+                        {% else %}
+                        <span class="text-muted fst-italic">Belirtilmemiş</span>
+                        {% endif %}
+                    </span>
+                </div>
+
+                <div class="talep-meta-item">
+                    <span class="talep-meta-label">Tarih Bilgisi</span>
+                    <span class="talep-meta-value">Açılış: {{ talep.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</span>
+                    {% if talep.kapanma_tarihi %}
+                    <span class="talep-meta-value text-success mt-1">Kapanış: {{ talep.kapanma_tarihi.strftime('%d.%m.%Y %H:%M') }}</span>
+                    <span class="talep-meta-value text-muted mt-1 small">Çözüm Süresi: {{ talep.cozum_suresi_dk }} dk</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm bg-card mb-4">
+            <div class="card-header bg-transparent border-bottom pt-4 pb-3">
+                <h6 class="mb-0 fw-bold">Görev Atama</h6>
+            </div>
+            <div class="card-body">
+                <div class="talep-meta-item">
+                    <span class="talep-meta-label">Sorumlu Departman</span>
+                    <span class="talep-meta-value">
+                        {% if talep.atanan_departman %}
+                        <span class="badge bg-info text-dark"><i class="bi bi-building me-1"></i>{{ talep.departman_adi }}</span>
+                        {% else %}
+                        <span class="text-muted fst-italic">Atanmamış</span>
+                        {% endif %}
+                    </span>
+                </div>
+                
+                <div class="talep-meta-item">
+                    <span class="talep-meta-label">Sorumlu Kişi</span>
+                    <span class="talep-meta-value">
+                        {% if talep.atanan %}
+                        <div class="d-flex align-items-center mt-1">
+                            <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                                {{ talep.atanan.ad_soyad[:2].upper() }}
+                            </div>
+                            <span>{{ talep.atanan.ad_soyad }}</span>
+                        </div>
+                        {% else %}
+                        <span class="text-muted fst-italic">Kişi atanmamış</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        {% if talep.memnuniyet_puani %}
+        <div class="card border-0 shadow-sm bg-card mb-4 border-primary" style="border-left: 4px solid var(--bs-primary) !important;">
+            <div class="card-body">
+                <h6 class="fw-bold mb-2">Müşteri Değerlendirmesi</h6>
+                <div class="text-warning fs-5 mb-2">
+                    {% for i in range(5) %}
+                        {% if i < talep.memnuniyet_puani %}
+                        <i class="bi bi-star-fill"></i>
+                        {% else %}
+                        <i class="bi bi-star"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <div class="fw-bold fs-3 text-primary">{{ talep.memnuniyet_puani }} <span class="fs-6 text-muted fw-normal">/ 5</span></div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Sağ Taraf: İçerik & Timeline -->
+    <div class="col-12 col-lg-8 order-1 order-lg-2">
+        <div class="card border-0 shadow-sm bg-card mb-4">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3 border-bottom pb-2">Talep Açıklaması</h5>
+                <div class="mb-0 text-wrap" style="white-space: pre-wrap;">{{ talep.aciklama or '<em class="text-muted">Açıklama bulunmuyor.</em>'|safe }}</div>
+            </div>
+        </div>
+        
+        {% if talep.cozum_notu %}
+        <div class="card border-0 shadow-sm bg-card mb-4 border-success" style="border-left: 4px solid var(--bs-success) !important;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3 text-success d-flex align-items-center"><i class="bi bi-check-circle-fill me-2"></i>Çözüm Notu</h5>
+                <div class="mb-0 text-wrap" style="white-space: pre-wrap;">{{ talep.cozum_notu }}</div>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Yorum Ekleme Formu -->
+        <div class="card border-0 shadow-sm bg-card mb-4">
+            <div class="card-body p-4">
+                <form action="{{ url_for('talep.yorum_ekle') }}" method="POST">
+                    {{ yorum_form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label class="form-label fw-medium"><i class="bi bi-chat-text me-1"></i>Yorum Ekle / Not Düş</label>
+                        {{ yorum_form.yorum(class="form-control bg-light", rows="3", placeholder="İşlem notunuz veya yorumunuz...") }}
+                    </div>
+                    <div class="text-end">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-send me-1"></i>Gönder</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Zaman Çizelgesi -->
+        <div class="mt-5">
+            <h5 class="fw-bold mb-4 d-flex align-items-center"><i class="bi bi-clock-history me-2 text-muted"></i>İşlem Geçmişi</h5>
+            
+            <div class="timeline">
+                {% for islem in talep.gecmis %}
+                <div class="timeline-item">
+                    <div class="timeline-icon">
+                        <i class="bi {{ islem.islem_icon }} fs-5 bg-card" style="border-radius: 50%;"></i>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="badge bg-light text-dark border">{{ islem.islem_turu_adi }}</span>
+                            <span class="timeline-date">{{ islem.tarih.strftime('%d.%m.%Y %H:%M') }}</span>
+                        </div>
+                        <div class="mb-2">{{ islem.aciklama }}</div>
+                        
+                        <div class="d-flex justify-content-between align-items-center mt-3 pt-2 border-top">
+                            <small class="text-muted"><i class="bi bi-person me-1"></i>{{ islem.yapan_adi or 'Sistem' }}</small>
+                            {% if islem.eski_durum and islem.yeni_durum %}
+                            <small class="text-muted">
+                                <span class="badge bg-secondary">{{ talep.DURUMLAR.get(islem.eski_durum, islem.eski_durum) }}</span>
+                                <i class="bi bi-arrow-right mx-1"></i>
+                                <span class="badge bg-{{ talep.durum_sinif }}">{{ talep.DURUMLAR.get(islem.yeni_durum, islem.yeni_durum) }}</span>
+                            </small>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block modals %}
+<!-- Modallar -->
+{% if talep.durum not in ('kapandi', 'tamamlandi', 'reddedildi') %}
+<!-- Yönlendirme Modalı -->
+<div class="modal fade" id="yonlendirModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-arrow-right-circle text-primary me-2"></i>Talebi Yönlendir</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('talep.yonlendir') }}" method="POST">
+                <div class="modal-body">
+                    {{ yonlendirme_form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ yonlendirme_form.atanan_departman.label.text }}</label>
+                        {{ yonlendirme_form.atanan_departman(class="form-select") }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ yonlendirme_form.atanan_id.label.text }} (Opsiyonel)</label>
+                        {{ yonlendirme_form.atanan_id(class="form-select") }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ yonlendirme_form.aciklama.label.text }}</label>
+                        {{ yonlendirme_form.aciklama(class="form-control", rows="2") }}
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-primary">Yönlendir</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Durum Güncelleme Modalı -->
+<div class="modal fade" id="durumModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold"><i class="bi bi-pencil-square text-success me-2"></i>Durum Güncelle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('talep.durum_guncelle') }}" method="POST">
+                <div class="modal-body">
+                    {{ durum_form.hidden_tag() }}
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ durum_form.yeni_durum.label.text }}</label>
+                        {{ durum_form.yeni_durum(class="form-select", id="yeniDurumSelect") }}
+                    </div>
+                    <div class="mb-3" id="cozumNotuAlan" style="display: none;">
+                        <label class="form-label fw-medium">{{ durum_form.cozum_notu.label.text }}</label>
+                        {{ durum_form.cozum_notu(class="form-control border-success", rows="3", placeholder="Kullanıcıya gösterilecek çözüm mesajı...") }}
+                        <div class="form-text text-success"><i class="bi bi-info-circle me-1"></i>Bu not talep edene gösterilecektir.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium">{{ durum_form.aciklama.label.text }} (Opsiyonel)</label>
+                        {{ durum_form.aciklama(class="form-control", rows="2", placeholder="İç notlarınız (kullanıcı görmez)") }}
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-success">Güncelle</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const durumSelect = document.getElementById('yeniDurumSelect');
+    const cozumAlan = document.getElementById('cozumNotuAlan');
+    
+    if(durumSelect && cozumAlan) {
+        durumSelect.addEventListener('change', function() {
+            if(this.value === 'tamamlandi' || this.value === 'kapandi' || this.value === 'reddedildi') {
+                cozumAlan.style.display = 'block';
+            } else {
+                cozumAlan.style.display = 'none';
+            }
+        });
+        
+        // Initial check
+        if(durumSelect.value === 'tamamlandi' || durumSelect.value === 'kapandi' || durumSelect.value === 'reddedildi') {
+            cozumAlan.style.display = 'block';
+        }
+    }
+});
+</script>
+{% endblock %}

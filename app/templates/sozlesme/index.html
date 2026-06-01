@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+{% block title %}Sözleşme & Kontrat Merkezi{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stat-card {
+        border-radius: 1rem;
+        border: 1px solid var(--border-color);
+        background: var(--bg-card);
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+    .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+    }
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 100%; height: 4px;
+        background: var(--stat-color, var(--bs-primary));
+        opacity: 0.8;
+    }
+    .stat-icon {
+        width: 48px; height: 48px;
+        border-radius: 12px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.5rem;
+    }
+    .stat-value {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2rem; font-weight: 700;
+        color: var(--text-heading);
+    }
+</style>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Sözleşme & Kontrat</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text text-secondary me-2"></i>Sözleşme Merkezi</h2>
+        <p class="text-muted mb-0 mt-1">Sözleşme, kira kontratı ve poliçe yönetimi</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('sozlesme.hatirlatmalar') }}" class="btn btn-warning shadow-sm position-relative">
+            <i class="bi bi-bell-fill me-1"></i>Hatırlatmalar
+            {% if stats.suresi_yaklasan + stats.police_yaklasan > 0 %}
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light">
+                {{ stats.suresi_yaklasan + stats.police_yaklasan }}
+            </span>
+            {% endif %}
+        </a>
+        <div class="dropdown">
+            <button class="btn btn-primary dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-plus-lg me-1"></i>Yeni Ekle
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow">
+                <li><a class="dropdown-item py-2" href="{{ url_for('sozlesme.sozlesme_ekle', tur='kira') }}"><i class="bi bi-house-door text-success me-2"></i>Kira Kontratı</a></li>
+                <li><a class="dropdown-item py-2" href="{{ url_for('sozlesme.sozlesme_ekle', tur='hizmet') }}"><i class="bi bi-briefcase text-primary me-2"></i>Hizmet Sözleşmesi</a></li>
+                <li><a class="dropdown-item py-2" href="{{ url_for('sozlesme.police_ekle') }}"><i class="bi bi-shield-check text-info me-2"></i>Sigorta Poliçesi</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <a href="{{ url_for('sozlesme.sozlesme_listesi') }}" class="text-decoration-none">
+            <div class="stat-card" style="--stat-color: #3b82f6;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">{{ stats.aktif_sozlesme }}</div>
+                        <div class="text-muted small text-uppercase fw-bold">Aktif Sözleşme</div>
+                    </div>
+                    <div class="stat-icon text-primary" style="background: rgba(59,130,246,0.15);">
+                        <i class="bi bi-file-earmark-check"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-muted small">
+                    Toplam <span class="fw-bold">{{ stats.toplam_sozlesme }}</span> kayıttan
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <a href="{{ url_for('sozlesme.kira_listesi') }}" class="text-decoration-none">
+            <div class="stat-card" style="--stat-color: #10b981;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">{{ stats.toplam_kira }}</div>
+                        <div class="text-muted small text-uppercase fw-bold">Aktif Kira</div>
+                    </div>
+                    <div class="stat-icon text-success" style="background: rgba(16,185,129,0.15);">
+                        <i class="bi bi-house-check"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-muted small">
+                    Aylık Tutar: <span class="fw-bold text-success">₺{{ "{:,.0f}".format(stats.aylik_toplam) }}</span>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <a href="{{ url_for('sozlesme.police_listesi') }}" class="text-decoration-none">
+            <div class="stat-card" style="--stat-color: #8b5cf6;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">{{ stats.aktif_police }}</div>
+                        <div class="text-muted small text-uppercase fw-bold">Aktif Poliçe</div>
+                    </div>
+                    <div class="stat-icon" style="color: #8b5cf6; background: rgba(139,92,246,0.15);">
+                        <i class="bi bi-shield-check"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-muted small">
+                    Toplam <span class="fw-bold">{{ stats.toplam_police }}</span> poliçe
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <a href="{{ url_for('sozlesme.hatirlatmalar') }}" class="text-decoration-none">
+            <div class="stat-card" style="--stat-color: #f59e0b;">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="stat-value">{{ stats.suresi_yaklasan + stats.police_yaklasan }}</div>
+                        <div class="text-muted small text-uppercase fw-bold">Yaklaşan</div>
+                    </div>
+                    <div class="stat-icon text-warning" style="background: rgba(245,158,11,0.15);">
+                        <i class="bi bi-alarm"></i>
+                    </div>
+                </div>
+                <div class="mt-3 text-muted small">
+                    <span class="text-danger fw-bold"><i class="bi bi-exclamation-circle me-1"></i>{{ stats.suresi_dolmus }}</span> süresi dolan aktif kayıt
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-lg-8">
+        <div class="card h-100 border-0">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-bar-chart text-primary me-2"></i>Sözleşme Dağılımları</h5>
+            </div>
+            <div class="card-body">
+                <div class="row h-100 align-items-center">
+                    <div class="col-12 col-md-6 mb-4 mb-md-0">
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="turChart"></canvas>
+                        </div>
+                        <div class="text-center mt-2 small text-muted">Türlere Göre Dağılım</div>
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <div style="height: 250px; position: relative;">
+                            <canvas id="durumChart"></canvas>
+                        </div>
+                        <div class="text-center mt-2 small text-muted">Duruma Göre Dağılım</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-lg-4">
+        <div class="card h-100 border-0">
+            <div class="card-header bg-transparent">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-clock-history text-secondary me-2"></i>Son Eklenenler</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for s in stats.son_sozlesmeler %}
+                    <a href="{{ url_for('sozlesme.sozlesme_detay', id=s.id) }}" class="list-group-item list-group-item-action p-3 border-color">
+                        <div class="d-flex w-100 justify-content-between mb-1">
+                            <h6 class="mb-0 fw-bold text-truncate" style="max-width: 70%;">{{ s.baslik }}</h6>
+                            <small class="text-muted">{{ s.olusturma_tarihi.strftime('%d.%m.%Y') }}</small>
+                        </div>
+                        <div class="d-flex align-items-center mt-2 gap-2">
+                            <span class="badge bg-light text-dark border">{{ s.tur_adi }}</span>
+                            <span class="badge bg-{{ s.durum_renk }}">{{ s.durum_adi }}</span>
+                            <small class="text-muted ms-auto"><i class="bi bi-person me-1"></i>{{ s.taraf_bilgi[:15] }}</small>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">Kayıt bulunmuyor.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const isDark = document.documentElement.getAttribute('data-bs-theme') !== 'light';
+    const textColor = isDark ? '#e5e5e5' : '#4b5563';
+    
+    Chart.defaults.color = textColor;
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // Tür Dağılımı (Doughnut)
+    const turVerileri = {{ stats.tur_dagilimi | tojson }};
+    if (turVerileri.length > 0) {
+        new Chart(document.getElementById('turChart'), {
+            type: 'doughnut',
+            data: {
+                labels: turVerileri.map(i => {
+                    const dict = {'kira': 'Kira', 'hizmet': 'Hizmet', 'bakim': 'Bakım', 'sigorta': 'Sigorta', 'diger': 'Diğer'};
+                    return dict[i[0]] || i[0];
+                }),
+                datasets: [{
+                    data: turVerileri.map(i => i[1]),
+                    backgroundColor: ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#6b7280'],
+                    borderWidth: 2,
+                    borderColor: isDark ? '#171717' : '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }, cutout: '70%'
+            }
+        });
+    }
+
+    // Durum Dağılımı (Pie)
+    const durumVerileri = {{ stats.durum_dagilimi | tojson }};
+    if (durumVerileri.length > 0) {
+        new Chart(document.getElementById('durumChart'), {
+            type: 'pie',
+            data: {
+                labels: durumVerileri.map(i => {
+                    const dict = {'aktif': 'Aktif', 'sona_erdi': 'Sona Erdi', 'iptal': 'İptal', 'askida': 'Askıda'};
+                    return dict[i[0]] || i[0];
+                }),
+                datasets: [{
+                    data: durumVerileri.map(i => i[1]),
+                    backgroundColor: ['#10b981', '#6b7280', '#ef4444', '#f59e0b'],
+                    borderWidth: 2,
+                    borderColor: isDark ? '#171717' : '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

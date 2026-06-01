@@ -1,365 +1,231 @@
 """
-FabrikaOS — İSG (İş Sağlığı ve Güvenliği) Demo Verisi
-Senaryo: AnadoluTech Metal Sanayi
-
-- 5 kaza/ramak kala olayı (çeşitli şiddet seviyeleri)
-- 8 risk değerlendirme (5×5 matris, çeşitli bölümler)
-- 12 İSG eğitimi (tüm kategoriler, geçerli + süresi dolmuş)
+FabrikaOS — İSG Demo Verisi (v2 — Genişletilmiş)
+Kaza, Risk, Eğitim ve Yeni Eklenen Sağlık Muayenesi ile İSG Dokümanları
 """
+import random
 from datetime import date, datetime, timedelta, timezone
 from app.extensions import db
-from app.models.isg import IsKazasi, RiskDegerlendirme, IsgEgitimi
+from app.models.isg import IsKazasi, RiskDegerlendirme, IsgEgitimi, SaglikMuayenesi, IsgDokumani
 from app.models.personel import Calisan
 from app.models.kullanici import Kullanici
 
 
 def seed():
-    print('[11/12] İSG kayıtları...')
+    print('[12/22] İş Sağlığı ve Güvenliği (İSG)...')
+    random.seed(3456)
 
-    calisanlar = {c.sicil_no: c.id for c in Calisan.query.all()}
-    admin = Kullanici.query.filter_by(kullanici_adi='admin').first()
-    admin_id = admin.id if admin else 1
+    bugun = date.today()
+    calisanlar = Calisan.query.filter_by(aktif=True).all()
+    isg_uzmani = Kullanici.query.filter_by(kullanici_adi='selin.aktas').first() or Kullanici.query.first()
 
-    # ══════════════════════════════════════════════════════════════
-    # İŞ KAZALARI & RAMAK KALA (5 olay)
-    # ══════════════════════════════════════════════════════════════
+    # ── İŞ KAZALARI VE RAMAK KALA (7) ──
     kazalar = [
-        {
-            'olay_no': 'KZ-2026-001',
-            'calisan': 'P005',
-            'vardiya': 'sabah',
-            'yer': 'C Hattı — Pres Bölgesi',
-            'yaralanma': 'Ezilme yaralanması',
-            'uzuv': 'Sağ el 3. ve 4. parmak',
-            'siddet': 'orta',
-            'sekil': 'sikisma',
-            'gun_once': 48,
-            'kok': 'Kalıp değişimi sırasında güvenlik bariyeri devre dışı bırakılmış. '
-                   'Operatör kalıp pozisyonunu elle ayarlarken pres otomatik kapanma yapmış.',
-            'aciklama': 'Pres makinesi PRS-001 kalıp değişimi sırasında çift el kumanda '
-                        'bypass edilmiş durumda. Operatör kalıp hizalama yaparken pres '
-                        'ani kapanma yaptı. 2. derece ezilme, kırık yok. '
-                        'Acil servise sevk edildi, 5 gün istirahat.',
-            'duzeltici': '1) Çift el kumanda bypass önleme kilidi takıldı.\n'
-                         '2) Kalıp değişimi prosedürü güncellendi (Lockout/Tagout zorunlu).\n'
-                         '3) Tüm pres operatörlerine güvenlik eğitimi verildi.',
-            'kayip_gun': 5,
-            'ramak': False,
-            'durum': 'kapandi',
-        },
-        {
-            'olay_no': 'KZ-2026-002',
-            'calisan': 'P009',
-            'vardiya': 'ogleden_sonra',
-            'yer': 'A Hattı — CNC Talaşlı İmalat',
-            'yaralanma': 'Kesik',
-            'uzuv': 'Sol el bileği iç kısım',
-            'siddet': 'hafif',
-            'sekil': 'kesilme',
-            'gun_once': 22,
-            'kok': 'CNC tezgah talaş temizliği sırasında kesimci eldiven giyilmemiş. '
-                   'Spiral şekilli çelik talaş elden kayarak bileği kesmiş.',
-            'aciklama': 'CNC-001 tezgahında talaş temizliği yaparken çelik talaş sol '
-                        'bilekte 3cm kesik oluşturdu. İlk yardım ünitesinde müdahale '
-                        'edildi. Dikilme gerekmedi. 1 gün istirahat.',
-            'duzeltici': '1) Talaş temizlik prosedürü güncellendi — eldiven zorunlu.\n'
-                         '2) KKD denetim sıklığı haftada 2\'ye çıkarıldı.\n'
-                         '3) Talaş temizliği için özel kanca alet temin edildi.',
-            'kayip_gun': 1,
-            'ramak': False,
-            'durum': 'kapandi',
-        },
-        {
-            'olay_no': 'RK-2026-001',
-            'calisan': 'P008',
-            'vardiya': 'sabah',
-            'yer': 'Depo Alanı — Hammadde Bölümü',
-            'yaralanma': 'Yok (Ramak Kala)',
-            'uzuv': None,
-            'siddet': 'hafif',
-            'sekil': 'dusme',
-            'gun_once': 12,
-            'kok': 'Depo zemin temizliği sonrası ıslak zemin uyarı levhası konmamış. '
-                   'Forklift geçişinden sıçrayan su ile zemin kayganlaşmış.',
-            'aciklama': 'Depo sorumlusu ıslak zeminde kaydı, düşme olmadı ancak '
-                        'dengesini son anda korudu. Yaralanma yok. Uyarı levhası '
-                        'eksikliği tespit edildi.',
-            'duzeltici': '1) Depo alanına 4 adet ıslak zemin uyarı standı temin edildi.\n'
-                         '2) Anti-slip zemin kaplaması (3M Safety Walk) sipariş edildi.\n'
-                         '3) Temizlik sonrası kontrol listesi oluşturuldu.',
-            'kayip_gun': 0,
-            'ramak': True,
-            'durum': 'kapandi',
-        },
-        {
-            'olay_no': 'RK-2026-002',
-            'calisan': 'P007',
-            'vardiya': 'gece',
-            'yer': 'B Hattı — Sac İşleme Alanı',
-            'yaralanma': 'Yok (Ramak Kala)',
-            'uzuv': None,
-            'siddet': 'hafif',
-            'sekil': 'dusme',
-            'gun_once': 6,
-            'kok': 'Forklift geçiş yolu ile yaya geçiş yolu ayrımı yetersiz. '
-                   'Gece vardiyasında aydınlatma düşük.',
-            'aciklama': 'Vardiya amiri B hattından depoya yürürken forklift ile '
-                        'çarpışmaya ramak kaldı. Forklift operatörü son anda fren yaptı. '
-                        'Mesafe yaklaşık 1 metre. Yaralanma yok.',
-            'duzeltici': '1) Forklift güzergahı sarı bant ile yeniden çizildi.\n'
-                         '2) Kavşak noktalarına konveks ayna yerleştirildi.\n'
-                         '3) Gece vardiyası aydınlatması güçlendirildi (ek LED armatür).',
-            'kayip_gun': 0,
-            'ramak': True,
-            'durum': 'arastiriliyor',
-        },
-        {
-            'olay_no': 'RK-2026-003',
-            'calisan': 'P011',
-            'vardiya': 'sabah',
-            'yer': 'D Hattı — Kaynak Bölgesi',
-            'yaralanma': 'Yok (Ramak Kala)',
-            'uzuv': None,
-            'siddet': 'hafif',
-            'sekil': 'dusme',
-            'gun_once': 3,
-            'kok': 'Kaynak kıvılcımı ile zemine düşen yağ lekesi tutuştu. '
-                   'Küçük alev hemen söndürüldü.',
-            'aciklama': 'Kaynak operasyonu sırasında kıvılcım zemine sıçradı. '
-                        'Zemindeki hidrolik yağ lekesi kısa süreli alev aldı. '
-                        'Yakındaki yangın söndürücü ile müdahale edildi. Hasar yok.',
-            'duzeltici': '1) Kaynak öncesi alan temizlik kontrolü zorunlu hale getirildi.\n'
-                         '2) Kaynak perdeleri yenilendi (alev geciktirici malzeme).\n'
-                         '3) Yağ dökülme kiti (spill kit) kaynak alanına konuldu.',
-            'kayip_gun': 0,
-            'ramak': True,
-            'durum': 'arastiriliyor',
-        },
+        # İş Kazaları (3)
+        {'yaralanma_tipi': 'Göze cisim batması', 'siddet': 'orta',
+         'aciklama': 'CNC-001 tezgahında parça bağlarken koruyucu gözlük kullanılmaması nedeniyle göze talaş kaçtı.',
+         'kok_neden': 'KKD kullanılmaması', 'duzeltici_faaliyet': 'Gözlük kullanımı denetimleri artırıldı, uyarı levhaları yenilendi.',
+         'kayip_gun': 2, 'gun_once': 45, 'durum': 'kapandi', 'ramak_kala': False, 'uzuv': 'Göz', 'kaza_sekli': 'Cisim sıçraması'},
+        {'yaralanma_tipi': 'Ezilme', 'siddet': 'hafif',
+         'aciklama': 'Transpalet ile malzeme taşınırken tekerlek çalışanın ayağına çarptı.',
+         'kok_neden': 'Dikkatsizlik, yaya yolu ihlali', 'duzeltici_faaliyet': 'Yaya ve araç yolları sarı çizgi ile belirginleştirildi.',
+         'kayip_gun': 0, 'gun_once': 12, 'durum': 'acik', 'ramak_kala': False, 'uzuv': 'Ayak', 'kaza_sekli': 'Çarpma'},
+        {'yaralanma_tipi': 'Kesik', 'siddet': 'orta',
+         'aciklama': 'Abkant tezgahında çalışırken eldiven yırtılması sonucu sağ elde kesik.',
+         'kok_neden': 'Uygun eldiven seçilmemesi', 'duzeltici_faaliyet': 'Daha dayanıklı kevlar eldiven tedarik edildi.',
+         'kayip_gun': 3, 'gun_once': 85, 'durum': 'kapandi', 'ramak_kala': False, 'uzuv': 'El', 'kaza_sekli': 'Kesici cisimle temas'},
+
+        # Ramak Kala (4)
+        {'yaralanma_tipi': 'Yok', 'siddet': 'hafif',
+         'aciklama': 'Tavan vinci ile kalıp taşınırken kanca kilit mekanizması tam oturmadı, yük sallandı ancak düşmedi.',
+         'kok_neden': 'Kanca emniyet mandalı arızası', 'duzeltici_faaliyet': 'Tüm vinç kancaları kontrol edildi, arızalı olanlar değiştirildi.',
+         'kayip_gun': 0, 'gun_once': 25, 'durum': 'kapandi', 'ramak_kala': True, 'uzuv': 'Yok', 'kaza_sekli': 'Yük düşme tehlikesi'},
+        {'yaralanma_tipi': 'Yok', 'siddet': 'hafif',
+         'aciklama': 'Hidrolik pres önünde dökülen yağ nedeniyle çalışan kaydı, düşmeden tutundu.',
+         'kok_neden': 'Yağ sızıntısına anında müdahale edilmemesi', 'duzeltici_faaliyet': 'Döküntü kiti kullanımı eğitimi tazelendi.',
+         'kayip_gun': 0, 'gun_once': 5, 'durum': 'acik', 'ramak_kala': True, 'uzuv': 'Yok', 'kaza_sekli': 'Kayma'},
+        {'yaralanma_tipi': 'Yok', 'siddet': 'hafif',
+         'aciklama': 'Bakım sırasında pano kapağı açılırken kablo temassızlığı kıvılcım çıkardı.',
+         'kok_neden': 'Kablo izolasyon hatası', 'duzeltici_faaliyet': 'Panodaki tüm kablolar spiral boru ile izole edildi.',
+         'kayip_gun': 0, 'gun_once': 18, 'durum': 'arastiriliyor', 'ramak_kala': True, 'uzuv': 'Yok', 'kaza_sekli': 'Elektrik arkı'},
+        {'yaralanma_tipi': 'Yok', 'siddet': 'hafif',
+         'aciklama': 'Kör noktada forklift ile personel karşılaştı, ani fren ile çarpışma önlendi.',
+         'kok_neden': 'Kör noktada ayna olmaması', 'duzeltici_faaliyet': 'Kesişim noktalarına tümsek ayna monte edildi.',
+         'kayip_gun': 0, 'gun_once': 60, 'durum': 'kapandi', 'ramak_kala': True, 'uzuv': 'Yok', 'kaza_sekli': 'Çarpışma tehlikesi'},
     ]
 
-    for k in kazalar:
-        tarih = datetime.now(timezone.utc) - timedelta(days=k['gun_once'])
-        kaza = IsKazasi(
-            olay_no=k['olay_no'],
-            calisan_id=calisanlar.get(k['calisan'], 1),
-            tarih=tarih,
-            vardiya=k['vardiya'],
-            yer=k['yer'],
-            yaralanma_tipi=k['yaralanma'],
-            uzuv=k['uzuv'],
+    for i, k in enumerate(kazalar):
+        calisan = random.choice(calisanlar)
+        kaz = IsKazasi(
+            olay_no=f"ISG-{bugun.year}-{i+1000}",
+            calisan_id=calisan.id,
+            bildiren_id=isg_uzmani.id,
+            tarih=datetime.now(timezone.utc) - timedelta(days=k['gun_once']),
+            yer=random.choice(['Üretim Alanı', 'Depo', 'Bakım Atölyesi', 'Dış Alan']),
+            yaralanma_tipi=k['yaralanma_tipi'],
             siddet=k['siddet'],
-            kaza_sekli=k['sekil'],
-            kok_neden=k['kok'],
+            uzuv=k['uzuv'],
+            kaza_sekli=k['kaza_sekli'],
+            kok_neden=k['kok_neden'],
             aciklama=k['aciklama'],
-            duzeltici_faaliyet=k['duzeltici'],
+            duzeltici_faaliyet=k['duzeltici_faaliyet'],
             kayip_gun=k['kayip_gun'],
-            ramak_kala=k['ramak'],
             durum=k['durum'],
-            bildiren_id=admin_id,
+            ramak_kala=k['ramak_kala'],
         )
-        db.session.add(kaza)
-        tip = 'Ramak Kala' if k['ramak'] else 'İş Kazası'
-        print(f'  + {tip}: {k["olay_no"]} — {k["siddet"]}')
+        db.session.add(kaz)
 
     db.session.flush()
 
-    # ══════════════════════════════════════════════════════════════
-    # RİSK DEĞERLENDİRMELERİ (5×5 matris — 8 adet)
-    # ══════════════════════════════════════════════════════════════
+    # ── RİSK DEĞERLENDİRMESİ (12) ──
+    print('[13/22] Risk Değerlendirmeleri...')
+
     riskler = [
-        {
-            'bolum': 'Pres Bölgesi (C Hattı)',
-            'faaliyet': 'Kalıp değişimi ve ayar',
-            'tehlike': 'Pres kapanma alanında el-kol sıkışması',
-            'risk': 'Uzuv ezilmesi, kırık, kalıcı sakatlık',
-            'olasilik': 3, 'siddet': 5,
-            'mevcut': 'Çift el kumanda, mekanik güvenlik bariyeri, Lockout/Tagout prosedürü',
-            'ek': 'Optik ışık perdesi (light curtain) montajı planlanıyor',
-            'sorumlu': 'Mehmet Kaya',
-            'hedef': date.today() + timedelta(days=30),
-            'durum': 'acik',
-        },
-        {
-            'bolum': 'CNC Bölgesi (A Hattı)',
-            'faaliyet': 'Talaş temizliği ve bakım',
-            'tehlike': 'Keskin çelik talaş ile temas',
-            'risk': 'Kesik, batma yaralanması, göz yaralanması',
-            'olasilik': 4, 'siddet': 2,
-            'mevcut': 'Kesim dirençli eldiven, koruyucu gözlük, talaş kancası',
-            'ek': 'Otomatik talaş konveyör sistemi araştırılıyor',
-            'sorumlu': 'Selin Aktaş',
-            'hedef': date.today() + timedelta(days=60),
-            'durum': 'devam',
-        },
-        {
-            'bolum': 'Depo Alanı',
-            'faaliyet': 'Malzeme taşıma ve istifleme',
-            'tehlike': 'Forklift — yaya çarpışması',
-            'risk': 'Ciddi yaralanma, ölüm',
-            'olasilik': 2, 'siddet': 5,
-            'mevcut': 'Hız limiti (10 km/h), sarı zemin çizgileri, sesli uyarı',
-            'ek': 'Yaya-forklift geçiş ayrımı, konveks ayna montajı tamamlandı',
-            'sorumlu': 'Selin Aktaş',
-            'hedef': date.today() - timedelta(days=5),
-            'durum': 'kapandi',
-        },
-        {
-            'bolum': 'Kaynak Bölgesi (D Hattı)',
-            'faaliyet': 'MIG/MAG kaynak operasyonu',
-            'tehlike': 'UV radyasyonu ve kaynak dumanı maruziyeti',
-            'risk': 'Göz hasarı (ark gözü), solunum yolu hastalıkları',
-            'olasilik': 3, 'siddet': 3,
-            'mevcut': 'Otomatik kararan kaynak maskesi, lokal emme aspirasyonu',
-            'ek': 'Merkezi havalandırma/aspirasyon sistemi projesi başlatıldı',
-            'sorumlu': 'Ayşe Özkan',
-            'hedef': date.today() + timedelta(days=90),
-            'durum': 'acik',
-        },
-        {
-            'bolum': 'Genel Üretim Alanı',
-            'faaliyet': 'Tüm üretim faaliyetleri',
-            'tehlike': '85 dB üzeri sürekli gürültü maruziyeti',
-            'risk': 'Kalıcı işitme kaybı, tinnitus',
-            'olasilik': 4, 'siddet': 3,
-            'mevcut': 'Kulak tıkacı (SNR 33 dB) dağıtımı, uyarı tabelaları',
-            'ek': 'Gürültü haritası çıkarılacak, makine bazlı akustik izolasyon planı',
-            'sorumlu': 'Selin Aktaş',
-            'hedef': date.today() + timedelta(days=45),
-            'durum': 'acik',
-        },
-        {
-            'bolum': 'Sac İşleme Bölgesi (B Hattı)',
-            'faaliyet': 'Kalıp sıcak yüzey teması',
-            'tehlike': 'Sıcak kalıp ve eriyik metal ile yanık',
-            'risk': '2.-3. derece yanık',
-            'olasilik': 3, 'siddet': 4,
-            'mevcut': 'Isıya dayanıklı eldiven, "Sıcak Yüzey" uyarı etiketleri',
-            'ek': 'Kalıp koruma bariyeri tasarımı devam ediyor',
-            'sorumlu': 'Mehmet Kaya',
-            'hedef': date.today() + timedelta(days=45),
-            'durum': 'devam',
-        },
-        {
-            'bolum': 'Elektrik Panoları',
-            'faaliyet': 'Elektrik bakım/onarım',
-            'tehlike': 'Elektrik çarpması (400V AC)',
-            'risk': 'Ölüm, ciddi yanık',
-            'olasilik': 2, 'siddet': 5,
-            'mevcut': 'Yalıtımlı alet, iş izni sistemi, LOTO prosedürü',
-            'ek': 'Arc flash analizi yaptırılacak, kişisel arc flash PPE temin edilecek',
-            'sorumlu': 'Ayşe Özkan',
-            'hedef': date.today() + timedelta(days=75),
-            'durum': 'acik',
-        },
-        {
-            'bolum': 'Kimyasal Depolama',
-            'faaliyet': 'Yağ, soğutma sıvısı depolama',
-            'tehlike': 'Kimyasal dökülme, göz/cilt teması',
-            'risk': 'Kimyasal yanık, çevre kirliliği',
-            'olasilik': 2, 'siddet': 3,
-            'mevcut': 'MSDS dosyaları, dökülme kiti, göz duşu',
-            'ek': 'Sızdırmaz toplama paletleri temin edilecek',
-            'sorumlu': 'Elif Yıldız',
-            'hedef': date.today() + timedelta(days=30),
-            'durum': 'devam',
-        },
+        {'bolum': 'Talaşlı İmalat', 'tehlike': 'Uçuşan talaş parçaları', 'risk': 'Göz yaralanması, kesik', 'olasilik': 3, 'siddet': 3, 'onlem': 'Yan siperlikli koruyucu gözlük kullanımı zorunluluğu.', 'durum': 'acik'},
+        {'bolum': 'Sac İşleme', 'tehlike': 'Gürültü', 'risk': 'İşitme kaybı', 'olasilik': 4, 'siddet': 3, 'onlem': 'Kulaklık/tıkaç kullanımı, gürültü haritası çıkarılması.', 'durum': 'devam'},
+        {'bolum': 'Kaynak Atölyesi', 'tehlike': 'Kaynak dumanı ve gazı', 'risk': 'Solunum yolu rahatsızlıkları, zehirlenme', 'olasilik': 4, 'siddet': 4, 'onlem': 'Lokal emiş sistemlerinin bakımı, uygun maske kullanımı.', 'durum': 'acik'},
+        {'bolum': 'Boyahane', 'tehlike': 'Parlayıcı/patlayıcı kimyasallar', 'risk': 'Yangın, patlama', 'olasilik': 2, 'siddet': 5, 'onlem': 'Ex-proof ekipman kullanımı, statik elektrik topraklaması.', 'durum': 'acik'},
+        {'bolum': 'Depo', 'tehlike': 'Yüksekten malzeme düşmesi', 'risk': 'Ezilme, ağır yaralanma', 'olasilik': 3, 'siddet': 4, 'onlem': 'Raf statik hesabı kontrolü, yükseklik limit çizgileri.', 'durum': 'devam'},
+        {'bolum': 'Depo', 'tehlike': 'Forklift çarpması', 'risk': 'Ağır yaralanma, ölüm', 'olasilik': 2, 'siddet': 5, 'onlem': 'Mavi spot lamba takılması, hız limitörü (8 km/s).', 'durum': 'kapandi'},
+        {'bolum': 'Bakım Atölyesi', 'tehlike': 'Elektrik akımına kapılma', 'risk': 'Ciddi yaralanma, yanık, ölüm', 'olasilik': 2, 'siddet': 5, 'onlem': 'EKED (Etiketle Kilitle Emniyete Al Dene) prosedürü uygulaması.', 'durum': 'acik'},
+        {'bolum': 'Genel Üretim', 'tehlike': 'Kaygan zemin', 'risk': 'Düşme, burkulma, kırık', 'olasilik': 3, 'siddet': 2, 'onlem': 'Dökülmelere anında müdahale, kaymaz zemin boyası.', 'durum': 'kapandi'},
+        {'bolum': 'Ofisler', 'tehlike': 'Ergonomik olmayan oturuş', 'risk': 'Kas iskelet sistemi hastalıkları', 'olasilik': 4, 'siddet': 2, 'onlem': 'Ergonomi eğitimi, bel destekli koltuk tedariki.', 'durum': 'kapandi'},
+        {'bolum': 'Dış Alan', 'tehlike': 'Buzlanma', 'risk': 'Düşme', 'olasilik': 3, 'siddet': 2, 'onlem': 'Tuzlama yapılması, uyarı levhası.', 'durum': 'kapandi'},
+        {'bolum': 'Pres Hattı', 'tehlike': 'Uzuv sıkışması', 'risk': 'Amputasyon, ağır yaralanma', 'olasilik': 2, 'siddet': 5, 'onlem': 'Çift el kumanda butonu, ışık perdesi periyodik kontrolü.', 'durum': 'acik'},
+        {'bolum': 'Kimyasal Deposu', 'tehlike': 'Kimyasal sızıntı/döküntü', 'risk': 'Zehirlenme, kimyasal yanık', 'olasilik': 2, 'siddet': 4, 'onlem': 'Taşma havuzu, uygun KKD bulundurma.', 'durum': 'devam'},
     ]
 
     for r in riskler:
+        skor = r['olasilik'] * r['siddet']
+        seviye = 'kritik' if skor >= 20 else 'yuksek' if skor >= 15 else 'orta' if skor >= 8 else 'dusuk'
         rd = RiskDegerlendirme(
             bolum=r['bolum'],
-            faaliyet=r['faaliyet'],
             tehlike=r['tehlike'],
             risk=r['risk'],
             olasilik=r['olasilik'],
             siddet=r['siddet'],
-            mevcut_onlem=r['mevcut'],
-            ek_onlem=r['ek'],
-            sorumlu=r['sorumlu'],
-            hedef_tarih=r['hedef'],
+            risk_puani=skor,
+            risk_seviyesi=seviye,
+            ek_onlem=r['onlem'],
+            sorumlu=isg_uzmani.ad_soyad,
             durum=r['durum'],
+            olusturma_tarihi=datetime.now(timezone.utc) - timedelta(days=random.randint(10, 180)),
         )
-        rd.hesapla_risk()
         db.session.add(rd)
-        print(f'  + Risk: {r["bolum"]} — {rd.risk_seviyesi} ({rd.risk_puani})')
 
     db.session.flush()
 
-    # ══════════════════════════════════════════════════════════════
-    # İSG EĞİTİMLERİ (12 adet — tüm kategoriler)
-    # ══════════════════════════════════════════════════════════════
-    egitimler = [
-        # Temel İSG
-        {'calisan': 'P001', 'kat': 'temel_isg', 'ad': 'Temel İSG Eğitimi (16 saat)',
-         'sure': 16, 'tarih': date(2025, 6, 15), 'bitis': date(2026, 6, 15),
-         'sertifika': 'ISG-2025-0412', 'egitmen': 'OSGB — Dr. Hakan Yılmaz'},
-        {'calisan': 'P002', 'kat': 'temel_isg', 'ad': 'Temel İSG Eğitimi (16 saat)',
-         'sure': 16, 'tarih': date(2025, 6, 15), 'bitis': date(2026, 6, 15),
-         'sertifika': 'ISG-2025-0413', 'egitmen': 'OSGB — Dr. Hakan Yılmaz'},
-        {'calisan': 'P005', 'kat': 'temel_isg', 'ad': 'Temel İSG Eğitimi (16 saat)',
-         'sure': 16, 'tarih': date(2025, 9, 10), 'bitis': date(2026, 9, 10),
-         'sertifika': 'ISG-2025-0501', 'egitmen': 'OSGB — Dr. Hakan Yılmaz'},
+    # ── İSG EĞİTİMLERİ (20) ──
+    print('[14/22] İSG Eğitimleri...')
 
-        # İlk yardım
-        {'calisan': 'P003', 'kat': 'ilkyardim', 'ad': 'İlk Yardımcı Sertifika Eğitimi',
-         'sure': 24, 'tarih': date(2025, 3, 10), 'bitis': date(2028, 3, 10),
-         'sertifika': 'ILK-2025-0087', 'egitmen': 'Kızılay İlk Yardım Eğitim Merkezi'},
-        {'calisan': 'P010', 'kat': 'ilkyardim', 'ad': 'İlk Yardımcı Sertifika Eğitimi',
-         'sure': 24, 'tarih': date(2024, 11, 5), 'bitis': date(2027, 11, 5),
-         'sertifika': 'ILK-2024-0301', 'egitmen': 'Kızılay İlk Yardım Eğitim Merkezi'},
-
-        # Mesleki güvenlik
-        {'calisan': 'P005', 'kat': 'mesleki', 'ad': 'Pres Operatörü Güvenlik Eğitimi',
-         'sure': 8, 'tarih': date(2025, 9, 20), 'bitis': date(2026, 9, 20),
-         'sertifika': 'MSL-2025-0201', 'egitmen': 'Schuler Türkiye Teknik Ekibi'},
-        {'calisan': 'P004', 'kat': 'mesleki',
-         'ad': 'Elektrik Tesislerinde Güvenlik (Yüksek Gerilim)',
-         'sure': 16, 'tarih': date(2025, 8, 1), 'bitis': date(2026, 8, 1),
-         'sertifika': 'ELK-2025-0301', 'egitmen': 'TEİAŞ Eğitim Merkezi'},
-        {'calisan': 'P011', 'kat': 'mesleki', 'ad': 'Kaynak Operatörü Güvenlik Eğitimi',
-         'sure': 8, 'tarih': date(2025, 10, 15), 'bitis': date(2026, 10, 15),
-         'sertifika': 'MSL-2025-0245', 'egitmen': 'FANUC Türkiye'},
-
-        # Yangın
-        {'calisan': 'P007', 'kat': 'yangin',
-         'ad': 'Yangın Söndürme ve Acil Tahliye Eğitimi',
-         'sure': 8, 'tarih': date(2025, 11, 5), 'bitis': date(2026, 11, 5),
-         'sertifika': 'YNG-2025-0055', 'egitmen': 'İtfaiye Müdürlüğü'},
-        {'calisan': 'P008', 'kat': 'yangin',
-         'ad': 'Yangın Söndürme ve Acil Tahliye Eğitimi',
-         'sure': 8, 'tarih': date(2025, 11, 5), 'bitis': date(2026, 11, 5),
-         'sertifika': 'YNG-2025-0056', 'egitmen': 'İtfaiye Müdürlüğü'},
-
-        # İSG Uzmanı yenileme — süresi DOLMUŞ
-        {'calisan': 'P010', 'kat': 'temel_isg',
-         'ad': 'İSG Uzmanı C Sınıfı Yenileme Eğitimi',
-         'sure': 40, 'tarih': date(2025, 1, 15), 'bitis': date(2026, 1, 15),
-         'sertifika': 'ISG-UZM-2025-001', 'egitmen': 'ÇASGEM'},
-
-        # Ek eğitim — süresi DOLMUŞ
-        {'calisan': 'P009', 'kat': 'ilkyardim', 'ad': 'Temel İlk Yardım Eğitimi',
-         'sure': 16, 'tarih': date(2025, 4, 10), 'bitis': date(2026, 4, 10),
-         'sertifika': 'ILK-2025-0145', 'egitmen': 'Kızılay'},
+    egitim_konulari = [
+        ('Temel İSG Eğitimi', 12, 16),
+        ('Yüksekte Çalışma', 24, 8),
+        ('Yangın ve Acil Durum', 12, 4),
+        ('İlk Yardım Farkındalık', 12, 4),
+        ('Ergonomi', 12, 2),
+        ('Kimyasallarla Güvenli Çalışma', 12, 4),
+        ('KKD Kullanımı', 12, 2),
+        ('EKED Prosedürü', 24, 4),
     ]
 
-    for e in egitimler:
-        durum = 'gecerli'
-        if e['bitis'] < date.today():
-            durum = 'suresi_doldu'
+    for calisan in calisanlar:
+        # Her çalışana 1 temel eğitim
+        konu, ay, saat = egitim_konulari[0]
+        gecmis_gun = random.randint(10, 400)
+        tarih = bugun - timedelta(days=gecmis_gun)
+        bitis = tarih + timedelta(days=ay * 30)
+        durum = 'suresi_doldu' if bitis < bugun else 'gecerli'
 
         eg = IsgEgitimi(
-            calisan_id=calisanlar.get(e['calisan'], 1),
-            egitim_kategorisi=e['kat'],
-            egitim_adi=e['ad'],
-            egitim_suresi=e['sure'],
-            egitim_tarihi=e['tarih'],
-            gecerlilik_bitis=e['bitis'],
-            sertifika_no=e['sertifika'],
-            egitmen=e['egitmen'],
+            calisan_id=calisan.id,
+            egitim_adi=konu,
+            egitmen='İSG Uzmanı',
+            egitim_tarihi=tarih,
+            gecerlilik_bitis=bitis,
+            egitim_suresi=saat,
             durum=durum,
         )
         db.session.add(eg)
-        print(f'  + Eğitim: {e["calisan"]} — {e["ad"][:40]}... ({durum})')
+
+        # Rastgele 1-2 ek eğitim
+        for _ in range(random.randint(1, 2)):
+            konu, ay, saat = random.choice(egitim_konulari[1:])
+            gecmis_gun = random.randint(10, 800)
+            tarih = bugun - timedelta(days=gecmis_gun)
+            bitis = tarih + timedelta(days=ay * 30)
+            durum = 'suresi_doldu' if bitis < bugun else 'gecerli'
+
+            eg = IsgEgitimi(
+                calisan_id=calisan.id,
+                egitim_adi=konu,
+                egitmen='Yetkili OSGB',
+                egitim_tarihi=tarih,
+                gecerlilik_bitis=bitis,
+                egitim_suresi=saat,
+                durum=durum,
+            )
+            db.session.add(eg)
+
+    db.session.flush()
+
+    # ── SAĞLIK MUAYENELERİ (10) ──
+    print('[15/22] Sağlık Muayeneleri...')
+
+    muayene_turleri = [
+        'ise_giris',
+        'periyodik',
+        'ozel',
+        'ayrilma'
+    ]
+
+    for _ in range(10):
+        calisan = random.choice(calisanlar)
+        tur = random.choice(muayene_turleri)
+        gun_once = random.randint(5, 300)
+        tarih = bugun - timedelta(days=gun_once)
+        sonraki = tarih + timedelta(days=365) # 1 yıl sonra
+        sonuc_secenekleri = ['uygun', 'uygun', 'uygun', 'sinirli_uygun', 'uygun_degil']
+        sonuc = random.choice(sonuc_secenekleri)
+
+        muayene = SaglikMuayenesi(
+            calisan_id=calisan.id,
+            muayene_tarihi=tarih,
+            muayene_turu=tur,
+            doktor_adi='Dr. Hakan Yılmaz (İşyeri Hekimi)',
+            sonuc=sonuc,
+            sonraki_muayene_tarihi=sonraki,
+            notlar='Yıllık periyodik sağlık taraması.' if tur == 'periyodik' else None,
+        )
+        db.session.add(muayene)
+
+    db.session.flush()
+
+    # ── İSG DOKÜMANLARI (8) ──
+    print('[16/22] İSG Dokümanları...')
+
+    dokumanlar = [
+        {'adi': 'Acil Durum Eylem Planı', 'tur': 'prosedur', 'rev': 3},
+        {'adi': 'İSG Risk Değerlendirme Raporu', 'tur': 'saha_raporu', 'rev': 5},
+        {'adi': 'İş Kazası Bildirim Formu', 'tur': 'form', 'rev': 2},
+        {'adi': 'Yüksekte Çalışma Talimatı', 'tur': 'talimat', 'rev': 1},
+        {'adi': 'KKD Teslim Tutanağı', 'tur': 'form', 'rev': 4},
+        {'adi': 'Kimyasal Madde Döküntü Talimatı', 'tur': 'talimat', 'rev': 2},
+        {'adi': 'Forklift Kullanma Prosedürü', 'tur': 'prosedur', 'rev': 1},
+        {'adi': 'Aylık İSG Kurul Tutanağı', 'tur': 'tutanak', 'rev': 1},
+    ]
+
+    for d in dokumanlar:
+        tarih = bugun - timedelta(days=random.randint(10, 200))
+        gecerlilik = tarih + timedelta(days=365)
+        dok = IsgDokumani(
+            baslik=d['adi'],
+            kategori=d['tur'],
+            versiyon=d['rev'],
+            gecerlilik_tarihi=gecerlilik,
+            sorumlu_id=isg_uzmani.id,
+            onay_durumu='onaylandi' if random.random() > 0.2 else 'onay_bekliyor',
+        )
+        db.session.add(dok)
 
     db.session.flush()
     print('  OK\n')

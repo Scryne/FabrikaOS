@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+{% block title %}Yeni Talep Oluştur{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('talep.index') }}">Talep & İş Takip</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('talep.liste') }}">Talepler</a></li>
+        <li class="breadcrumb-item active">Yeni Talep</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm bg-card">
+            <div class="card-header bg-transparent border-bottom pt-4 pb-3">
+                <h4 class="mb-0 fw-bold"><i class="bi bi-plus-circle text-primary me-2"></i>Yeni Talep Oluştur</h4>
+                <p class="text-muted mb-0 mt-1 small">Dahili kullanıcı olarak manuel bir talep veya iş kaydı açıyorsunuz.</p>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.baslik.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.baslik(class="form-control" + (" is-invalid" if form.baslik.errors else ""), placeholder="Örn: B Blok Klima Arızası") }}
+                            {% for error in form.baslik.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.kategori.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.kategori(class="form-select" + (" is-invalid" if form.kategori.errors else "")) }}
+                            {% for error in form.kategori.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.oncelik.label.text }} <span class="text-danger">*</span></label>
+                            {{ form.oncelik(class="form-select" + (" is-invalid" if form.oncelik.errors else "")) }}
+                            {% for error in form.oncelik.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.alt_kategori.label.text }}</label>
+                            {{ form.alt_kategori(class="form-control" + (" is-invalid" if form.alt_kategori.errors else ""), placeholder="Opsiyonel (Örn: Elektrik panosu)") }}
+                            {% for error in form.alt_kategori.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.konum_bilgi.label.text }}</label>
+                            {{ form.konum_bilgi(class="form-control" + (" is-invalid" if form.konum_bilgi.errors else ""), placeholder="Opsiyonel (Örn: A Blok Kat 2)") }}
+                            {% for error in form.konum_bilgi.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label fw-medium">{{ form.aciklama.label.text }}</label>
+                            {{ form.aciklama(class="form-control" + (" is-invalid" if form.aciklama.errors else ""), rows="5", placeholder="Talep detayları, belirtiler veya notlar...") }}
+                            {% for error in form.aciklama.errors %}
+                            <div class="invalid-feedback">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="card bg-light border-0">
+                                <div class="card-body">
+                                    <h6 class="fw-bold mb-3"><i class="bi bi-bell me-2"></i>Bildirim Tercihleri</h6>
+                                    
+                                    <div class="form-check form-switch mb-2">
+                                        {{ form.eposta_bildirim(class="form-check-input") }}
+                                        <label class="form-check-label" for="{{ form.eposta_bildirim.id }}">{{ form.eposta_bildirim.label.text }}</label>
+                                    </div>
+                                    <div class="form-check form-switch">
+                                        {{ form.sms_bildirim(class="form-check-input") }}
+                                        <label class="form-check-label" for="{{ form.sms_bildirim.id }}">{{ form.sms_bildirim.label.text }}</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                        <a href="{{ url_for('talep.liste') }}" class="btn btn-outline-secondary">İptal</a>
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-2"></i>Talebi Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

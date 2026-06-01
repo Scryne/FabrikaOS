@@ -1,0 +1,71 @@
+{% extends "dis_panel/base_panel.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Profil Ayarları</h4>
+        <p class="text-muted mb-0 mt-1">İletişim bilgileriniz ve hesap ayarlarınız</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Profil Özeti -->
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm bg-card text-center mb-4">
+            <div class="card-body p-4 p-md-5">
+                <div class="avatar-circle mx-auto mb-3" style="width: 80px; height: 80px; font-size: 2rem;">
+                    {{ dis_kullanici.baslangic_harfler }}
+                </div>
+                <h5 class="fw-bold mb-1">{{ dis_kullanici.ad_soyad }}</h5>
+                <p class="text-muted small mb-3">{{ dis_kullanici.kullanici_adi }}</p>
+                
+                <span class="badge bg-primary px-3 py-2 rounded-pill">{{ dis_kullanici.bagli_isim }}</span>
+                <div class="text-muted small mt-2">Kayıt: {{ dis_kullanici.olusturma_tarihi.strftime('%d.%m.%Y') }}</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Profil Formu -->
+    <div class="col-12 col-md-8">
+        <div class="card border-0 shadow-sm bg-card">
+            <div class="card-header bg-transparent pt-4 pb-3 border-bottom">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-person-lines-fill me-2 text-primary"></i>İletişim Bilgileri</h6>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.telefon.label.text }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-phone text-muted"></i></span>
+                                {{ form.telefon(class="form-control" + (" is-invalid" if form.telefon.errors else ""), placeholder="05XX XXX XX XX") }}
+                            </div>
+                            {% for error in form.telefon.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                            <div class="form-text small">Önemli bildirimler bu numaraya SMS olarak iletilecektir.</div>
+                        </div>
+                        
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-medium">{{ form.eposta.label.text }}</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light"><i class="bi bi-envelope text-muted"></i></span>
+                                {{ form.eposta(class="form-control" + (" is-invalid" if form.eposta.errors else ""), placeholder="ornek@firma.com") }}
+                            </div>
+                            {% for error in form.eposta.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4 pt-3 border-top text-end">
+                        <button type="submit" class="btn btn-primary px-4"><i class="bi bi-save me-2"></i>Değişiklikleri Kaydet</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

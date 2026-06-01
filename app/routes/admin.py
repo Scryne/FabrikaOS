@@ -31,18 +31,26 @@ def kullanici_ekle():
     form = KullaniciEkleForm()
     if form.validate_on_submit():
         modul_erisim = {
-            'personel': form.modul_personel.data,
-            'makine': form.modul_makine.data,
-            'stok': form.modul_stok.data,
-            'kalite': form.modul_kalite.data,
-            'enerji': form.modul_enerji.data,
-            'isg': form.modul_isg.data
+            'personel': {'okuma': form.modul_personel.data, 'yazma': form.modul_personel.data, 'silme': form.modul_personel.data},
+            'makine': {'okuma': form.modul_makine.data, 'yazma': form.modul_makine.data, 'silme': form.modul_makine.data},
+            'stok': {'okuma': form.modul_stok.data, 'yazma': form.modul_stok.data, 'silme': form.modul_stok.data},
+            'kalite': {'okuma': form.modul_kalite.data, 'yazma': form.modul_kalite.data, 'silme': form.modul_kalite.data},
+            'enerji': {'okuma': form.modul_enerji.data, 'yazma': form.modul_enerji.data, 'silme': form.modul_enerji.data},
+            'isg': {'okuma': form.modul_isg.data, 'yazma': form.modul_isg.data, 'silme': form.modul_isg.data},
+            'ik': {'okuma': form.modul_ik.data, 'yazma': form.modul_ik.data, 'silme': form.modul_ik.data},
+            'crm': {'okuma': form.modul_crm.data, 'yazma': form.modul_crm.data, 'silme': form.modul_crm.data},
+            'sozlesme': {'okuma': form.modul_sozlesme.data, 'yazma': form.modul_sozlesme.data, 'silme': form.modul_sozlesme.data},
+            'talep': {'okuma': form.modul_talep.data, 'yazma': form.modul_talep.data, 'silme': form.modul_talep.data},
+            'satin_alma': {'okuma': form.modul_satin_alma.data, 'yazma': form.modul_satin_alma.data, 'silme': form.modul_satin_alma.data},
+            'dys': {'okuma': form.modul_dys.data, 'yazma': form.modul_dys.data, 'silme': form.modul_dys.data},
+            'duyuru': {'okuma': form.modul_duyuru.data, 'yazma': form.modul_duyuru.data, 'silme': form.modul_duyuru.data}
         }
         
         kullanici = Kullanici(
             ad_soyad=form.ad_soyad.data,
             kullanici_adi=form.kullanici_adi.data,
             rol=form.rol.data,
+            departman=form.departman.data,
             modul_erisim=modul_erisim,
             aktif=form.aktif.data
         )
@@ -66,12 +74,20 @@ def kullanici_duzenle(id):
     
     if request.method == 'GET':
         # Modül erişimlerini forma doldur
-        form.modul_personel.data = kullanici.modul_erisim.get('personel', False)
-        form.modul_makine.data = kullanici.modul_erisim.get('makine', False)
-        form.modul_stok.data = kullanici.modul_erisim.get('stok', False)
-        form.modul_kalite.data = kullanici.modul_erisim.get('kalite', False)
-        form.modul_enerji.data = kullanici.modul_erisim.get('enerji', False)
-        form.modul_isg.data = kullanici.modul_erisim.get('isg', False)
+        form.departman.data = kullanici.departman
+        form.modul_personel.data = kullanici.modul_erisim_var_mi('personel')
+        form.modul_makine.data = kullanici.modul_erisim_var_mi('makine')
+        form.modul_stok.data = kullanici.modul_erisim_var_mi('stok')
+        form.modul_kalite.data = kullanici.modul_erisim_var_mi('kalite')
+        form.modul_enerji.data = kullanici.modul_erisim_var_mi('enerji')
+        form.modul_isg.data = kullanici.modul_erisim_var_mi('isg')
+        form.modul_ik.data = kullanici.modul_erisim_var_mi('ik')
+        form.modul_crm.data = kullanici.modul_erisim_var_mi('crm')
+        form.modul_sozlesme.data = kullanici.modul_erisim_var_mi('sozlesme')
+        form.modul_talep.data = kullanici.modul_erisim_var_mi('talep')
+        form.modul_satin_alma.data = kullanici.modul_erisim_var_mi('satin_alma')
+        form.modul_dys.data = kullanici.modul_erisim_var_mi('dys')
+        form.modul_duyuru.data = kullanici.modul_erisim_var_mi('duyuru')
         
     if form.validate_on_submit():
         # Kullanıcı adı çakışma kontrolü
@@ -83,6 +99,7 @@ def kullanici_duzenle(id):
         kullanici.ad_soyad = form.ad_soyad.data
         kullanici.kullanici_adi = form.kullanici_adi.data
         kullanici.rol = form.rol.data
+        kullanici.departman = form.departman.data
         kullanici.aktif = form.aktif.data
         
         # Hesap kilitliyse ve işareti kaldırılmışsa sıfırla
@@ -97,12 +114,19 @@ def kullanici_duzenle(id):
             
         # Modül erişimlerini güncelle
         modul_erisim = {
-            'personel': form.modul_personel.data,
-            'makine': form.modul_makine.data,
-            'stok': form.modul_stok.data,
-            'kalite': form.modul_kalite.data,
-            'enerji': form.modul_enerji.data,
-            'isg': form.modul_isg.data
+            'personel': {'okuma': form.modul_personel.data, 'yazma': form.modul_personel.data, 'silme': form.modul_personel.data},
+            'makine': {'okuma': form.modul_makine.data, 'yazma': form.modul_makine.data, 'silme': form.modul_makine.data},
+            'stok': {'okuma': form.modul_stok.data, 'yazma': form.modul_stok.data, 'silme': form.modul_stok.data},
+            'kalite': {'okuma': form.modul_kalite.data, 'yazma': form.modul_kalite.data, 'silme': form.modul_kalite.data},
+            'enerji': {'okuma': form.modul_enerji.data, 'yazma': form.modul_enerji.data, 'silme': form.modul_enerji.data},
+            'isg': {'okuma': form.modul_isg.data, 'yazma': form.modul_isg.data, 'silme': form.modul_isg.data},
+            'ik': {'okuma': form.modul_ik.data, 'yazma': form.modul_ik.data, 'silme': form.modul_ik.data},
+            'crm': {'okuma': form.modul_crm.data, 'yazma': form.modul_crm.data, 'silme': form.modul_crm.data},
+            'sozlesme': {'okuma': form.modul_sozlesme.data, 'yazma': form.modul_sozlesme.data, 'silme': form.modul_sozlesme.data},
+            'talep': {'okuma': form.modul_talep.data, 'yazma': form.modul_talep.data, 'silme': form.modul_talep.data},
+            'satin_alma': {'okuma': form.modul_satin_alma.data, 'yazma': form.modul_satin_alma.data, 'silme': form.modul_satin_alma.data},
+            'dys': {'okuma': form.modul_dys.data, 'yazma': form.modul_dys.data, 'silme': form.modul_dys.data},
+            'duyuru': {'okuma': form.modul_duyuru.data, 'yazma': form.modul_duyuru.data, 'silme': form.modul_duyuru.data}
         }
         kullanici.modul_erisim = modul_erisim
         
@@ -364,7 +388,7 @@ def entegrasyon():
 @log_action('Yetki Matrisi Güncelleme')
 def yetki_matrisi():
     kullanicilar = Kullanici.query.filter(Kullanici.rol != 'yonetici').all()
-    moduller = ['personel', 'makine', 'stok', 'kalite', 'enerji', 'isg']
+    moduller = ['personel', 'makine', 'stok', 'kalite', 'enerji', 'isg', 'ik', 'crm', 'sozlesme', 'talep', 'satin_alma', 'dys', 'duyuru']
     
     if request.method == 'POST':
         from sqlalchemy.orm.attributes import flag_modified
@@ -373,7 +397,8 @@ def yetki_matrisi():
             for m in moduller:
                 # Checkbox name format: user_ID_module
                 checkbox_name = f"user_{k.id}_{m}"
-                yeni_erisim[m] = checkbox_name in request.form
+                secili = checkbox_name in request.form
+                yeni_erisim[m] = {'okuma': secili, 'yazma': secili, 'silme': secili}
             
             k.modul_erisim = yeni_erisim
             flag_modified(k, 'modul_erisim')

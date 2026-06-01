@@ -28,6 +28,22 @@ class Calisan(db.Model):
     ucret = db.Column(db.Numeric(10, 2), nullable=True)  # Opsiyonel maaş kaydı
     beceri_json = db.Column(db.JSON, default=list)  # Makine yetkinlik listesi [{makine_id, puan}]
     fotograf = db.Column(db.String(255), nullable=True)  # Profil fotoğrafı dosya yolu
+
+    # ── İK Genişletme Alanları (Faz 1) ──
+    tc_kimlik = db.Column(db.String(11), nullable=True, unique=True)
+    dogum_tarihi = db.Column(db.Date, nullable=True)
+    kan_grubu = db.Column(db.String(10), nullable=True)  # A+, B-, AB+ vb.
+    adres = db.Column(db.Text, nullable=True)
+    il = db.Column(db.String(50), nullable=True)
+    ilce = db.Column(db.String(50), nullable=True)
+    acil_kisi_adi = db.Column(db.String(100), nullable=True)
+    acil_kisi_tel = db.Column(db.String(20), nullable=True)
+    medeni_durum = db.Column(db.String(20), nullable=True)  # evli | bekar | diger
+    askerlik_durumu = db.Column(db.String(20), nullable=True)  # yapti | tecilli | muaf
+    egitim_durumu = db.Column(db.String(50), nullable=True)  # ilkokul | lise | lisans | yuksek_lisans
+    isten_ayrilma = db.Column(db.Date, nullable=True)  # İşten ayrılma tarihi
+    ayrilma_nedeni = db.Column(db.Text, nullable=True)
+
     aktif = db.Column(db.Boolean, default=True, nullable=False)
     olusturma_tarihi = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
     guncelleme_tarihi = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))

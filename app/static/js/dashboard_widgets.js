@@ -94,7 +94,7 @@ const DashboardWidgets = {
 
     async _fetchRealtimeData() {
         try {
-            const resp = await fetch('/api/dashboard/realtime');
+            const resp = await fetch('/dashboard/api/dashboard/realtime');
             if (!resp.ok) return;
             const data = await resp.json();
             this.updateLiveStats(data);
@@ -170,7 +170,7 @@ const DashboardWidgets = {
         const widgets = document.querySelectorAll('.dashboard-widget');
         const layout = Array.from(widgets).map((w, i) => ({ id: w.id, order: i, visible: !w.classList.contains('d-none') }));
         try {
-            await fetch('/api/dashboard/layout', {
+            await fetch('/dashboard/api/dashboard/layout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-CSRFToken': this.csrfToken },
                 body: JSON.stringify({ layout })

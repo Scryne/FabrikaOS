@@ -58,7 +58,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             html += `</div></li>`;
             html += `<li>
-                        <a class="dropdown-item text-center py-3 text-primary small fw-bold" href="/bildirimler" style="background: rgba(0,0,0,0.2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; transition: 0.2s;">
+                        <a class="dropdown-item text-center py-3 text-primary small fw-bold" href="/dashboard/bildirimler" style="background: rgba(0,0,0,0.2); border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; transition: 0.2s;">
                             Tümünü Gör <i class="bi bi-arrow-right ms-1"></i>
                         </a>
                      </li>`;
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // API'den başlangıç yüklemesi
     const fetchBildirimler = async () => {
         try {
-            const res = await fetch('/api/bildirimler');
+            const res = await fetch('/dashboard/api/bildirimler');
             if (res.ok) {
                 const data = await res.json();
                 
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const markAsRead = async (id) => {
         try {
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
-            const res = await fetch('/api/bildirim/okundu', {
+            const res = await fetch('/dashboard/api/bildirim/okundu', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+{% block title %}Akıllı Arşiv{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('crm.index') }}">CRM Merkezi</a></li>
+        <li class="breadcrumb-item active">Akıllı Arşiv</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text text-primary me-2"></i>Akıllı Belge Arşivi</h2>
+        <p class="text-muted mb-0 mt-1">OCR destekli taranmış belge içi arama sistemi</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Dosya Yükleme Bölümü -->
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-upload text-success me-2"></i>Yeni Belge Yükle</h5>
+            </div>
+            <div class="card-body p-4">
+                <form action="{{ url_for('crm.arsiv_yukle') }}" method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">İlişkili Kayıt</label>
+                        <select name="kaynak_tablo" class="form-select" required>
+                            <option value="ortak">Ortak</option>
+                            <option value="firma">Firma</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kayıt ID</label>
+                        <input type="number" class="form-control" name="kaynak_id" placeholder="Ortak veya Firma ID'si" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Açıklama (İsteğe Bağlı)</label>
+                        <textarea class="form-control" name="aciklama" rows="2" placeholder="Belge hakkında kısa bilgi..."></textarea>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">Dosya Seçin</label>
+                        <div class="border border-2 border-dashed rounded-3 p-4 text-center position-relative" style="background-color: var(--bg-card-hover); border-color: var(--border-light) !important;" id="dropZone">
+                            <input class="form-control position-absolute top-0 start-0 w-100 h-100 opacity-0" type="file" id="dosya" name="dosya" style="cursor: pointer;" required>
+                            <i class="bi bi-cloud-arrow-up text-primary mb-2" style="font-size: 2rem;"></i>
+                            <h6 class="fw-bold mt-2" id="fileNameDisplay">Sürükleyin veya Seçin</h6>
+                            <p class="text-muted small mb-0">PDF, JPG, PNG desteklenir.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary fw-bold" id="uploadBtn" disabled>
+                            <i class="bi bi-cloud-upload me-2"></i>Yükle ve Tara (OCR)
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Arşiv Listesi -->
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent py-3 border-bottom-0 d-flex justify-content-between align-items-center">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-archive text-info me-2"></i>Son Yüklenen Belgeler</h5>
+                <span class="badge bg-primary rounded-pill">{{ dosyalar|length }} Belge</span>
+            </div>
+            <div class="card-body p-0">
+                {% if dosyalar %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Dosya Adı</th>
+                                <th>Tip</th>
+                                <th>Boyut</th>
+                                <th>İlişki</th>
+                                <th>Tarih</th>
+                                <th>Açıklama / OCR</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for dosya in dosyalar %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi {{ dosya.ikon_sinifi }} fs-4 text-primary me-3"></i>
+                                        <div>
+                                            <h6 class="mb-0 fw-bold text-truncate" style="max-width: 150px;" title="{{ dosya.orijinal_adi }}">{{ dosya.orijinal_adi }}</h6>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-secondary-subtle text-secondary">{{ dosya.dosya_tipi|upper }}</span></td>
+                                <td class="text-muted small">{{ dosya.boyut_formatli }}</td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">{{ dosya.kaynak_tablo|title }} #{{ dosya.kaynak_id }}</span>
+                                </td>
+                                <td><small class="text-muted">{{ dosya.olusturma_tarihi.strftime('%d.%m.%Y') }}</small></td>
+                                <td>
+                                    {% if dosya.aciklama %}
+                                    <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="focus" data-bs-content="{{ dosya.aciklama }}">
+                                        <i class="bi bi-eye"></i> İncele
+                                    </button>
+                                    {% else %}
+                                    <span class="text-muted small">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-5 text-center text-muted">
+                    <i class="bi bi-inboxes fs-1 d-block mb-3 text-secondary"></i>
+                    <h5 class="fw-bold">Henüz belge yüklenmemiş</h5>
+                    <p>Sol taraftaki formu kullanarak arşive belge ekleyebilirsiniz.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('dosya');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const dropZone = document.getElementById('dropZone');
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                const fileName = this.files[0].name;
+                fileNameDisplay.innerHTML = `<span class="text-success">${fileName}</span>`;
+                uploadBtn.disabled = false;
+                dropZone.style.borderColor = '#10b981';
+            } else {
+                fileNameDisplay.innerHTML = 'Sürükleyin veya Seçin';
+                uploadBtn.disabled = true;
+                dropZone.style.borderColor = 'var(--border-light)';
+            }
+        });
+        
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = 'var(--bg-card)';
+            this.style.borderColor = '#3b82f6';
+        });
+        
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = 'var(--bg-card-hover)';
+            if(!fileInput.files.length) {
+                this.style.borderColor = 'var(--border-light)';
+            } else {
+                this.style.borderColor = '#10b981';
+            }
+        });
+        
+        // Popover initialization
+        var popoverTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="popover"]'))
+        var popoverList = popoverTriggerList.map(function (popoverTriggerEl) {
+            return new bootstrap.Popover(popoverTriggerEl)
+        });
+    });
+</script>
+{% endblock %}

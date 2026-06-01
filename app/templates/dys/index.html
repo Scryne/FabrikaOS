@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+{% block title %}Doküman Yönetimi (DYS){% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Doküman Yönetimi</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dys-stat-card {
+        background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        position: relative;
+        overflow: hidden;
+    }
+    .dys-stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        border-radius: 16px 16px 0 0;
+    }
+    .dys-stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        border-color: rgba(255,255,255,0.1);
+    }
+    .dys-stat-card .stat-icon {
+        width: 52px;
+        height: 52px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        transition: transform 0.3s ease;
+    }
+    .dys-stat-card:hover .stat-icon {
+        transform: scale(1.1);
+    }
+    .dys-stat-card .stat-value {
+        font-size: 1.75rem;
+        font-weight: 800;
+        line-height: 1;
+        color: var(--text-heading);
+    }
+    .dys-stat-card .stat-label {
+        font-size: 0.78rem;
+        color: #8b95a5;
+        margin-top: 4px;
+        letter-spacing: 0.3px;
+    }
+
+    .doc-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        transition: all 0.25s ease;
+        text-decoration: none;
+        display: block;
+        color: inherit;
+    }
+    .doc-card:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+        transform: translateX(4px);
+        color: inherit;
+    }
+    .doc-card .doc-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.2rem;
+    }
+    .doc-card .doc-title {
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: var(--text-heading);
+    }
+    .doc-card .doc-meta {
+        font-size: 0.75rem;
+        color: #6b7280;
+    }
+
+    .chart-card {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+    .chart-card-header {
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: var(--text-heading);
+        margin-bottom: 1.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-folder2-open me-2 text-primary"></i>Doküman Yönetim Sistemi</h2>
+        <p class="text-muted mb-0 mt-1">Merkezi doküman arşivi, versiyon kontrolü ve onay akışı</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+        <a href="{{ url_for('dys.yukle') }}" class="btn btn-primary">
+            <i class="bi bi-cloud-upload me-1"></i> Doküman Yükle
+        </a>
+        <a href="{{ url_for('dys.liste') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-list-ul me-1"></i> Tüm Dokümanlar
+        </a>
+        <a href="{{ url_for('dys.arama') }}" class="btn btn-outline-info">
+            <i class="bi bi-search me-1"></i> Arama
+        </a>
+    </div>
+</div>
+
+<!-- KPI Kartları -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="dys-stat-card" style="--stat-color: #3b82f6;">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#3b82f6;border-radius:16px 16px 0 0;"></div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(59,130,246,0.12); color: #3b82f6;">
+                    <i class="bi bi-files"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ toplam }}</div>
+                    <div class="stat-label">Toplam Doküman</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <a href="{{ url_for('dys.onay_bekleyen') }}" class="text-decoration-none">
+            <div class="dys-stat-card" style="--stat-color: #f59e0b;">
+                <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#f59e0b;border-radius:16px 16px 0 0;"></div>
+                <div class="d-flex align-items-center gap-3">
+                    <div class="stat-icon" style="background: rgba(245,158,11,0.12); color: #f59e0b;">
+                        <i class="bi bi-hourglass-split"></i>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ onay_bekleyen }}</div>
+                        <div class="stat-label">Onay Bekleyen</div>
+                    </div>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dys-stat-card" style="--stat-color: #10b981;">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#10b981;border-radius:16px 16px 0 0;"></div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(16,185,129,0.12); color: #10b981;">
+                    <i class="bi bi-download"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ toplam_indirme }}</div>
+                    <div class="stat-label">Toplam İndirme</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="dys-stat-card" style="--stat-color: #8b5cf6;">
+            <div style="position:absolute;top:0;left:0;right:0;height:3px;background:#8b5cf6;border-radius:16px 16px 0 0;"></div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="stat-icon" style="background: rgba(139,92,246,0.12); color: #8b5cf6;">
+                    <i class="bi bi-hdd"></i>
+                </div>
+                <div>
+                    <div class="stat-value">{{ toplam_boyut_formatli }}</div>
+                    <div class="stat-label">Toplam Boyut</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Kategori Dağılımı Chart -->
+    <div class="col-12 col-lg-6">
+        <div class="chart-card h-100">
+            <div class="chart-card-header">
+                <i class="bi bi-pie-chart text-primary me-2"></i>Kategori Dağılımı
+            </div>
+            <div style="position: relative; height: 250px; width: 100%;">
+                <canvas id="kategoriChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Onay Durumu Chart -->
+    <div class="col-12 col-lg-6">
+        <div class="chart-card h-100">
+            <div class="chart-card-header">
+                <i class="bi bi-bar-chart text-info me-2"></i>Onay Durumu Dağılımı
+            </div>
+            <div style="position: relative; height: 250px; width: 100%;">
+                <canvas id="onayChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Son Yüklenen Dokümanlar -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Son Yüklenen Dokümanlar</h6>
+                <a href="{{ url_for('dys.liste') }}" class="btn btn-outline-secondary btn-sm">Tümü</a>
+            </div>
+            <div class="card-body p-0">
+                {% if son_yuklemeler %}
+                <div class="d-flex flex-column gap-2 p-3">
+                    {% for d in son_yuklemeler %}
+                    <a href="{{ url_for('dys.detay', id=d.id) }}" class="doc-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="doc-icon" style="background: {{ d.tip_rengi }}15; color: {{ d.tip_rengi }};">
+                                <i class="{{ d.ikon_sinifi }}"></i>
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="doc-title text-truncate">{{ d.baslik }}</div>
+                                <div class="doc-meta">
+                                    <span class="me-2">{{ d.orijinal_adi }}</span>
+                                    <span class="me-2">{{ d.boyut_formatli }}</span>
+                                    <span>v{{ d.versiyon }}</span>
+                                </div>
+                            </div>
+                            <span class="badge bg-{{ 'success' if d.onay_durumu == 'onaylandi' else 'warning' if d.onay_durumu == 'onay_bekliyor' else 'secondary' }}-subtle" style="font-size:0.7rem;">{{ d.onay_durumu_adi }}</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-folder2 fs-1 d-block mb-2"></i>
+                    <p class="mb-0">Henüz doküman yüklenmemiş.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- En Çok İndirilen Dokümanlar -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-trophy text-warning me-2"></i>En Çok İndirilen Dokümanlar</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if en_cok_indirilen %}
+                <div class="d-flex flex-column gap-2 p-3">
+                    {% for d in en_cok_indirilen %}
+                    <a href="{{ url_for('dys.detay', id=d.id) }}" class="doc-card">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="doc-icon" style="background: {{ d.tip_rengi }}15; color: {{ d.tip_rengi }};">
+                                <i class="{{ d.ikon_sinifi }}"></i>
+                            </div>
+                            <div class="flex-grow-1 min-width-0">
+                                <div class="doc-title text-truncate">{{ d.baslik }}</div>
+                                <div class="doc-meta">
+                                    {{ d.kategori_adi }} · v{{ d.versiyon }}
+                                </div>
+                            </div>
+                            <div class="text-end">
+                                <span class="fw-bold text-primary" style="font-size:1.1rem;">{{ d.indirme_sayisi }}</span>
+                                <div class="doc-meta">indirme</div>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-download fs-1 d-block mb-2"></i>
+                    <p class="mb-0">Henüz indirme kaydı yok.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Kategori Dağılımı Grafik
+    const kategoriData = {{ kategori_dagilimi | tojson }};
+    const kategoriLabels = {
+        'prosedur': 'Prosedür', 'talimat': 'Talimat', 'form': 'Form',
+        'rapor': 'Rapor', 'sozlesme': 'Sözleşme', 'diger': 'Diğer'
+    };
+    const kategoriRenkler = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#6b7280'];
+
+    if (kategoriData.length > 0) {
+        new Chart(document.getElementById('kategoriChart'), {
+            type: 'doughnut',
+            data: {
+                labels: kategoriData.map(d => kategoriLabels[d[0]] || d[0]),
+                datasets: [{
+                    data: kategoriData.map(d => d[1]),
+                    backgroundColor: kategoriRenkler.slice(0, kategoriData.length),
+                    borderWidth: 0,
+                    hoverOffset: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom', labels: { color: '#8b95a5', padding: 16, font: { size: 12 } } }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+
+    // Onay Durumu Grafik
+    const onayData = {{ onay_dagilimi | tojson }};
+    const onayLabels = {
+        'taslak': 'Taslak', 'onay_bekliyor': 'Onay Bekliyor',
+        'onaylandi': 'Onaylandı', 'reddedildi': 'Reddedildi'
+    };
+    const onayRenkler = { 'taslak': '#6b7280', 'onay_bekliyor': '#f59e0b', 'onaylandi': '#10b981', 'reddedildi': '#ef4444' };
+
+    if (onayData.length > 0) {
+        new Chart(document.getElementById('onayChart'), {
+            type: 'bar',
+            data: {
+                labels: onayData.map(d => onayLabels[d[0]] || d[0]),
+                datasets: [{
+                    label: 'Doküman',
+                    data: onayData.map(d => d[1]),
+                    backgroundColor: onayData.map(d => onayRenkler[d[0]] || '#6b7280'),
+                    borderWidth: 0,
+                    borderRadius: 8,
+                    barPercentage: 0.6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, ticks: { color: '#6b7280', stepSize: 1 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+                    x: { ticks: { color: '#8b95a5' }, grid: { display: false } }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

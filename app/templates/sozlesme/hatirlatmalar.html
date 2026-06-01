@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+{% block title %}Hatırlatmalar & Takvim{% endblock %}
+
+{% block extra_css %}
+<!-- FullCalendar CSS -->
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet">
+<style>
+    .fc-event { cursor: pointer; }
+    .fc-theme-standard .fc-scrollgrid { border: 1px solid var(--border-color); }
+    .fc-theme-standard td, .fc-theme-standard th { border: 1px solid var(--border-color); }
+    .fc-day-today { background-color: rgba(59, 130, 246, 0.05) !important; }
+    
+    .timeline-item {
+        position: relative;
+        padding-left: 2rem;
+        margin-bottom: 1.5rem;
+    }
+    .timeline-item::before {
+        content: '';
+        position: absolute;
+        left: 0.35rem;
+        top: 0.5rem;
+        bottom: -1.5rem;
+        width: 2px;
+        background-color: var(--border-color);
+    }
+    .timeline-item:last-child::before { display: none; }
+    .timeline-dot {
+        position: absolute;
+        left: 0;
+        top: 0.25rem;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 50%;
+        background-color: var(--bs-primary);
+        border: 3px solid var(--bg-card);
+        z-index: 1;
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('sozlesme.index') }}">Sözleşme Merkezi</a></li>
+        <li class="breadcrumb-item active">Hatırlatmalar</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-bell-fill text-warning me-2"></i>Yaklaşan Süreler</h2>
+        <p class="text-muted mb-0 mt-1">Süresi dolmak üzere olan veya dolan kayıtlar</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Liste Görünümü (Hatırlatmalar) -->
+    <div class="col-12 col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center pt-3 pb-0 border-0">
+                <h5 class="fw-bold mb-0"><i class="bi bi-list-task text-primary me-2"></i>Bildirimler</h5>
+                <span class="badge bg-danger rounded-pill">{{ sozlesmeler|length + policeler|length }}</span>
+            </div>
+            <div class="card-body">
+                
+                {% if not sozlesmeler and not policeler %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="bi bi-check-circle fs-1 text-success d-block mb-3"></i>
+                        Yaklaşan bir hatırlatma bulunmuyor. Her şey yolunda!
+                    </div>
+                {% else %}
+                    <!-- Sözleşme Hatırlatmaları -->
+                    {% if sozlesmeler %}
+                    <h6 class="text-uppercase fw-bold text-muted small mb-3">Sözleşmeler</h6>
+                    <div class="mb-4">
+                        {% for s in sozlesmeler %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot bg-{{ 'danger' if s.kalan_gun <= 0 else 'warning' }}"></div>
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <a href="{{ url_for('sozlesme.sozlesme_detay', id=s.sozlesme.id) }}" class="fw-bold text-decoration-none d-block text-truncate" style="max-width: 75%;">
+                                            {{ s.sozlesme.sozlesme_no }}
+                                        </a>
+                                        <span class="badge bg-{{ 'danger' if s.kalan_gun <= 0 else 'warning text-dark' }}">
+                                            {% if s.kalan_gun < 0 %}{{ s.kalan_gun|abs }} gün geçti
+                                            {% elif s.kalan_gun == 0 %}Bugün Bitiyor
+                                            {% else %}{{ s.kalan_gun }} gün kaldı
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="text-muted small mb-2">{{ s.sozlesme.baslik }}</div>
+                                    <div class="small fw-medium">Bitiş: {{ s.sozlesme.bitis_tarihi.strftime('%d.%m.%Y') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Poliçe Hatırlatmaları -->
+                    {% if policeler %}
+                    <h6 class="text-uppercase fw-bold text-muted small mb-3">Sigorta Poliçeleri</h6>
+                    <div>
+                        {% for p in policeler %}
+                        <div class="timeline-item">
+                            <div class="timeline-dot bg-{{ 'danger' if p.kalan_gun <= 0 else 'info' }}"></div>
+                            <div class="card border-0 bg-light">
+                                <div class="card-body p-3">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <span class="fw-bold text-info">{{ p.police.police_no }}</span>
+                                        <span class="badge bg-{{ 'danger' if p.kalan_gun <= 0 else 'info text-dark' }}">
+                                            {% if p.kalan_gun < 0 %}{{ p.kalan_gun|abs }} gün geçti
+                                            {% elif p.kalan_gun == 0 %}Bugün Bitiyor
+                                            {% else %}{{ p.kalan_gun }} gün kaldı
+                                            {% endif %}
+                                        </span>
+                                    </div>
+                                    <div class="text-muted small mb-2">{{ p.police.sigorta_sirketi }} ({{ p.police.sigorta_turu_adi }})</div>
+                                    <div class="small fw-medium">Bitiş: {{ p.police.police_bitis.strftime('%d.%m.%Y') }}</div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Takvim Görünümü -->
+    <div class="col-12 col-xl-8">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-body p-4">
+                <div id="calendar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Olay Detay Modalı -->
+<div class="modal fade" id="eventModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0">
+            <div class="modal-header text-white" id="eventModalHeader">
+                <h5 class="modal-title fw-bold" id="eventTitle">Başlık</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <span class="text-muted small text-uppercase">Tarih</span>
+                    <div class="fw-bold fs-5" id="eventDate"></div>
+                </div>
+                <div class="mb-3">
+                    <span class="text-muted small text-uppercase">Durum</span>
+                    <div><span class="badge" id="eventStatus"></span></div>
+                </div>
+                <div class="mb-3">
+                    <span class="text-muted small text-uppercase" id="eventInfoLabel">Bilgi</span>
+                    <div class="fw-bold" id="eventInfo"></div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <a href="#" class="btn btn-primary" id="eventLink">Detaya Git</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- FullCalendar JS -->
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/tr.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var calendarEl = document.getElementById('calendar');
+    var eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+    
+    var calendar = new FullCalendar.Calendar(calendarEl, {
+        locale: 'tr',
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,listMonth'
+        },
+        buttonText: {
+            today: 'Bugün',
+            month: 'Ay',
+            list: 'Liste'
+        },
+        themeSystem: 'bootstrap5',
+        events: '/sozlesme/api/takvim-olaylari',
+        eventClick: function(info) {
+            info.jsEvent.preventDefault(); // Tarayıcının linke gitmesini engelle
+            
+            var event = info.event;
+            var props = event.extendedProps;
+            
+            document.getElementById('eventTitle').textContent = event.title;
+            
+            var dateOpts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('eventDate').textContent = event.start.toLocaleDateString('tr-TR', dateOpts);
+            
+            var modalHeader = document.getElementById('eventModalHeader');
+            modalHeader.style.backgroundColor = event.backgroundColor;
+            
+            var statusBadge = document.getElementById('eventStatus');
+            statusBadge.textContent = props.durum;
+            statusBadge.style.backgroundColor = event.backgroundColor;
+            
+            var linkBtn = document.getElementById('eventLink');
+            linkBtn.href = event.url;
+            
+            if (props.tip === 'sozlesme') {
+                document.getElementById('eventInfoLabel').textContent = 'Sözleşme No / Taraf';
+                document.getElementById('eventInfo').innerHTML = `${props.sozlesme_no}<br><span class="fw-normal">${props.taraf}</span>`;
+            } else {
+                document.getElementById('eventInfoLabel').textContent = 'Poliçe No / Şirket';
+                document.getElementById('eventInfo').innerHTML = `${props.police_no}<br><span class="fw-normal">${props.sirket}</span>`;
+            }
+            
+            eventModal.show();
+        }
+    });
+    
+    calendar.render();
+});
+</script>
+{% endblock %}

@@ -2,7 +2,7 @@
 {% block title %}Düzeltici Faaliyetler{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
     <div>
         <h2 class="mb-0 fw-bold"><i class="bi bi-clipboard-check me-2"></i>Düzeltici / Önleyici Faaliyetler</h2>
         <p class="text-muted mb-0 mt-1">CAPA (Corrective and Preventive Action) süreç takibi</p>
@@ -14,8 +14,8 @@
 
 <!-- Durum Filtreleri ve İstatistikler -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
-        <a href="?durum=tumu" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'tumu' %}border-start border-4 border-primary{% endif %}">
+    <div class="col-12 col-md-3">
+        <a href="?durum=tumu" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'tumu' %}{% endif %}">
             <div class="card-body py-3 d-flex align-items-center">
                 <i class="bi bi-grid text-primary fs-4 me-3"></i>
                 <div>
@@ -25,8 +25,8 @@
             </div>
         </a>
     </div>
-    <div class="col-md-3">
-        <a href="?durum=acik" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'acik' %}border-start border-4 border-danger{% endif %}">
+    <div class="col-12 col-md-3">
+        <a href="?durum=acik" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'acik' %}{% endif %}">
             <div class="card-body py-3 d-flex align-items-center">
                 <i class="bi bi-exclamation-circle text-danger fs-4 me-3"></i>
                 <div>
@@ -36,8 +36,8 @@
             </div>
         </a>
     </div>
-    <div class="col-md-3">
-        <a href="?durum=devam" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'devam' %}border-start border-4 border-warning{% endif %}">
+    <div class="col-12 col-md-3">
+        <a href="?durum=devam" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'devam' %}{% endif %}">
             <div class="card-body py-3 d-flex align-items-center">
                 <i class="bi bi-hourglass-split text-warning fs-4 me-3"></i>
                 <div>
@@ -47,8 +47,8 @@
             </div>
         </a>
     </div>
-    <div class="col-md-3">
-        <a href="?durum=kapandi" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'kapandi' %}border-start border-4 border-success{% endif %}">
+    <div class="col-12 col-md-3">
+        <a href="?durum=kapandi" class="card border-0 shadow-sm text-decoration-none h-100 {% if aktif_filtre == 'kapandi' %}{% endif %}">
             <div class="card-body py-3 d-flex align-items-center">
                 <i class="bi bi-check-circle text-success fs-4 me-3"></i>
                 <div>

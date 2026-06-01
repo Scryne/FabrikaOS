@@ -38,13 +38,12 @@ class TestKestirimciBakim:
             sonuc = kestirimci_bakim_servisi.makine_tahmini(99999)
             assert sonuc is None
 
-    def test_risk_skoru_araligi(self, app, sample_data):
+    def test_risk_skoru_araligi(self, app_context, sample_data):
         """Risk skoru 0-100 arasında olmalı."""
-        with app.app_context():
-            from app.services.ai.kestirimci_bakim import kestirimci_bakim_servisi
-            sonuclar = kestirimci_bakim_servisi.tum_makineleri_analiz_et()
-            for s in sonuclar:
-                assert 0 <= s['risk_skoru'] <= 100
+        from app.services.ai.kestirimci_bakim import kestirimci_bakim_servisi
+        sonuclar = kestirimci_bakim_servisi.tum_makineleri_analiz_et()
+        for s in sonuclar:
+            assert 0 <= s['risk_skoru'] <= 100
 
     def test_heuristik_fallback(self, app):
         """ML başarısız olursa heuristik kullanılmalı."""

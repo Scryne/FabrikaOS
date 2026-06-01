@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Poliçe Düzenle' if is_edit else 'Poliçe Ekle' }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('sozlesme.index') }}">Sözleşme Merkezi</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('sozlesme.police_listesi') }}">Poliçeler</a></li>
+        <li class="breadcrumb-item active">{{ 'Düzenle' if is_edit else 'Ekle' }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 px-4">
+                <h4 class="mb-0 fw-bold">
+                    <i class="bi bi-shield-check text-info me-2"></i>
+                    {{ 'Poliçe Düzenle' if is_edit else 'Yeni Poliçe Ekle' }}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Poliçe No <span class="text-danger">*</span></label>
+                            {{ form.police_no(class="form-control", readonly=True if is_edit else False) }}
+                            {% if form.police_no.errors %}
+                                <div class="text-danger small mt-1">{{ form.police_no.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Sigorta Türü <span class="text-danger">*</span></label>
+                            {{ form.sigorta_turu(class="form-select") }}
+                        </div>
+                        
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Sigorta Şirketi <span class="text-danger">*</span></label>
+                            {{ form.sigorta_sirketi(class="form-control", placeholder="Örn: Allianz Sigorta A.Ş.") }}
+                            {% if form.sigorta_sirketi.errors %}
+                                <div class="text-danger small mt-1">{{ form.sigorta_sirketi.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12"><hr class="my-2 opacity-25"></div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Başlangıç Tarihi <span class="text-danger">*</span></label>
+                            {{ form.police_baslangic(class="form-control", type="date") }}
+                            {% if form.police_baslangic.errors %}
+                                <div class="text-danger small mt-1">{{ form.police_baslangic.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Bitiş Tarihi <span class="text-danger">*</span></label>
+                            {{ form.police_bitis(class="form-control", type="date") }}
+                            {% if form.police_bitis.errors %}
+                                <div class="text-danger small mt-1">{{ form.police_bitis.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Prim Tutarı (₺)</label>
+                            {{ form.prim_tutari(class="form-control", type="number", step="0.01") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Teminat Tutarı (₺)</label>
+                            {{ form.teminat_tutari(class="form-control", type="number", step="0.01") }}
+                        </div>
+
+                        <div class="col-12"><hr class="my-2 opacity-25"></div>
+                        
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Bağlı Olduğu Sözleşme (Opsiyonel)</label>
+                            {{ form.sozlesme_id(class="form-select") }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Durum</label>
+                            {{ form.durum(class="form-select") }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Hatırlatma (Gün Önce)</label>
+                            {{ form.hatirlatma_gun(class="form-control", type="number", min="1") }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Notlar</label>
+                            {{ form.notlar(class="form-control", rows="3") }}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top text-end">
+                        <a href="{{ url_for('sozlesme.police_listesi') }}" class="btn btn-light border px-4 me-2">İptal</a>
+                        {{ form.submit(class="btn btn-info text-white px-4 fw-bold") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

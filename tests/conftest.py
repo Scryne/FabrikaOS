@@ -108,3 +108,53 @@ def sample_data(session):
 
     return {'makine': m1, 'kullanici': u1}
 
+@pytest.fixture
+def test_user(session):
+    user = Kullanici.query.filter_by(kullanici_adi='test_user').first()
+    if not user:
+        hashed = bcrypt.generate_password_hash('test1234').decode('utf-8')
+        user = Kullanici(ad_soyad='Test User', kullanici_adi='test_user', sifre_hash=hashed, rol='teknisyen')
+        session.add(user)
+        session.commit()
+    return user
+
+@pytest.fixture
+def yonetici_user(session):
+    user = Kullanici.query.filter_by(kullanici_adi='yonetici_test').first()
+    if not user:
+        hashed = bcrypt.generate_password_hash('admin123').decode('utf-8')
+        user = Kullanici(ad_soyad='Yönetici Test', kullanici_adi='yonetici_test', sifre_hash=hashed, rol='yonetici')
+        session.add(user)
+        session.commit()
+    return user
+
+@pytest.fixture
+def operator_user(session):
+    user = Kullanici.query.filter_by(kullanici_adi='op_test').first()
+    if not user:
+        hashed = bcrypt.generate_password_hash('op123').decode('utf-8')
+        user = Kullanici(ad_soyad='Operator Test', kullanici_adi='op_test', sifre_hash=hashed, rol='operator')
+        session.add(user)
+        session.commit()
+    return user
+
+@pytest.fixture
+def test_db(session):
+    return session
+
+class AuthActions:
+    def __init__(self, client):
+        self._client = client
+
+    def login(self, username='yonetici_test', password='admin123'):
+        return self._client.post(
+            '/auth/login',
+            data={'kullanici_adi': username, 'sifre': password}
+        )
+
+    def logout(self):
+        return self._client.get('/auth/logout')
+
+@pytest.fixture
+def auth(client, yonetici_user):
+    return AuthActions(client)

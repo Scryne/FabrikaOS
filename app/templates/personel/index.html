@@ -11,12 +11,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
     <div>
         <h2 class="mb-0 fw-bold"><i class="bi bi-people me-2 text-primary"></i>Personel Yönetimi</h2>
         <p class="text-muted mb-0 mt-1">Çalışan listesi, vardiya planları ve izin takibi</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
         <a href="{{ url_for('personel.oner') }}" class="btn btn-outline-primary" title="Kim Çalışabilir?">
             <i class="bi bi-lightbulb"></i> <span class="d-none d-md-inline ms-1">Kim Çalışabilir?</span>
         </a>
@@ -38,7 +38,7 @@
 <div class="card mb-4 border-0">
     <div class="card-body p-3">
         <form method="GET" action="{{ url_for('personel.index') }}" class="row g-3">
-            <div class="col-md-5">
+            <div class="col-12 col-md-5">
                 <div class="position-relative">
                     <i class="bi bi-search position-absolute text-muted" style="top: 50%; left: 1rem; transform: translateY(-50%); pointer-events: none;"></i>
                     <input type="text" class="form-control ps-5 pe-5" id="personelSearchInput" name="search" placeholder="İsim veya Sicil No ile ara..." value="{{ search }}" spellcheck="false" oninput="toggleSearchClear()">
@@ -65,7 +65,7 @@
                     document.addEventListener('DOMContentLoaded', toggleSearchClear);
                 </script>
             </div>
-            <div class="col-md-4">
+            <div class="col-12 col-md-4">
                 <select name="departman" class="form-select">
                     <option value="">Tüm Departmanlar</option>
                     {% for d in departmanlar %}
@@ -73,7 +73,7 @@
                     {% endfor %}
                 </select>
             </div>
-            <div class="col-md-3">
+            <div class="col-12 col-md-3">
                 <button type="submit" class="btn btn-secondary w-100">Filtrele</button>
             </div>
         </form>

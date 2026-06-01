@@ -1,0 +1,133 @@
+{% extends"base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('satin_alma.index') }}">Satın Alma</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('satin_alma.talepler') }}">Talepler</a></li>
+        <li class="breadcrumb-item active">{{ title }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-10">
+        <div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-0 fw-bold"><i class="bi bi-cart-plus me-2 text-primary"></i>{{ title }}</h2>
+                <p class="text-muted mb-0 mt-1">Gerekli malzemeleri veya hizmetleri talep edin</p>
+            </div>
+            <a href="{{ url_for('satin_alma.talepler') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Geri Dön
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-body p-4">
+                <form method="post" novalidate>
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-4">
+                        <!-- Sol Kolon: Temel Bilgiler -->
+                        <div class="col-md-6 border-end">
+                            <h5 class="text-primary mb-3">Temel Bilgiler</h5>
+                            
+                            <div class="mb-3">
+                                {{ form.malzeme_hizmet.label(class="form-label text-muted small") }}
+                                {{ form.malzeme_hizmet(class="form-select" + (' is-invalid' if form.malzeme_hizmet.errors else '')) }}
+                                {% if form.malzeme_hizmet.errors %}<div class="invalid-feedback">{% for e in form.malzeme_hizmet.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.kalem_adi.label(class="form-label text-muted small") }}
+                                {{ form.kalem_adi(class="form-control" + (' is-invalid' if form.kalem_adi.errors else ''), placeholder="Örn: CNC Kesici Uç CNMG 120408") }}
+                                {% if form.kalem_adi.errors %}<div class="invalid-feedback">{% for e in form.kalem_adi.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                                <div class="form-text text-muted">{{ form.kalem_adi.description }}</div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.miktar.label(class="form-label text-muted small") }}
+                                    {{ form.miktar(class="form-control" + (' is-invalid' if form.miktar.errors else ''), type="number", step="0.01") }}
+                                    {% if form.miktar.errors %}<div class="invalid-feedback">{% for e in form.miktar.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.birim.label(class="form-label text-muted small") }}
+                                    {{ form.birim(class="form-select" + (' is-invalid' if form.birim.errors else '')) }}
+                                    {% if form.birim.errors %}<div class="invalid-feedback">{% for e in form.birim.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.tahmini_birim_fiyat.label(class="form-label text-muted small") }}
+                                <div class="input-group">
+                                    <span class="input-group-text text-muted">₺</span>
+                                    {{ form.tahmini_birim_fiyat(class="form-control" + (' is-invalid' if form.tahmini_birim_fiyat.errors else ''), type="number", step="0.01") }}
+                                    {% if form.tahmini_birim_fiyat.errors %}<div class="invalid-feedback">{% for e in form.tahmini_birim_fiyat.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                                </div>
+                                <div class="form-text text-muted">{{ form.tahmini_birim_fiyat.description }}</div>
+                            </div>
+                        </div>
+
+                        <!-- Sağ Kolon: Detaylar -->
+                        <div class="col-md-6">
+                            <h5 class="text-primary mb-3">Detaylar & Açıklama</h5>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.departman.label(class="form-label text-muted small") }}
+                                    {{ form.departman(class="form-control" + (' is-invalid' if form.departman.errors else '')) }}
+                                    {% if form.departman.errors %}<div class="invalid-feedback">{% for e in form.departman.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.aciliyet.label(class="form-label text-muted small") }}
+                                    {{ form.aciliyet(class="form-select" + (' is-invalid' if form.aciliyet.errors else '')) }}
+                                    {% if form.aciliyet.errors %}<div class="invalid-feedback">{% for e in form.aciliyet.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.aciklama.label(class="form-label text-muted small") }}
+                                {{ form.aciklama(class="form-control" + (' is-invalid' if form.aciklama.errors else ''), rows="2") }}
+                                {% if form.aciklama.errors %}<div class="invalid-feedback">{% for e in form.aciklama.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                                <div class="form-text text-muted">{{ form.aciklama.description }}</div>
+                            </div>
+
+                            <div class="mb-3">
+                                {{ form.gerekce.label(class="form-label text-muted small") }}
+                                {{ form.gerekce(class="form-control" + (' is-invalid' if form.gerekce.errors else ''), rows="2") }}
+                                {% if form.gerekce.errors %}<div class="invalid-feedback">{% for e in form.gerekce.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    {{ form.istenen_teslim_tarihi.label(class="form-label text-muted small") }}
+                                    {{ form.istenen_teslim_tarihi(class="form-control" + (' is-invalid' if form.istenen_teslim_tarihi.errors else ''), type="date") }}
+                                    {% if form.istenen_teslim_tarihi.errors %}<div class="invalid-feedback">{% for e in form.istenen_teslim_tarihi.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    {{ form.tedarikci_id.label(class="form-label text-muted small") }}
+                                    {{ form.tedarikci_id(class="form-select" + (' is-invalid' if form.tedarikci_id.errors else '')) }}
+                                    {% if form.tedarikci_id.errors %}<div class="invalid-feedback">{% for e in form.tedarikci_id.errors %}{{ e }}{% endfor %}</div>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-4">
+
+                    <div class="text-end">
+                        <a href="{{ url_for('satin_alma.talepler') }}" class="btn btn-secondary me-2">İptal</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> Kaydet
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

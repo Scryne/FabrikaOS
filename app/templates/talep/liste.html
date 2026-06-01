@@ -1,0 +1,153 @@
+{% extends "base.html" %}
+{% block title %}Talepler Listesi{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('talep.index') }}">Talep & İş Takip</a></li>
+        <li class="breadcrumb-item active">Talepler Listesi</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="mb-0 fw-bold">Talepler Listesi</h3>
+    <a href="{{ url_for('talep.ekle') }}" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i>Yeni Talep Oluştur
+    </a>
+</div>
+
+<!-- Filtreleme Kartı -->
+<div class="card border-0 shadow-sm mb-4 bg-card">
+    <div class="card-body">
+        <form method="GET" action="{{ url_for('talep.liste') }}" class="row g-3 align-items-end">
+            <div class="col-12 col-md-3">
+                <label class="form-label text-muted small mb-1">Arama</label>
+                <input type="text" name="q" class="form-control" placeholder="Talep No, Başlık, Kişi..." value="{{ arama }}">
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label text-muted small mb-1">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tümü</option>
+                    {% for key, val in durumlar.items() %}
+                    <option value="{{ key }}" {% if durum == key %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label text-muted small mb-1">Kategori</label>
+                <select name="kategori" class="form-select">
+                    <option value="">Tümü</option>
+                    {% for key, val in kategoriler.items() %}
+                    <option value="{{ key }}" {% if kategori == key %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-2">
+                <label class="form-label text-muted small mb-1">Öncelik</label>
+                <select name="oncelik" class="form-select">
+                    <option value="">Tümü</option>
+                    {% for key, val in oncelikler.items() %}
+                    <option value="{{ key }}" {% if oncelik == key %}selected{% endif %}>{{ val }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1"><i class="bi bi-search me-1"></i>Filtrele</button>
+                <a href="{{ url_for('talep.liste') }}" class="btn btn-outline-secondary" title="Filtreleri Temizle"><i class="bi bi-x-lg"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Liste Kartı -->
+<div class="card border-0 shadow-sm bg-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 custom-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Talep No</th>
+                        <th>Başlık</th>
+                        <th>Talep Eden</th>
+                        <th>Kategori</th>
+                        <th>Öncelik</th>
+                        <th>Durum</th>
+                        <th>Tarih</th>
+                        <th class="text-end">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for talep in talepler.items %}
+                    <tr>
+                        <td class="fw-bold"><a href="{{ url_for('talep.detay', id=talep.id) }}" class="text-decoration-none">{{ talep.talep_no }}</a></td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 250px;" title="{{ talep.baslik }}">{{ talep.baslik }}</div>
+                            {% if talep.atanan %}
+                            <small class="text-muted"><i class="bi bi-person-gear me-1"></i>{{ talep.atanan.ad_soyad }}</small>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div>{{ talep.talep_eden_adi }}</div>
+                            <small class="text-muted">{{ talep.talep_eden_tip_adi }}</small>
+                        </td>
+                        <td>{{ talep.kategori_adi }}</td>
+                        <td>
+                            <span class="badge bg-{{ talep.oncelik_sinif }}">{{ talep.oncelik_adi }}</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ talep.durum_sinif }}"><i class="bi {{ talep.durum_icon }} me-1"></i>{{ talep.durum_adi }}</span>
+                        </td>
+                        <td>
+                            <div title="{{ talep.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}">{{ talep.olusturma_tarihi.strftime('%d.%m.%Y') }}</div>
+                            <small class="text-muted">{{ talep.gecen_sure_str }} önce</small>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('talep.detay', id=talep.id) }}" class="btn btn-sm btn-outline-primary" title="Detayı Gör">
+                                <i class="bi bi-eye"></i> İncele
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                            <p class="mb-0">Kriterlere uygun talep bulunamadı.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Sayfalama -->
+    {% if talepler.pages > 1 %}
+    <div class="card-footer bg-transparent border-0 pt-4 pb-3">
+        <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-0">
+                <li class="page-item {% if not talepler.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('talep.liste', page=talepler.prev_num, q=arama, durum=durum, kategori=kategori, oncelik=oncelik) if talepler.has_prev else '#' }}">Önceki</a>
+                </li>
+                
+                {% for page_num in talepler.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page_num %}
+                        <li class="page-item {% if page_num == talepler.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('talep.liste', page=page_num, q=arama, durum=durum, kategori=kategori, oncelik=oncelik) }}">{{ page_num }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                
+                <li class="page-item {% if not talepler.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('talep.liste', page=talepler.next_num, q=arama, durum=durum, kategori=kategori, oncelik=oncelik) if talepler.has_next else '#' }}">Sonraki</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-7">
+    <div class="col-12 col-md-7">
         <div class="card shadow-sm border-0 border-top border-4 border-info">
             <div class="card-header bg-white py-3 border-bottom-0">
                 <h5 class="mb-0 fw-bold"><i class="bi bi-pause-circle me-2 text-info"></i>Duruş Kaydı (Altı Büyük Kayıp)</h5>
@@ -21,11 +21,11 @@
                     {{ form.hidden_tag() }}
 
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.baslangic.label }}</label>
                             {{ form.baslangic(class="form-control", type="datetime-local") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.bitis.label }}</label>
                             {{ form.bitis(class="form-control", type="datetime-local") }}
                             <small class="text-muted">Boş bırakılırsa devam eden duruş olarak kaydedilir.</small>

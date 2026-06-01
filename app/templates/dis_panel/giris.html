@@ -1,0 +1,73 @@
+{% extends "dis_panel/base_panel.html" %}
+
+{% block auth_content %}
+<div class="card border-0 shadow-lg bg-card mt-5" style="border-radius: 1rem; overflow: hidden;">
+    <div class="row g-0">
+        <!-- Sol Taraf Görsel (Sadece masaüstü) -->
+        <div class="col-md-5 d-none d-md-block" style="background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);">
+            <div class="h-100 d-flex flex-column justify-content-center text-white p-4">
+                <i class="bi bi-buildings-fill display-3 mb-4"></i>
+                <h3 class="fw-bold">FDYS Portalı</h3>
+                <p class="opacity-75">Ortak ve işletmelerimize özel dijital yönetim ve takip platformu.</p>
+                <ul class="list-unstyled mt-4 opacity-75">
+                    <li class="mb-2"><i class="bi bi-check2-circle me-2"></i>Borç ve Aidat Takibi</li>
+                    <li class="mb-2"><i class="bi bi-check2-circle me-2"></i>Sanal POS ile Ödeme</li>
+                    <li class="mb-2"><i class="bi bi-check2-circle me-2"></i>Hızlı Talep / Şikayet</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- Sağ Taraf Form -->
+        <div class="col-12 col-md-7">
+            <div class="p-4 p-md-5">
+                <div class="text-center mb-4">
+                    <h4 class="fw-bold text-primary mb-1">Giriş Yap</h4>
+                    <p class="text-muted small">Panel hesabınıza erişmek için bilgilerinizi girin.</p>
+                </div>
+                
+                <form method="POST" action="">
+                    {{ form.hidden_tag() }}
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-medium">{{ form.kullanici_adi.label.text }}</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-body border-end-0"><i class="bi bi-person text-muted"></i></span>
+                            {{ form.kullanici_adi(class="form-control border-start-0 ps-0" + (" is-invalid" if form.kullanici_adi.errors else ""), placeholder="Kullanıcı adınız") }}
+                        </div>
+                        {% for error in form.kullanici_adi.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <label class="form-label fw-medium mb-0">{{ form.sifre.label.text }}</label>
+                            <a href="#" class="small text-decoration-none" tabindex="-1">Şifremi Unuttum?</a>
+                        </div>
+                        <div class="input-group">
+                            <span class="input-group-text bg-body border-end-0"><i class="bi bi-lock text-muted"></i></span>
+                            {{ form.sifre(class="form-control border-start-0 ps-0" + (" is-invalid" if form.sifre.errors else ""), placeholder="Şifreniz") }}
+                        </div>
+                        {% for error in form.sifre.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    
+                    <div class="mb-4 form-check">
+                        {{ form.hatirla(class="form-check-input") }}
+                        <label class="form-check-label text-muted small" for="{{ form.hatirla.id }}">{{ form.hatirla.label.text }}</label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold shadow-sm">
+                        Giriş Yap <i class="bi bi-box-arrow-in-right ms-1"></i>
+                    </button>
+                </form>
+                
+                <div class="text-center mt-4">
+                    <p class="text-muted small mb-0">Hesabınız yok mu? <br> Lütfen yönetim ofisi ile iletişime geçin.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

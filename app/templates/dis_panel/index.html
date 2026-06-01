@@ -1,0 +1,138 @@
+{% extends "dis_panel/base_panel.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Hoş Geldiniz, {{ dis_kullanici.ad_soyad }}</h4>
+        <p class="text-muted mb-0 mt-1">{{ dis_kullanici.bagli_isim }} - {{ 'Ortak' if dis_kullanici.ortak_id else 'Firma' }} Paneli</p>
+    </div>
+    <a href="{{ url_for('dis_panel.yeni_talep') }}" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i>Yeni Talep Oluştur
+    </a>
+</div>
+
+<!-- Finansal Özet -->
+<div class="row g-4 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm bg-card h-100" style="border-top: 4px solid var(--bs-danger);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="text-muted text-uppercase mb-0">Toplam Borcunuz</h6>
+                    <div class="p-2 bg-danger bg-opacity-10 rounded text-danger">
+                        <i class="bi bi-credit-card"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold {% if stats.borc_ozeti.toplam_kalan > 0 %}text-danger{% else %}text-success{% endif %}">
+                    {{ '{:,.2f}'.format(stats.borc_ozeti.toplam_kalan).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺
+                </h3>
+                
+                {% if stats.borc_ozeti.toplam_kalan > 0 %}
+                <a href="{{ url_for('dis_panel.borclarim') }}" class="btn btn-sm btn-outline-danger mt-3 w-100">Ödeme Yap</a>
+                {% else %}
+                <div class="text-success mt-3 small"><i class="bi bi-check-circle me-1"></i>Vadesi geçmiş borcunuz bulunmuyor.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Talep Özeti -->
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm bg-card h-100" style="border-top: 4px solid var(--bs-info);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="text-muted text-uppercase mb-0">Açık Talepleriniz</h6>
+                    <div class="p-2 bg-info bg-opacity-10 rounded text-info">
+                        <i class="bi bi-headset"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-info">{{ stats.acik_talep }}</h3>
+                <a href="{{ url_for('dis_panel.taleplerim') }}" class="btn btn-sm btn-outline-info mt-3 w-100">Taleplerimi Gör</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-md-4">
+        <div class="card border-0 shadow-sm bg-card h-100" style="border-top: 4px solid var(--bs-success);">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h6 class="text-muted text-uppercase mb-0">Tamamlanan Talepler</h6>
+                    <div class="p-2 bg-success bg-opacity-10 rounded text-success">
+                        <i class="bi bi-check2-all"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-success">{{ stats.tamamlanan_talep }}</h3>
+                <div class="text-muted mt-3 small">Bugüne kadar çözülen talepleriniz.</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Son Borçlar -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm bg-card h-100">
+            <div class="card-header bg-transparent pt-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-receipt me-2 text-primary"></i>Son Borç Kayıtları</h6>
+                <a href="{{ url_for('dis_panel.borclarim') }}" class="small text-decoration-none">Tümü</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for borc in stats.borc_ozeti.borclar[:4] %}
+                    <div class="list-group-item p-3 bg-transparent border-color">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold">{{ borc.borc_turu_adi }} {% if borc.donem %}({{ borc.donem }}){% endif %}</span>
+                            <span class="fw-bold {% if borc.kalan_tutar > 0 %}text-danger{% else %}text-success{% endif %}">
+                                {{ '{:,.2f}'.format(borc.kalan_tutar).replace(',', 'X').replace('.', ',').replace('X', '.') }} ₺
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge bg-{{ borc.durum_sinif }}">{{ borc.durum_adi }}</span>
+                            {% if borc.kalan_tutar > 0 %}
+                            <a href="{{ url_for('dis_panel.odeme', borc_id=borc.id) }}" class="btn btn-sm btn-primary py-0" style="font-size: 0.8rem;">Öde</a>
+                            {% else %}
+                            <small class="text-success"><i class="bi bi-check-lg"></i> Ödendi</small>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-check-circle fs-3 d-block mb-2 text-success"></i>
+                        <p class="mb-0 small">Borç kaydınız bulunmuyor.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Son Talepler -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm bg-card h-100">
+            <div class="card-header bg-transparent pt-4 pb-3 border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-envelope-paper me-2 text-primary"></i>Son Talepleriniz</h6>
+                <a href="{{ url_for('dis_panel.taleplerim') }}" class="small text-decoration-none">Tümü</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for talep in stats.talepler %}
+                    <a href="{{ url_for('dis_panel.talep_detay', id=talep.id) }}" class="list-group-item list-group-item-action p-3 bg-transparent border-color">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="badge bg-{{ talep.durum_sinif }}"><i class="bi {{ talep.durum_icon }} me-1"></i>{{ talep.durum_adi }}</span>
+                            <small class="text-muted">{{ talep.olusturma_tarihi.strftime('%d.%m.%Y') }}</small>
+                        </div>
+                        <div class="fw-bold mt-2 text-truncate">{{ talep.baslik }}</div>
+                        <div class="small text-muted mt-1">{{ talep.talep_no }}</div>
+                    </a>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-inbox fs-3 d-block mb-2"></i>
+                        <p class="mb-0 small">Henüz açılmış bir talebiniz yok.</p>
+                        <a href="{{ url_for('dis_panel.yeni_talep') }}" class="btn btn-sm btn-outline-primary mt-2">Talep Oluştur</a>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends"base.html" %}
+{% block title %}Satın Alma Yönetimi{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item active">Satın Alma</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-cart-check me-2 text-success"></i>Satın Alma Yönetimi</h2>
+        <p class="text-muted mb-0 mt-1">Talepler, Siparişler ve Tedarikçi Yönetimi</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 mt-2 mt-md-0">
+        <a href="{{ url_for('satin_alma.talepler') }}" class="btn btn-outline-secondary">Tüm Talepler</a>
+        <a href="{{ url_for('satin_alma.siparisler') }}" class="btn btn-outline-secondary">Tüm Siparişler</a>
+        {% if current_user.modul_erisim_var_mi('satin_alma', 'yazma') %}
+        <a href="{{ url_for('satin_alma.talep_ekle') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Yeni Talep
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- İstatistikler -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                <i class="bi bi-hourglass-split"></i>
+            </div>
+            <div>
+                <div class="kpi-value text-warning">{{ istatistikler.bekleyen }}</div>
+                <div class="kpi-label text-uppercase">Bekleyen Talepler</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:rgba(59,130,246,0.12);color:#3b82f6;">
+                <i class="bi bi-truck"></i>
+            </div>
+            <div>
+                <div class="kpi-value text-primary">{{ istatistikler.aktif_siparis }}</div>
+                <div class="kpi-label text-uppercase">Aktif Siparişler</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:rgba(239,68,68,0.12);color:#ef4444;">
+                <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div>
+                <div class="kpi-value text-danger">{{ istatistikler.geciken_siparis }}</div>
+                <div class="kpi-label text-uppercase">Geciken Siparişler</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="kpi-mini-card h-100">
+            <div class="kpi-icon" style="background:rgba(16,185,129,0.12);color:#10b981;">
+                <i class="bi bi-cash-coin"></i>
+            </div>
+            <div>
+                <div class="kpi-value text-success" style="font-size: 1.3rem;">{{"₺{:,.2f}".format(istatistikler.toplam_tutar) }}</div>
+                <div class="kpi-label text-uppercase">Toplam Harcama</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card border-0 mb-4 h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-card-checklist me-2 text-primary"></i>Son Talepler</h5>
+                <a href="{{ url_for('satin_alma.talepler') }}" class="btn btn-sm btn-outline-primary">Tümü →</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for talep in son_talepler %}
+                    <a href="{{ url_for('satin_alma.talep_detay', id=talep.id) }}" class="list-group-item list-group-item-action border-0 px-4 py-3">
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold" style="color:var(--text-heading);">{{ talep.kalem_adi }}</h6>
+                            <small class="text-muted">{{ talep.olusturma_tarihi.strftime('%d.%m.%Y') }}</small>
+                        </div>
+                        <p class="mb-1 text-muted small">
+                            {{ talep.talep_no }} | Miktar: {{ talep.miktar }} {{ talep.birim_adi }}
+                        </p>
+                        <div class="mt-2">
+                            <span class="badge {{ talep.durum_badge }}">{{ talep.durum_adi }}</span>
+                            {% if talep.aciliyet == 'acil' %}<span class="badge bg-danger-subtle text-danger-emphasis border border-danger ms-1"><i class="bi bi-lightning-fill me-1"></i>Acil</span>{% endif %}
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-inbox display-4 d-block mb-3 opacity-50"></i>
+                        Kayıtlı talep bulunmuyor.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card border-0 mb-4 h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-box-seam me-2 text-success"></i>Son Siparişler</h5>
+                <a href="{{ url_for('satin_alma.siparisler') }}" class="btn btn-sm btn-outline-success">Tümü →</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for siparis in son_siparisler %}
+                    <a href="{{ url_for('satin_alma.siparis_detay', id=siparis.id) }}" class="list-group-item list-group-item-action border-0 px-4 py-3">
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold" style="color:var(--text-heading);">{{ siparis.tedarikci.ad if siparis.tedarikci else 'Tedarikçi Belirsiz' }}</h6>
+                            <small class="text-muted">{{ siparis.siparis_tarihi.strftime('%d.%m.%Y') }}</small>
+                        </div>
+                        <p class="mb-1 text-muted small">
+                            {{ siparis.siparis_no }} | {{ siparis.talep.kalem_adi[:30] }}...
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="badge {{ siparis.durum_badge }}">{{ siparis.durum_adi }}</span>
+                            <span class="fw-bold text-success">{{"₺{:,.2f}".format(siparis.genel_toplam) if siparis.genel_toplam else '—' }}</span>
+                        </div>
+                    </a>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-inbox display-4 d-block mb-3 opacity-50"></i>
+                        Kayıtlı sipariş bulunmuyor.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

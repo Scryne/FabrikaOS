@@ -1,0 +1,565 @@
+{% extends "base.html" %}
+{% block title %}360° Personel Kartı — {{ calisan.ad_soyad }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+        <li class="breadcrumb-item active">{{ calisan.ad_soyad }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<!-- Profil Başlığı -->
+<div class="card border-0 mb-4">
+    <div class="card-body">
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            {% if calisan.fotograf %}
+                <img src="{{ url_for('static', filename='uploads/' + calisan.fotograf) }}" alt="{{ calisan.ad_soyad }}" class="rounded-circle shadow" width="80" height="80" style="object-fit:cover; border:3px solid var(--border-color);">
+            {% else %}
+                <div class="fdys-avatar fdys-avatar-lg shadow">{{ calisan.ad_soyad[:2]|upper }}</div>
+            {% endif %}
+            <div class="flex-grow-1">
+                <h3 class="mb-1 fw-bold">{{ calisan.ad_soyad }}</h3>
+                <div class="d-flex flex-wrap gap-2 text-muted">
+                    <span><i class="bi bi-hash me-1"></i>{{ calisan.sicil_no }}</span>
+                    <span>•</span>
+                    <span><i class="bi bi-building me-1"></i>{{ calisan.departman }}</span>
+                    <span>•</span>
+                    <span><i class="bi bi-briefcase me-1"></i>{{ calisan.pozisyon }}</span>
+                    <span>•</span>
+                    <span><i class="bi bi-calendar me-1"></i>Kıdem: <strong>{{ kidem_yili }} yıl</strong></span>
+                </div>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="{{ url_for('personel.detay', id=calisan.id) }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-eye me-1"></i>Personel Detay
+                </a>
+                <a href="{{ url_for('ik.maas_gecmisi', calisan_id=calisan.id) }}" class="btn btn-outline-primary btn-sm">
+                    <i class="bi bi-currency-exchange me-1"></i>Maaş Geçmişi
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Özet -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="kpi-mini-card">
+            <div class="kpi-icon" style="background:rgba(59,130,246,0.12);color:#3b82f6;">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ izin_bakiye.yillik.kalan if izin_bakiye else 0 }}</div>
+                <div class="kpi-label">Kalan Yıllık İzin</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-mini-card">
+            <div class="kpi-icon" style="background:rgba(16,185,129,0.12);color:#10b981;">
+                <i class="bi bi-currency-exchange"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{% if guncel_maas %}{{ guncel_maas.brut_maas|int }}₺{% else %}—{% endif %}</div>
+                <div class="kpi-label">Güncel Brüt Maaş</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-mini-card">
+            <div class="kpi-icon" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ mesai_ozeti.toplam_saat|round(1) }}h</div>
+                <div class="kpi-label">Bu Ay Fazla Mesai</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="kpi-mini-card">
+            <div class="kpi-icon" style="background:rgba(6,182,212,0.12);color:#06b6d4;">
+                <i class="bi bi-box-seam"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ aktif_zimmetler|length }}</div>
+                <div class="kpi-label">Aktif Zimmet</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tab Navigasyonu -->
+<ul class="nav nav-tabs mb-4" id="personelKartiTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="genel-tab" data-bs-toggle="tab" data-bs-target="#genel" type="button" role="tab">
+            <i class="bi bi-person me-1"></i>Genel
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="izinler-tab" data-bs-toggle="tab" data-bs-target="#izinler" type="button" role="tab">
+            <i class="bi bi-calendar-x me-1"></i>İzinler
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="sertifika-tab" data-bs-toggle="tab" data-bs-target="#sertifika" type="button" role="tab">
+            <i class="bi bi-award me-1"></i>Sertifikalar
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="savunma-tab" data-bs-toggle="tab" data-bs-target="#savunma" type="button" role="tab">
+            <i class="bi bi-file-text me-1"></i>Savunma <span class="badge bg-secondary ms-1">{{ savunma_sayisi }}</span>
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="zimmet-tab" data-bs-toggle="tab" data-bs-target="#zimmet" type="button" role="tab">
+            <i class="bi bi-box-seam me-1"></i>Zimmet
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="evrak-tab" data-bs-toggle="tab" data-bs-target="#evrak" type="button" role="tab">
+            <i class="bi bi-file-earmark-check me-1"></i>Evraklar
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="isg-tab" data-bs-toggle="tab" data-bs-target="#isg" type="button" role="tab">
+            <i class="bi bi-shield-check me-1"></i>İSG
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="personelKartiContent">
+    <!-- Genel Bilgi -->
+    <div class="tab-pane fade show active" id="genel" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 h-100">
+                    <div class="card-header"><h6 class="mb-0"><i class="bi bi-person-lines-fill text-primary me-2"></i>Kişisel Bilgiler</h6></div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">TC Kimlik</span>
+                                <span class="fw-medium text-light">{{ calisan.tc_kimlik or '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">Doğum Tarihi</span>
+                                <span class="text-light">{{ calisan.dogum_tarihi.strftime('%d.%m.%Y') if calisan.dogum_tarihi else '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">Kan Grubu</span>
+                                <span class="text-light fw-bold text-danger">{{ calisan.kan_grubu or '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">Medeni Durum</span>
+                                <span class="text-light">{{ calisan.medeni_durum|capitalize if calisan.medeni_durum else '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">Eğitim Durumu</span>
+                                <span class="text-light">{{ calisan.egitim_durumu|capitalize if calisan.egitim_durumu else '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25 border-bottom-0">
+                                <span class="text-muted">Askerlik</span>
+                                <span class="text-light">{{ calisan.askerlik_durumu|capitalize if calisan.askerlik_durumu else '—' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="card border-0 h-100">
+                    <div class="card-header"><h6 class="mb-0"><i class="bi bi-telephone text-success me-2"></i>İletişim & Acil Durum</h6></div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush bg-transparent">
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">Telefon</span>
+                                <span class="text-light">{{ calisan.telefon or '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">E-posta</span>
+                                <span class="text-light">{{ calisan.eposta or '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">Adres</span>
+                                <span class="text-light text-end" style="max-width: 60%;">{{ calisan.adres or '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">İl / İlçe</span>
+                                <span class="text-light">{{ calisan.il or '—' }} / {{ calisan.ilce or '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25">
+                                <span class="text-muted">Acil Kişi</span>
+                                <span class="text-danger fw-medium">{{ calisan.acil_kisi_adi or '—' }}</span>
+                            </li>
+                            <li class="list-group-item bg-transparent d-flex justify-content-between align-items-center px-0 py-3 border-secondary border-opacity-25 border-bottom-0">
+                                <span class="text-muted">Acil Telefon</span>
+                                <span class="text-danger fw-medium">{{ calisan.acil_kisi_tel or '—' }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İzinler -->
+    <div class="tab-pane fade" id="izinler" role="tabpanel">
+        {% if izin_bakiye %}
+        <div class="row g-3 mb-4">
+            {% for tur, veri in [('Yıllık', izin_bakiye.yillik), ('Mazeret', izin_bakiye.mazeret), ('Sağlık', izin_bakiye.saglik)] %}
+            <div class="col-12 col-md-4">
+                <div class="card border-0">
+                    <div class="card-body text-center">
+                        <h6 class="text-muted">{{ tur }} İzin</h6>
+                        <div class="d-flex justify-content-center gap-4 mt-3">
+                            <div><div class="fs-3 fw-bold text-primary">{{ veri.hak }}</div><small class="text-muted">Hak</small></div>
+                            <div><div class="fs-3 fw-bold text-warning">{{ veri.kullanilan }}</div><small class="text-muted">Kullanılan</small></div>
+                            <div><div class="fs-3 fw-bold text-success">{{ veri.kalan }}</div><small class="text-muted">Kalan</small></div>
+                        </div>
+                        <div class="progress mt-3" style="height:6px;">
+                            <div class="progress-bar bg-primary" style="width:{{ (veri.kullanilan / veri.hak * 100) if veri.hak else 0 }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        <div class="card border-0">
+            <div class="card-header"><h6 class="mb-0">Son İzin Talepleri</h6></div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th class="ps-4">Tür</th><th>Başlangıç</th><th>Bitiş</th><th>Gün</th><th>Durum</th></tr></thead>
+                        <tbody>
+                            {% for izin in son_izinler %}
+                            <tr>
+                                <td class="ps-4"><span class="badge bg-secondary">{{ izin.tur|capitalize }}</span></td>
+                                <td>{{ izin.baslangic_tarihi.strftime('%d.%m.%Y') }}</td>
+                                <td>{{ izin.bitis_tarihi.strftime('%d.%m.%Y') }}</td>
+                                <td>{{ (izin.bitis_tarihi - izin.baslangic_tarihi).days + 1 }}</td>
+                                <td>
+                                    {% if izin.durum == 'onaylandi' %}<span class="badge bg-success-subtle">Onaylandı</span>
+                                    {% elif izin.durum == 'bekliyor' %}<span class="badge bg-warning-subtle">Bekliyor</span>
+                                    {% else %}<span class="badge bg-danger-subtle">Reddedildi</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-4">Henüz izin kaydı yok.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sertifikalar -->
+    <div class="tab-pane fade" id="sertifika" role="tabpanel">
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Sertifikalar & Belgeler</h6>
+                <a href="{{ url_for('ik.sertifika_ekle') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Ekle</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th class="ps-4">Sertifika</th><th>Kurum</th><th>Kategori</th><th>Veriliş</th><th>Geçerlilik</th><th>Durum</th></tr></thead>
+                        <tbody>
+                            {% for s in sertifikalar %}
+                            <tr class="{% if s.suresi_doldu_mu %}table-danger{% elif s.suresi_doluyor_mu %}table-warning{% endif %}">
+                                <td class="ps-4 fw-medium">{{ s.sertifika_adi }}</td>
+                                <td class="text-muted">{{ s.veren_kurum }}</td>
+                                <td><span class="badge bg-secondary">{{ s.kategori_adi }}</span></td>
+                                <td>{{ s.verilis_tarihi.strftime('%d.%m.%Y') }}</td>
+                                <td>{{ s.gecerlilik_bitis.strftime('%d.%m.%Y') if s.gecerlilik_bitis else 'Süresiz' }}</td>
+                                <td>
+                                    {% if s.durum == 'gecerli' %}<span class="badge bg-success-subtle">Geçerli</span>
+                                    {% elif s.durum == 'suresi_doldu' %}<span class="badge bg-danger">Süresi Doldu</span>
+                                    {% else %}<span class="badge bg-secondary">İptal</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted py-4">Sertifika kaydı yok.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Savunma/Tutanaklar -->
+    <div class="tab-pane fade" id="savunma" role="tabpanel">
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Savunma / Tutanaklar</h6>
+                <a href="{{ url_for('ik.savunma_ekle') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Ekle</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th class="ps-4">Tarih</th><th>Tür</th><th>Konu</th><th>Durum</th><th class="text-end pe-4">İşlem</th></tr></thead>
+                        <tbody>
+                            {% for s in savunmalar %}
+                            <tr>
+                                <td class="ps-4">{{ s.olusturma_tarihi.strftime('%d.%m.%Y') }}</td>
+                                <td><span class="badge bg-secondary">{{ s.tur_adi }}</span></td>
+                                <td class="fw-medium">{{ s.konu[:50] }}</td>
+                                <td>
+                                    {% if s.durum == 'acik' %}<span class="badge bg-warning-subtle">Açık</span>
+                                    {% elif s.durum == 'kapatildi' %}<span class="badge bg-success-subtle">Kapatıldı</span>
+                                    {% else %}<span class="badge bg-danger-subtle">İtiraz</span>{% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <a href="{{ url_for('ik.savunma_detay', id=s.id) }}" class="btn btn-outline-info btn-sm"><i class="bi bi-eye"></i></a>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="5" class="text-center text-muted py-4">Savunma/tutanak kaydı yok.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zimmet -->
+    <div class="tab-pane fade" id="zimmet" role="tabpanel">
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">Zimmet Kayıtları</h6>
+                <a href="{{ url_for('ik.zimmet_ekle') }}" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Ekle</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light"><tr><th class="ps-4">Demirbaş</th><th>Kod</th><th>Kategori</th><th>Teslim</th><th>İade</th><th>Durum</th></tr></thead>
+                        <tbody>
+                            {% for z in zimmetler %}
+                            <tr class="{% if z.iade_edilmedi_mi %}{% endif %}">
+                                <td class="ps-4 fw-medium">{{ z.demirbas_adi }}</td>
+                                <td class="text-muted">{{ z.demirbas_kodu or '—' }}</td>
+                                <td><span class="badge bg-secondary">{{ z.kategori_adi }}</span></td>
+                                <td>{{ z.teslim_tarihi.strftime('%d.%m.%Y') }}</td>
+                                <td>{{ z.iade_tarihi.strftime('%d.%m.%Y') if z.iade_tarihi else '—' }}</td>
+                                <td>
+                                    {% if z.durum == 'teslim_edildi' %}<span class="badge bg-primary-subtle">Teslim Edildi</span>
+                                    {% elif z.durum == 'iade_edildi' %}<span class="badge bg-success-subtle">İade Edildi</span>
+                                    {% elif z.durum == 'kayip' %}<span class="badge bg-danger">Kayıp</span>
+                                    {% else %}<span class="badge bg-warning">Hasarlı</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="6" class="text-center text-muted py-4">Zimmet kaydı yok.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Evraklar -->
+    <div class="tab-pane fade" id="evrak" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-box-arrow-in-right text-success me-2"></i>İşe Giriş Evrakları</h6>
+                        <span class="badge bg-primary">%{{ giris_tamamlanma }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if not giris_evraklar %}
+                        <div class="text-center py-3">
+                            <p class="text-muted mb-2">Henüz evrak listesi oluşturulmadı.</p>
+                            <a href="{{ url_for('ik.giris_cikis_ekle', standart='ise_giris', calisan_id=calisan.id) }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-plus me-1"></i>Standart Evrakları Oluştur
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="progress mb-3" style="height:6px;">
+                            <div class="progress-bar bg-success" style="width:{{ giris_tamamlanma }}%;"></div>
+                        </div>
+                        {% for e in giris_evraklar %}
+                        <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                {% if e.durum == 'tamamlandi' %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                {% elif e.durum == 'eksik' %}
+                                    <i class="bi bi-exclamation-circle-fill text-danger"></i>
+                                {% else %}
+                                    <i class="bi bi-circle text-muted"></i>
+                                {% endif %}
+                                <span class="{% if e.durum == 'tamamlandi' %}text-muted text-decoration-line-through{% endif %}">{{ e.evrak_adi }}</span>
+                            </div>
+                            <form method="POST" action="{{ url_for('ik.evrak_durum_guncelle', id=e.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                {% if e.durum != 'tamamlandi' %}
+                                <input type="hidden" name="durum" value="tamamlandi">
+                                <button type="submit" class="btn btn-outline-success btn-sm py-0 px-2" title="Tamamlandı"><i class="bi bi-check"></i></button>
+                                {% else %}
+                                <input type="hidden" name="durum" value="bekliyor">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm py-0 px-2" title="Geri Al"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                {% endif %}
+                            </form>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="card border-0">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-box-arrow-right text-danger me-2"></i>İşten Çıkış Evrakları</h6>
+                        <span class="badge bg-primary">%{{ cikis_tamamlanma }}</span>
+                    </div>
+                    <div class="card-body">
+                        {% if not cikis_evraklar %}
+                        <div class="text-center py-3">
+                            <p class="text-muted mb-2">Henüz çıkış evrakı oluşturulmadı.</p>
+                            <a href="{{ url_for('ik.giris_cikis_ekle', standart='isten_cikis', calisan_id=calisan.id) }}" class="btn btn-outline-danger btn-sm">
+                                <i class="bi bi-plus me-1"></i>Standart Evrakları Oluştur
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="progress mb-3" style="height:6px;">
+                            <div class="progress-bar bg-danger" style="width:{{ cikis_tamamlanma }}%;"></div>
+                        </div>
+                        {% for e in cikis_evraklar %}
+                        <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                {% if e.durum == 'tamamlandi' %}
+                                    <i class="bi bi-check-circle-fill text-success"></i>
+                                {% elif e.durum == 'eksik' %}
+                                    <i class="bi bi-exclamation-circle-fill text-danger"></i>
+                                {% else %}
+                                    <i class="bi bi-circle text-muted"></i>
+                                {% endif %}
+                                <span class="{% if e.durum == 'tamamlandi' %}text-muted text-decoration-line-through{% endif %}">{{ e.evrak_adi }}</span>
+                            </div>
+                            <form method="POST" action="{{ url_for('ik.evrak_durum_guncelle', id=e.id) }}" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                {% if e.durum != 'tamamlandi' %}
+                                <input type="hidden" name="durum" value="tamamlandi">
+                                <button type="submit" class="btn btn-outline-success btn-sm py-0 px-2"><i class="bi bi-check"></i></button>
+                                {% else %}
+                                <input type="hidden" name="durum" value="bekliyor">
+                                <button type="submit" class="btn btn-outline-secondary btn-sm py-0 px-2"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                {% endif %}
+                            </form>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İSG -->
+    <div class="tab-pane fade" id="isg" role="tabpanel">
+        <div class="row g-4">
+            <div class="col-12 col-lg-6">
+                <div class="card border-0">
+                    <div class="card-header"><h6 class="mb-0"><i class="bi bi-mortarboard text-info me-2"></i>İSG Eğitimleri</h6></div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light"><tr><th class="ps-4">Eğitim</th><th>Tarih</th><th>Geçerlilik</th></tr></thead>
+                                <tbody>
+                                    {% for e in isg_egitimleri %}
+                                    <tr>
+                                        <td class="ps-4 fw-medium">{{ e.egitim_adi }}</td>
+                                        <td>{{ e.egitim_tarihi.strftime('%d.%m.%Y') }}</td>
+                                        <td>{{ e.gecerlilik_bitis.strftime('%d.%m.%Y') if e.gecerlilik_bitis else 'Süresiz' }}</td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="3" class="text-center text-muted py-4">İSG eğitimi kaydı yok.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-lg-6">
+                <div class="card border-0">
+                    <div class="card-header"><h6 class="mb-0"><i class="bi bi-exclamation-triangle text-danger me-2"></i>İş Kazaları</h6></div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light"><tr><th class="ps-4">Tarih</th><th>Yer</th><th>Şiddet</th><th>Durum</th></tr></thead>
+                                <tbody>
+                                    {% for k in kazalar %}
+                                    <tr>
+                                        <td class="ps-4">{{ k.tarih.strftime('%d.%m.%Y') }}</td>
+                                        <td>{{ k.yer }}</td>
+                                        <td>
+                                            {% if k.siddet == 'hafif' %}<span class="badge bg-success-subtle">Hafif</span>
+                                            {% elif k.siddet == 'orta' %}<span class="badge bg-warning-subtle">Orta</span>
+                                            {% elif k.siddet == 'agir' %}<span class="badge bg-danger-subtle">Ağır</span>
+                                            {% else %}<span class="badge bg-danger">Ölümcül</span>{% endif %}
+                                        </td>
+                                        <td>
+                                            {% if k.durum == 'acik' %}<span class="badge bg-warning-subtle">Açık</span>
+                                            {% elif k.durum == 'kapandi' %}<span class="badge bg-success-subtle">Kapandı</span>
+                                            {% else %}<span class="badge bg-info-subtle">Araştırılıyor</span>{% endif %}
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="4" class="text-center text-muted py-4">İş kazası kaydı yok.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12">
+                <div class="card border-0">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0"><i class="bi bi-heart-pulse text-danger me-2"></i>Sağlık Muayeneleri</h6>
+                        <a href="{{ url_for('isg.muayene_ekle', calisan_id=calisan.id) }}" class="btn btn-sm btn-outline-danger">Muayene Ekle</a>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light"><tr><th class="ps-4">Tür</th><th>Tarih</th><th>Sonuç</th><th>Sonraki Muayene</th><th>Kısıtlamalar</th></tr></thead>
+                                <tbody>
+                                    {% for m in muayeneler %}
+                                    <tr>
+                                        <td class="ps-4 fw-medium">{{ m.tur_adi }}</td>
+                                        <td>{{ m.muayene_tarihi.strftime('%d.%m.%Y') }}</td>
+                                        <td>
+                                            {% if m.sonuc == 'uygun' %}<span class="badge bg-success-subtle border border-success text-success">Uygun</span>
+                                            {% elif m.sonuc == 'sinirli_uygun' %}<span class="badge bg-warning-subtle border border-warning text-warning">Sınırlı Uygun</span>
+                                            {% else %}<span class="badge bg-danger-subtle border border-danger text-danger">Uygun Değil</span>{% endif %}
+                                        </td>
+                                        <td>
+                                            {% if m.sonraki_muayene_tarihi %}
+                                                <span class="{% if m.muayene_gecikti_mi %}text-danger fw-bold{% elif m.muayene_yaklasıyor_mu %}text-warning fw-bold{% endif %}">
+                                                    {{ m.sonraki_muayene_tarihi.strftime('%d.%m.%Y') }}
+                                                </span>
+                                            {% else %}—{% endif %}
+                                        </td>
+                                        <td class="text-muted"><small>{{ m.kisitlamalar or '—' }}</small></td>
+                                    </tr>
+                                    {% else %}
+                                    <tr><td colspan="5" class="text-center text-muted py-4">Sağlık muayenesi kaydı yok.</td></tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

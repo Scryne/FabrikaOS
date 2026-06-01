@@ -65,78 +65,136 @@
                 </span>
             </div>
 
-            <!-- Main Menu -->
-            <div class="sidebar-label">Ana Menü</div>
+            <!-- Genel -->
+            <div class="sidebar-label">Genel</div>
             <ul class="nav flex-column">
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('dashboard.') %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
-                        <i class="bi bi-grid-1x2 me-2"></i>Dashboard
+                        <i class="bi bi-grid-1x2 me-2 text-primary"></i>Dashboard
                     </a>
                 </li>
-                {% if current_user.modul_erisim_var_mi('personel') %}
+                {% if current_user.modul_erisim_var_mi('talep') %}
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('personel.') %}active{% endif %}" href="{{ url_for('personel.index') }}">
-                        <i class="bi bi-people me-2"></i>Personel
-                    </a>
-                </li>
-                {% endif %}
-                {% if current_user.modul_erisim_var_mi('makine') %}
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('makine.') %}active{% endif %}" href="{{ url_for('makine.index') }}">
-                        <i class="bi bi-cpu me-2"></i>Makine & Üretim
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('talep.') %}active{% endif %}" href="{{ url_for('talep.index') }}">
+                        <i class="bi bi-headset me-2 text-warning"></i>Talep & İş Takip
                     </a>
                 </li>
                 {% endif %}
-                {% if current_user.modul_erisim_var_mi('stok') %}
+                {% if current_user.modul_erisim_var_mi('duyuru') %}
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('stok.') %}active{% endif %}" href="{{ url_for('stok.index') }}">
-                        <i class="bi bi-box-seam me-2"></i>Stok
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('duyuru.') %}active{% endif %}" href="{{ url_for('duyuru.index') }}">
+                        <i class="bi bi-megaphone me-2 text-info"></i>Duyuru & İletişim
                     </a>
                 </li>
                 {% endif %}
             </ul>
 
-            <!-- Modüller -->
-            <div class="sidebar-label">Modüller</div>
+            <!-- Müşteri & Sözleşme -->
+            <div class="sidebar-label">Kurumsal & Müşteri</div>
             <ul class="nav flex-column">
+                {% if current_user.modul_erisim_var_mi('crm') %}
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('is_emri.') %}active{% endif %}" href="{{ url_for('is_emri.index') }}">
-                        <i class="bi bi-clipboard2-check me-2 si-yellow"></i>İş Emirleri
-                    </a>
-                </li>
-                {% if current_user.modul_erisim_var_mi('makine') %}
-                <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('fabrika_harita.') %}active{% endif %}" href="{{ url_for('fabrika_harita.index') }}">
-                        <i class="bi bi-map me-2"></i>Fabrika Haritası
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('crm.') %}active{% endif %}" href="{{ url_for('crm.index') }}">
+                        <i class="bi bi-building me-2 text-info"></i>CRM (Ortak & Firma)
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('tahmin.') %}active{% endif %}" href="{{ url_for('tahmin.index') }}">
-                        <i class="bi bi-cpu me-2 si-purple"></i>AI Tahminleme
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('site_harita.') %}active{% endif %}" href="{{ url_for('site_harita.index') }}">
+                        <i class="bi bi-map me-2 text-success"></i>Sanayi Haritası
                     </a>
                 </li>
                 {% endif %}
-                {% if current_user.modul_erisim_var_mi('kalite') %}
+                {% if current_user.modul_erisim_var_mi('sozlesme') %}
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('kalite.') %}active{% endif %}" href="{{ url_for('kalite.index') }}">
-                        <i class="bi bi-patch-check me-2"></i>Kalite
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('sozlesme.') %}active{% endif %}" href="{{ url_for('sozlesme.index') }}">
+                        <i class="bi bi-file-earmark-text me-2 text-secondary"></i>Sözleşme & Kontrat
                     </a>
                 </li>
                 {% endif %}
-                {% if current_user.modul_erisim_var_mi('enerji') %}
+                {% if current_user.modul_erisim_var_mi('dys') %}
                 <li class="nav-item">
-                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('enerji.') %}active{% endif %}" href="{{ url_for('enerji.index') }}">
-                        <i class="bi bi-lightning me-2"></i>Enerji
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('dys.') %}active{% endif %}" href="{{ url_for('dys.index') }}">
+                        <i class="bi bi-folder me-2 text-primary"></i>Doküman Yönt. (DYS)
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+
+            <!-- İnsan Kaynakları -->
+            <div class="sidebar-label">İnsan Kaynakları</div>
+            <ul class="nav flex-column">
+                {% if current_user.modul_erisim_var_mi('personel') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('personel.') %}active{% endif %}" href="{{ url_for('personel.index') }}">
+                        <i class="bi bi-people me-2"></i>Personel Yönetimi
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('ik') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('ik.') %}active{% endif %}" href="{{ url_for('ik.index') }}">
+                        <i class="bi bi-person-badge me-2 text-primary"></i>İK İşlemleri
                     </a>
                 </li>
                 {% endif %}
                 {% if current_user.modul_erisim_var_mi('isg') %}
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('isg.') %}active{% endif %}" href="{{ url_for('isg.index') }}">
-                        <i class="bi bi-shield-check me-2"></i>İSG
+                        <i class="bi bi-shield-check me-2 text-danger"></i>İSG Yönetimi
                     </a>
                 </li>
                 {% endif %}
+            </ul>
+
+            <!-- Üretim & Operasyon -->
+            <div class="sidebar-label">Üretim & Operasyon</div>
+            <ul class="nav flex-column">
+                {% if current_user.modul_erisim_var_mi('makine') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('makine.') %}active{% endif %}" href="{{ url_for('makine.index') }}">
+                        <i class="bi bi-gear-wide-connected me-2"></i>Makine & Üretim
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('fabrika_harita.') %}active{% endif %}" href="{{ url_for('fabrika_harita.index') }}">
+                        <i class="bi bi-diagram-3 me-2 text-secondary"></i>Üretim Haritası
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('stok') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('stok.') %}active{% endif %}" href="{{ url_for('stok.index') }}">
+                        <i class="bi bi-box-seam me-2"></i>Stok & Depo
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('satin_alma') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('satin_alma.') %}active{% endif %}" href="{{ url_for('satin_alma.index') }}">
+                        <i class="bi bi-cart-check me-2 text-success"></i>Satın Alma
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('kalite') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('kalite.') %}active{% endif %}" href="{{ url_for('kalite.index') }}">
+                        <i class="bi bi-patch-check me-2 text-warning"></i>Kalite Kontrol
+                    </a>
+                </li>
+                {% endif %}
+                {% if current_user.modul_erisim_var_mi('enerji') %}
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('enerji.') %}active{% endif %}" href="{{ url_for('enerji.index') }}">
+                        <i class="bi bi-lightning-charge me-2 text-danger"></i>Enerji
+                    </a>
+                </li>
+                {% endif %}
+
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint and request.endpoint.startswith('is_emri.') %}active{% endif %}" href="{{ url_for('is_emri.index') }}">
+                        <i class="bi bi-clipboard2-check me-2 si-yellow"></i>İş Emirleri
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link {% if request.endpoint and request.endpoint.startswith('takvim.') %}active{% endif %}" href="{{ url_for('takvim.index') }}">
                         <i class="bi bi-calendar3 me-2 si-yellow"></i>Takvim
@@ -210,7 +268,7 @@
         </nav>
 
         <!-- Main Content -->
-        <main class="flex-fill d-flex flex-column" style="min-height:100vh;">
+        <main class="flex-fill d-flex flex-column" style="min-height:100vh; min-width: 0;">
             <!-- Top Navbar -->
             <header class="d-flex justify-content-between align-items-center px-4 py-3 border-bottom shadow-sm" style="border-color: var(--border-color) !important; background: var(--bg-sidebar); position: sticky; top: 0; z-index: 1020;">
                 <!-- Left: Hamburger (mobile only) -->
@@ -221,7 +279,7 @@
                 </div>
 
                 <!-- Right: Actions -->
-                <div class="d-flex align-items-center gap-3">
+                <div class="d-flex flex-wrap align-items-center gap-3">
 
 
                     <!-- Notification Bell -->
@@ -264,8 +322,17 @@
                     </div>
                 </div>
             </header>
+            
+            <!-- Duyuru Banner Alanı -->
+            <div id="global-announcement-banner" class="bg-primary text-white text-center py-2 px-3 d-none align-items-center justify-content-between" style="font-size: 0.9rem;">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-info-circle-fill"></i>
+                    <span id="global-announcement-text">Önemli duyuru buraya gelecek.</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white" aria-label="Close" onclick="document.getElementById('global-announcement-banner').classList.add('d-none')"></button>
+            </div>
 
-            <div class="p-4 flex-grow-1">
+            <div class="p-4 flex-grow-1" style="min-width: 0;">
             <!-- Breadcrumb -->
             {% block breadcrumb %}{% endblock %}
 

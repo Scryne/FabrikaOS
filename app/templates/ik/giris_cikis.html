@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}Giriş/Çıkış Evrakları{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+    <li class="breadcrumb-item active">Giriş/Çıkış Evrakları</li>
+</ol></nav>
+{% endblock %}
+
+{% block content %}
+{% if calisan is defined and calisan %}
+<!-- Çalışan Evrak Sayfası -->
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-file-earmark-check me-2 text-primary"></i>Giriş/Çıkış Evrakları</h2>
+        <p class="text-muted mb-0 mt-1">{{ calisan.ad_soyad }} — {{ calisan.sicil_no }}</p>
+    </div>
+    <a href="{{ url_for('ik.personel_karti', id=calisan.id) }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i>Personel Kartı
+    </a>
+</div>
+
+<div class="row g-4">
+    <!-- İşe Giriş Evrakları -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-box-arrow-in-right text-success me-2"></i>İşe Giriş Evrakları</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary">%{{ giris_tamamlanma }}</span>
+                    {% if not giris_evraklar %}
+                    <a href="{{ url_for('ik.giris_cikis_ekle', standart='ise_giris', calisan_id=calisan.id) }}" class="btn btn-primary btn-sm"><i class="bi bi-plus me-1"></i>Oluştur</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if giris_evraklar %}
+                <div class="progress mb-3" style="height:8px;">
+                    <div class="progress-bar bg-success" style="width:{{ giris_tamamlanma }}%;"></div>
+                </div>
+                {% for e in giris_evraklar %}
+                <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if e.durum == 'tamamlandi' %}<i class="bi bi-check-circle-fill text-success"></i>
+                        {% elif e.durum == 'eksik' %}<i class="bi bi-exclamation-circle-fill text-danger"></i>
+                        {% else %}<i class="bi bi-circle text-muted"></i>{% endif %}
+                        <span class="{% if e.durum == 'tamamlandi' %}text-muted text-decoration-line-through{% endif %}">{{ e.evrak_adi }}</span>
+                    </div>
+                    <form method="POST" action="{{ url_for('ik.evrak_durum_guncelle', id=e.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% if e.durum != 'tamamlandi' %}
+                        <input type="hidden" name="durum" value="tamamlandi">
+                        <button type="submit" class="btn btn-outline-success btn-sm py-0 px-2"><i class="bi bi-check"></i></button>
+                        {% else %}
+                        <input type="hidden" name="durum" value="bekliyor">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm py-0 px-2"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        {% endif %}
+                    </form>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-3 text-muted">
+                    <p>Henüz evrak listesi oluşturulmadı.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- İşten Çıkış Evrakları -->
+    <div class="col-12 col-lg-6">
+        <div class="card border-0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0"><i class="bi bi-box-arrow-right text-danger me-2"></i>İşten Çıkış Evrakları</h6>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary">%{{ cikis_tamamlanma }}</span>
+                    {% if not cikis_evraklar %}
+                    <a href="{{ url_for('ik.giris_cikis_ekle', standart='isten_cikis', calisan_id=calisan.id) }}" class="btn btn-outline-danger btn-sm"><i class="bi bi-plus me-1"></i>Oluştur</a>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body">
+                {% if cikis_evraklar %}
+                <div class="progress mb-3" style="height:8px;">
+                    <div class="progress-bar bg-danger" style="width:{{ cikis_tamamlanma }}%;"></div>
+                </div>
+                {% for e in cikis_evraklar %}
+                <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        {% if e.durum == 'tamamlandi' %}<i class="bi bi-check-circle-fill text-success"></i>
+                        {% elif e.durum == 'eksik' %}<i class="bi bi-exclamation-circle-fill text-danger"></i>
+                        {% else %}<i class="bi bi-circle text-muted"></i>{% endif %}
+                        <span class="{% if e.durum == 'tamamlandi' %}text-muted text-decoration-line-through{% endif %}">{{ e.evrak_adi }}</span>
+                    </div>
+                    <form method="POST" action="{{ url_for('ik.evrak_durum_guncelle', id=e.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {% if e.durum != 'tamamlandi' %}
+                        <input type="hidden" name="durum" value="tamamlandi">
+                        <button type="submit" class="btn btn-outline-success btn-sm py-0 px-2"><i class="bi bi-check"></i></button>
+                        {% else %}
+                        <input type="hidden" name="durum" value="bekliyor">
+                        <button type="submit" class="btn btn-outline-secondary btn-sm py-0 px-2"><i class="bi bi-arrow-counterclockwise"></i></button>
+                        {% endif %}
+                    </form>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="text-center py-3 text-muted">
+                    <p>Henüz çıkış evrakları oluşturulmadı.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% elif form is defined %}
+<!-- Tek evrak ekleme formu -->
+<div class="mb-4"><h2 class="fw-bold"><i class="bi bi-file-earmark-check me-2 text-primary"></i>{{ title }}</h2></div>
+<div class="row justify-content-center"><div class="col-12 col-lg-8"><div class="card border-0"><div class="card-body p-4">
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="row g-3">
+            <div class="col-12">{{ form.calisan_id.label(class="form-label") }}{{ form.calisan_id(class="form-select") }}</div>
+            <div class="col-6">{{ form.evrak_turu.label(class="form-label") }}{{ form.evrak_turu(class="form-select") }}</div>
+            <div class="col-6">{{ form.durum.label(class="form-label") }}{{ form.durum(class="form-select") }}</div>
+            <div class="col-12">{{ form.evrak_adi.label(class="form-label") }}{{ form.evrak_adi(class="form-control", placeholder="Evrak adı") }}</div>
+            <div class="col-12">{{ form.notlar.label(class="form-label") }}{{ form.notlar(class="form-control", rows="2") }}</div>
+        </div>
+        <div class="d-flex gap-2 mt-4">{{ form.submit(class="btn btn-primary") }}<a href="{{ url_for('ik.index') }}" class="btn btn-outline-secondary">İptal</a></div>
+    </form>
+</div></div></div></div>
+{% endif %}
+{% endblock %}

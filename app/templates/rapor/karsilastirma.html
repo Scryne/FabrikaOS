@@ -123,7 +123,7 @@
         </h2>
         <p class="text-muted mb-0" style="font-size:0.88rem;">Bu ay ile geçen ayın performans karşılaştırması</p>
     </div>
-    <div class="d-flex align-items-center gap-3">
+    <div class="d-flex flex-wrap align-items-center gap-3">
         <span class="badge bg-secondary py-2 px-3"><i class="bi bi-calendar3 me-1"></i>Geçen Ay</span>
         <i class="bi bi-arrow-right text-muted"></i>
         <span class="badge bg-primary py-2 px-3"><i class="bi bi-calendar-check me-1"></i>Bu Ay</span>
@@ -230,9 +230,9 @@
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 fw-bold"><i class="bi bi-bar-chart me-2 text-muted"></i>Aylık Karşılaştırma</h6>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:10px;height:10px;border-radius:3px;background:#4b5563;display:inline-block;"></span> Geçen Ay</span>
-                    <span class="d-flex align-items-center gap-1 small text-muted"><span style="width:10px;height:10px;border-radius:3px;background:#3b82f6;display:inline-block;"></span> Bu Ay</span>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="d-flex flex-wrap align-items-center gap-1 small text-muted"><span style="width:10px;height:10px;border-radius:3px;background:#4b5563;display:inline-block;"></span> Geçen Ay</span>
+                    <span class="d-flex flex-wrap align-items-center gap-1 small text-muted"><span style="width:10px;height:10px;border-radius:3px;background:#3b82f6;display:inline-block;"></span> Bu Ay</span>
                 </div>
             </div>
             <div class="card-body" style="height:350px;">
@@ -270,7 +270,7 @@
                 {% set icon_data = kpi_icons.get(kpi.baslik, ['bi-graph-up', '#3b82f6']) %}
                 <tr>
                     <td>
-                        <div class="d-flex align-items-center gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2">
                             <div style="width:32px;height:32px;border-radius:8px;background:{{ icon_data[1] }}18;color:{{ icon_data[1] }};display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0;">
                                 <i class="bi {{ icon_data[0] }}"></i>
                             </div>

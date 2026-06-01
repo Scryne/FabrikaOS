@@ -15,7 +15,7 @@
 
 {% if sonuclar %}
 <!-- Anomali Türü Filtreleri -->
-<div class="d-flex gap-2 mb-4">
+<div class="d-flex flex-wrap gap-2 mb-4">
     <button class="btn btn-sm btn-outline-secondary active" onclick="filterAnomali('all', this)">
         <i class="bi bi-grid me-1"></i>Tümü ({{ sonuclar|length }})
     </button>
@@ -31,10 +31,10 @@
 <div class="row g-3" id="anomaliContainer">
     {% for s in sonuclar %}
     <div class="col-lg-6 anomali-card" data-tip="{{ s.tip }}">
-        <div class="card border-0 shadow-sm h-100 {% if s.risk_skoru >= 75 %}border-start border-4 border-danger{% elif s.risk_skoru >= 50 %}border-start border-4 border-warning{% endif %}">
+        <div class="card border-0 shadow-sm h-100 {% if s.risk_skoru >= 75 %}{% elif s.risk_skoru >= 50 %}{% endif %}">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="d-flex align-items-center gap-2">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
                         <div class="rounded-circle d-flex align-items-center justify-content-center"
                              style="width:40px;height:40px;background:{{ 'linear-gradient(135deg,#fdcb6e,#e17055)' if s.tip == 'enerji' else 'linear-gradient(135deg,#ff7675,#d63031)' }};">
                             <i class="bi bi-{{ 'lightning-charge' if s.tip == 'enerji' else 'bug' }} text-white"></i>

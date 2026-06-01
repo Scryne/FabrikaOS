@@ -41,7 +41,7 @@ def test_dashboard_performansi(auth_client_yonetici, performans_verisi):
     """Dashboard'un 5000+ veri ile 1 saniyenin altında yüklenmesi testi."""
     baslama_zamani = time.time()
     
-    response = auth_client_yonetici.get('/')
+    response = auth_client_yonetici.get('/dashboard/')
     
     bitis_zamani = time.time()
     gecen_sure = bitis_zamani - baslama_zamani

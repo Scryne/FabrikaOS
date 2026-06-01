@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+{% block title %}{{ dokuman.baslik }} — DYS{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('dys.index') }}">DYS</a></li>
+        <li class="breadcrumb-item active">{{ dokuman.baslik[:50] }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .detail-hero {
+        background: linear-gradient(135deg, rgba(59,130,246,0.06) 0%, rgba(139,92,246,0.04) 100%);
+        border: 1px solid rgba(255,255,255,0.06);
+        border-radius: 20px;
+        padding: 2rem;
+        position: relative;
+        overflow: hidden;
+    }
+    .detail-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+        border-radius: 20px 20px 0 0;
+    }
+    .detail-hero .file-icon-lg {
+        width: 72px;
+        height: 72px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+    }
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 1rem;
+    }
+    .info-item {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+    }
+    .info-item .info-label {
+        font-size: 0.72rem;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 4px;
+    }
+    .info-item .info-value {
+        font-weight: 600;
+        color: var(--text-heading);
+        font-size: 0.92rem;
+    }
+    .version-timeline {
+        position: relative;
+        padding-left: 2rem;
+    }
+    .version-timeline::before {
+        content: '';
+        position: absolute;
+        left: 8px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: rgba(255,255,255,0.06);
+    }
+    .version-item {
+        position: relative;
+        margin-bottom: 1rem;
+        padding: 0.75rem 1rem;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.04);
+        border-radius: 10px;
+        transition: all 0.2s ease;
+    }
+    .version-item:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: rgba(255,255,255,0.1);
+    }
+    .version-item::before {
+        content: '';
+        position: absolute;
+        left: -1.65rem;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #3b82f6;
+        border: 2px solid #1a1d21;
+    }
+    .version-item.current::before {
+        width: 14px;
+        height: 14px;
+        left: -1.78rem;
+        background: #10b981;
+        box-shadow: 0 0 8px rgba(16,185,129,0.4);
+    }
+    .onay-status-card {
+        border-radius: 14px;
+        padding: 1.25rem;
+        border: 1px solid rgba(255,255,255,0.06);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero -->
+<div class="detail-hero mb-4">
+    <div class="d-flex flex-column flex-md-row gap-3 align-items-start">
+        <div class="file-icon-lg" style="background: {{ dokuman.tip_rengi }}15; color: {{ dokuman.tip_rengi }};">
+            <i class="{{ dokuman.ikon_sinifi }}"></i>
+        </div>
+        <div class="flex-grow-1">
+            <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                <h3 class="mb-0 fw-bold">{{ dokuman.baslik }}</h3>
+                <span class="badge rounded-pill" style="background: {% if dokuman.onay_durumu == 'onaylandi' %}rgba(16,185,129,0.15); color:#10b981{% elif dokuman.onay_durumu == 'onay_bekliyor' %}rgba(245,158,11,0.15); color:#f59e0b{% elif dokuman.onay_durumu == 'reddedildi' %}rgba(239,68,68,0.15); color:#ef4444{% else %}rgba(107,114,128,0.15); color:#9ca3af{% endif %}; font-size:0.78rem;">
+                    {{ dokuman.onay_durumu_adi }}
+                </span>
+                <span class="badge bg-primary-subtle" style="font-size:0.72rem;">v{{ dokuman.versiyon }}</span>
+            </div>
+            <p class="text-muted mb-2" style="font-size:0.85rem;">
+                {{ dokuman.orijinal_adi }} · {{ dokuman.boyut_formatli }} · {{ dokuman.kategori_adi }}
+            </p>
+            {% if dokuman.etiket_listesi %}
+            <div class="d-flex flex-wrap gap-1">
+                {% for etiket in dokuman.etiket_listesi %}
+                <span class="badge bg-dark border border-secondary" style="font-size:0.68rem; font-weight:400;">{{ etiket }}</span>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+        <div class="d-flex flex-wrap gap-2 flex-shrink-0">
+            <a href="{{ url_for('dys.indir', id=dokuman.id) }}" class="btn btn-success">
+                <i class="bi bi-download me-1"></i> İndir
+            </a>
+            {% if dokuman.resim_mi or dokuman.dosya_tipi == 'pdf' %}
+            <a href="{{ url_for('dys.onizle', id=dokuman.id) }}" class="btn btn-outline-info" target="_blank">
+                <i class="bi bi-eye me-1"></i> Önizle
+            </a>
+            {% endif %}
+            {% if dokuman.sahip_id == current_user.id or current_user.yonetici_mi() %}
+            <a href="{{ url_for('dys.duzenle', id=dokuman.id) }}" class="btn btn-outline-warning">
+                <i class="bi bi-pencil me-1"></i> Düzenle
+            </a>
+            <a href="{{ url_for('dys.yeni_versiyon', id=dokuman.id) }}" class="btn btn-outline-primary">
+                <i class="bi bi-arrow-repeat me-1"></i> Yeni Versiyon
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sol: Detay Bilgileri -->
+    <div class="col-12 col-lg-8">
+        <!-- Bilgi Grid -->
+        <div class="info-grid mb-4">
+            <div class="info-item">
+                <div class="info-label">Kategori</div>
+                <div class="info-value">{{ dokuman.kategori_adi }}</div>
+            </div>
+            {% if dokuman.alt_kategori %}
+            <div class="info-item">
+                <div class="info-label">Alt Kategori</div>
+                <div class="info-value">{{ dokuman.alt_kategori }}</div>
+            </div>
+            {% endif %}
+            <div class="info-item">
+                <div class="info-label">Departman</div>
+                <div class="info-value">{{ dokuman.departman or '—' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Erişim Seviyesi</div>
+                <div class="info-value">
+                    <i class="bi bi-{% if dokuman.erisim_seviyesi == 'herkese_acik' %}unlock{% elif dokuman.erisim_seviyesi == 'ozel' %}lock{% else %}shield-lock{% endif %} me-1" style="font-size:0.85rem;"></i>
+                    {{ dokuman.erisim_seviyesi_adi }}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Yükleyen</div>
+                <div class="info-value">{{ dokuman.sahip.ad_soyad if dokuman.sahip else '—' }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Yükleme Tarihi</div>
+                <div class="info-value">{{ dokuman.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}</div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">İndirme Sayısı</div>
+                <div class="info-value">
+                    <i class="bi bi-download me-1 text-primary"></i>{{ dokuman.indirme_sayisi }}
+                </div>
+            </div>
+            <div class="info-item">
+                <div class="info-label">Dosya Boyutu</div>
+                <div class="info-value">{{ dokuman.boyut_formatli }}</div>
+            </div>
+        </div>
+
+        {% if dokuman.aciklama %}
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-text-paragraph text-info me-2"></i>Açıklama</h6>
+            </div>
+            <div class="card-body">
+                <p class="mb-0 text-muted">{{ dokuman.aciklama }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if dokuman.resim_mi %}
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-image text-success me-2"></i>Önizleme</h6>
+            </div>
+            <div class="card-body text-center">
+                <img src="{{ url_for('dys.onizle', id=dokuman.id) }}" alt="{{ dokuman.baslik }}" class="img-fluid rounded-3" style="max-height: 400px;">
+            </div>
+        </div>
+        {% endif %}
+
+        {% if dokuman.ocr_metin %}
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-type text-warning me-2"></i>OCR Metin Çıktısı</h6>
+            </div>
+            <div class="card-body">
+                <pre class="text-muted mb-0" style="white-space: pre-wrap; font-size: 0.82rem; max-height: 200px; overflow-y: auto;">{{ dokuman.ocr_metin[:1000] }}{% if dokuman.ocr_metin|length > 1000 %}...{% endif %}</pre>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Sağ: Onay + Versiyon Geçmişi -->
+    <div class="col-12 col-lg-4">
+        <!-- Onay Durumu -->
+        <div class="onay-status-card mb-4" style="background: {% if dokuman.onay_durumu == 'onaylandi' %}rgba(16,185,129,0.05){% elif dokuman.onay_durumu == 'onay_bekliyor' %}rgba(245,158,11,0.05){% elif dokuman.onay_durumu == 'reddedildi' %}rgba(239,68,68,0.05){% else %}rgba(107,114,128,0.05){% endif %};">
+            <h6 class="fw-bold mb-3"><i class="bi bi-shield-check me-2"></i>Onay Durumu</h6>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge rounded-pill fs-6" style="background: {% if dokuman.onay_durumu == 'onaylandi' %}rgba(16,185,129,0.15); color:#10b981{% elif dokuman.onay_durumu == 'onay_bekliyor' %}rgba(245,158,11,0.15); color:#f59e0b{% elif dokuman.onay_durumu == 'reddedildi' %}rgba(239,68,68,0.15); color:#ef4444{% else %}rgba(107,114,128,0.15); color:#9ca3af{% endif %}; padding: 0.4em 0.8em;">
+                    {{ dokuman.onay_durumu_adi }}
+                </span>
+            </div>
+            {% if dokuman.onaylayan %}
+            <p class="text-muted small mb-1">
+                <i class="bi bi-person me-1"></i>Onaylayan: {{ dokuman.onaylayan.ad_soyad }}
+            </p>
+            {% endif %}
+            {% if dokuman.onay_tarihi %}
+            <p class="text-muted small mb-1">
+                <i class="bi bi-calendar me-1"></i>Tarih: {{ dokuman.onay_tarihi.strftime('%d.%m.%Y %H:%M') }}
+            </p>
+            {% endif %}
+            {% if dokuman.red_nedeni %}
+            <div class="alert alert-danger mt-2 mb-0 py-2" style="font-size:0.82rem;">
+                <i class="bi bi-exclamation-triangle me-1"></i>{{ dokuman.red_nedeni }}
+            </div>
+            {% endif %}
+
+            {% if onay_form and dokuman.onay_durumu == 'onay_bekliyor' %}
+            <hr class="my-3 border-secondary">
+            <div class="d-flex gap-2">
+                <form method="post" action="{{ url_for('dys.onayla', id=dokuman.id) }}" class="d-inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    <button type="submit" class="btn btn-success btn-sm">
+                        <i class="bi bi-check-lg me-1"></i>Onayla
+                    </button>
+                </form>
+                <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#redModal">
+                    <i class="bi bi-x-lg me-1"></i>Reddet
+                </button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Versiyon Geçmişi -->
+        <div class="card border-0">
+            <div class="card-header">
+                <h6 class="mb-0"><i class="bi bi-clock-history text-primary me-2"></i>Versiyon Geçmişi</h6>
+            </div>
+            <div class="card-body">
+                {% if versiyon_gecmisi %}
+                <div class="version-timeline">
+                    {% for v in versiyon_gecmisi %}
+                    <div class="version-item {{ 'current' if v.id == dokuman.id }}">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-bold" style="font-size:0.85rem;">
+                                v{{ v.versiyon }}
+                                {% if v.id == dokuman.id %}<span class="badge bg-primary" style="font-size:0.6rem;">Mevcut</span>{% endif %}
+                            </span>
+                            <span class="text-muted" style="font-size:0.72rem;">{{ v.olusturma_tarihi.strftime('%d.%m.%Y') }}</span>
+                        </div>
+                        <div class="text-muted" style="font-size:0.78rem;">
+                            {{ v.orijinal_adi }} · {{ v.boyut_formatli }}
+                        </div>
+                        {% if v.id != dokuman.id %}
+                        <a href="{{ url_for('dys.detay', id=v.id) }}" class="text-primary" style="font-size:0.75rem;">Görüntüle</a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0 py-2">İlk versiyon</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Silme Butonu -->
+        {% if dokuman.sahip_id == current_user.id or current_user.yonetici_mi() %}
+        <div class="mt-3">
+            <form method="post" action="{{ url_for('dys.sil', id=dokuman.id) }}" onsubmit="return confirm('Bu dokümanı silmek istediğinizden emin misiniz?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-outline-danger btn-sm w-100">
+                    <i class="bi bi-trash me-1"></i>Dokümanı Sil
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+{% if onay_form and dokuman.onay_durumu == 'onay_bekliyor' %}
+<div class="modal fade" id="redModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ url_for('dys.reddet', id=dokuman.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold"><i class="bi bi-x-circle text-danger me-2"></i>Dokümanı Reddet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Red Nedeni</label>
+                        <textarea name="red_nedeni" class="form-control" rows="3" placeholder="Dokümanın neden reddedildiğini açıklayın..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                    <button type="submit" class="btn btn-danger"><i class="bi bi-x-lg me-1"></i>Reddet</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

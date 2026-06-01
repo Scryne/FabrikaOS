@@ -33,12 +33,13 @@ if errorlevel 1 (
 set FLASK_APP=run.py
 set FLASK_ENV=production
 set FDYS_CONFIG=production
+set FDYS_SECRET_KEY=super-secret-key-for-production
 
 echo [*] Sunucu http://0.0.0.0:8080 adresinde baslatiliyor...
 echo [*] Durdurmak icin CTRL+C basin.
 echo.
 
 :: Waitress ile baslat
-waitress-serve --port=8080 --threads=8 "app:create_app('production')"
+waitress-serve --port=8080 --threads=8 "run:app"
 
 pause

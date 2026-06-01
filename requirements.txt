@@ -48,3 +48,15 @@ scikit-learn==1.6.1
 
 # --- Geliştirme ---
 watchdog==6.0.0
+
+# --- Asenkron Görevler ---
+celery==5.4.0
+redis==5.2.0
+
+# --- OCR & Görüntü İşleme ---
+pytesseract==0.3.13
+Pillow==11.1.0
+
+# --- REST API ---
+Flask-JWT-Extended==4.7.1
+flask-cors==5.0.1

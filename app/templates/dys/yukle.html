@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('dys.index') }}">DYS</a></li>
+        <li class="breadcrumb-item active">{{ title }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-zone {
+        border: 2px dashed rgba(59,130,246,0.3);
+        border-radius: 16px;
+        padding: 2.5rem;
+        text-align: center;
+        background: rgba(59,130,246,0.03);
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: #3b82f6;
+        background: rgba(59,130,246,0.08);
+        transform: scale(1.01);
+    }
+    .upload-zone .upload-icon {
+        font-size: 3rem;
+        color: #3b82f6;
+        margin-bottom: 1rem;
+        transition: transform 0.3s ease;
+    }
+    .upload-zone:hover .upload-icon {
+        transform: translateY(-5px);
+    }
+    .form-section {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid rgba(255,255,255,0.05);
+        border-radius: 14px;
+        padding: 1.5rem;
+        margin-bottom: 1.25rem;
+    }
+    .form-section-title {
+        font-weight: 700;
+        font-size: 0.9rem;
+        color: var(--text-heading);
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-cloud-upload me-2 text-primary"></i>{{ title }}</h2>
+        <p class="text-muted mb-0 mt-1">
+            {% if duzenleme is defined and duzenleme %}Doküman bilgilerini düzenleyin{% else %}Yeni doküman yükleyin ve kategorize edin{% endif %}
+        </p>
+    </div>
+    <a href="{{ url_for('dys.liste') }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left me-1"></i> Listeye Dön
+    </a>
+</div>
+
+<form method="post" enctype="multipart/form-data" novalidate>
+    {{ form.hidden_tag() }}
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            <!-- Dosya Yükleme -->
+            {% if not (duzenleme is defined and duzenleme) %}
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-file-earmark-arrow-up text-primary"></i> Dosya</div>
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('dosyaInput').click()">
+                    <i class="bi bi-cloud-arrow-up upload-icon d-block"></i>
+                    <h5 class="fw-bold text-white mb-1" id="fileNameDisplay">Dosya Seçin veya Sürükleyin</h5>
+                    <p class="text-muted mb-0 small">PDF, DOC, DOCX, XLS, XLSX, JPG, PNG, PPT, ZIP (max 32MB)</p>
+                    {{ form.dosya(class="d-none", id="dosyaInput", onchange="updateFileName(this)") }}
+                </div>
+                {% if form.dosya.errors %}
+                <div class="text-danger mt-2 small">
+                    {% for e in form.dosya.errors %}{{ e }}{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Temel Bilgiler -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-info-circle text-info"></i> Temel Bilgiler</div>
+                <div class="mb-3">
+                    {{ form.baslik.label(class="form-label") }}
+                    {{ form.baslik(class="form-control" + (' is-invalid' if form.baslik.errors else ''), placeholder="Doküman başlığını girin...") }}
+                    {% if form.baslik.errors %}
+                    <div class="invalid-feedback">{% for e in form.baslik.errors %}{{ e }}{% endfor %}</div>
+                    {% endif %}
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        {{ form.kategori.label(class="form-label") }}
+                        {{ form.kategori(class="form-select") }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.alt_kategori.label(class="form-label") }}
+                        {{ form.alt_kategori(class="form-control", placeholder="Ör: ISO 9001") }}
+                    </div>
+                </div>
+                <div class="mt-3">
+                    {{ form.etiketler_metin.label(class="form-label") }}
+                    {{ form.etiketler_metin(class="form-control", placeholder="Ör: ISO9001, kalite, prosedür") }}
+                    <div class="form-text">{{ form.etiketler_metin.description }}</div>
+                </div>
+                <div class="mt-3">
+                    {{ form.aciklama.label(class="form-label") }}
+                    {{ form.aciklama(class="form-control", rows="3", placeholder="Doküman hakkında kısa açıklama...") }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-lg-4">
+            <!-- Erişim & Departman -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-shield-lock text-warning"></i> Erişim & Departman</div>
+                <div class="mb-3">
+                    {{ form.departman.label(class="form-label") }}
+                    {{ form.departman(class="form-select") }}
+                </div>
+                <div class="mb-3">
+                    {{ form.erisim_seviyesi.label(class="form-label") }}
+                    {{ form.erisim_seviyesi(class="form-select") }}
+                    <div class="form-text">
+                        <i class="bi bi-info-circle me-1"></i>Bu ayar dokümanı kimlerin görebileceğini belirler
+                    </div>
+                </div>
+            </div>
+
+            {% if not (duzenleme is defined and duzenleme) %}
+            <!-- Onay -->
+            <div class="form-section">
+                <div class="form-section-title"><i class="bi bi-check2-square text-success"></i> Onay Süreci</div>
+                <div class="form-check form-switch">
+                    {{ form.onay_gonder(class="form-check-input", id="onay_gonder") }}
+                    <label class="form-check-label" for="onay_gonder">{{ form.onay_gonder.label.text }}</label>
+                </div>
+                <div class="form-text mt-1">{{ form.onay_gonder.description }}</div>
+            </div>
+            {% endif %}
+
+            <!-- Kaydet -->
+            <div class="d-grid gap-2 mt-3">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check-lg me-1"></i>
+                    {% if duzenleme is defined and duzenleme %}Güncelle{% else %}Dokümanı Yükle{% endif %}
+                </button>
+                <a href="{{ url_for('dys.liste') }}" class="btn btn-outline-secondary">İptal</a>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateFileName(input) {
+    const display = document.getElementById('fileNameDisplay');
+    if (input.files && input.files.length > 0) {
+        display.textContent = input.files[0].name;
+        display.classList.add('text-success');
+        document.getElementById('uploadZone').style.borderColor = '#10b981';
+    }
+}
+
+// Drag & Drop
+const zone = document.getElementById('uploadZone');
+if (zone) {
+    ['dragenter', 'dragover'].forEach(evt => {
+        zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.add('dragover'); });
+    });
+    ['dragleave', 'drop'].forEach(evt => {
+        zone.addEventListener(evt, e => { e.preventDefault(); zone.classList.remove('dragover'); });
+    });
+    zone.addEventListener('drop', e => {
+        const input = document.getElementById('dosyaInput');
+        input.files = e.dataTransfer.files;
+        updateFileName(input);
+    });
+}
+</script>
+{% endblock %}

@@ -3,9 +3,9 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from app.extensions import db
-from app.models.isg import IsKazasi, RiskDegerlendirme, IsgEgitimi
+from app.models.isg import IsKazasi, RiskDegerlendirme, IsgEgitimi, SaglikMuayenesi, IsgDokumani
 from app.models.personel import Calisan
-from app.forms.kalite_isg_enerji import IsKazasiForm, RiskDegerlendirmeForm, IsgEgitimiForm
+from app.forms.kalite_isg_enerji import IsKazasiForm, RiskDegerlendirmeForm, IsgEgitimiForm, SaglikMuayenesiForm, IsgDokumaniForm
 from app.utils.decorators import modul_erisim_gerekli, log_action
 from sqlalchemy import func
 from datetime import datetime, timedelta, timezone
@@ -241,3 +241,119 @@ def egitim_ekle():
         return redirect(url_for('isg.egitimler'))
 
     return render_template('isg/egitim_form.html', form=form)
+
+
+@isg_bp.route('/saglik-muayeneleri')
+@login_required
+@modul_erisim_gerekli('isg')
+def saglik_muayeneleri():
+    """Çalışan periyodik sağlık muayenesi listesi."""
+    page = request.args.get('page', 1, type=int)
+    muayene_pagination = SaglikMuayenesi.query.order_by(SaglikMuayenesi.muayene_tarihi.desc()).paginate(
+        page=page, per_page=20, error_out=False)
+    
+    return render_template('isg/muayeneler.html', 
+                           muayeneler=muayene_pagination.items,
+                           pagination=muayene_pagination)
+
+
+@isg_bp.route('/saglik-muayene/ekle', methods=['GET', 'POST'])
+@login_required
+@modul_erisim_gerekli('isg', 'yazma')
+@log_action('Sağlık Muayenesi Kaydı')
+def muayene_ekle():
+    """Yeni sağlık muayenesi kaydı."""
+    form = SaglikMuayenesiForm()
+    form.calisan_id.choices = [(c.id, c.ad_soyad) for c in Calisan.query.filter_by(aktif=True).all()]
+    
+    if form.validate_on_submit():
+        muayene = SaglikMuayenesi(
+            calisan_id=form.calisan_id.data,
+            muayene_turu=form.muayene_turu.data,
+            muayene_tarihi=form.muayene_tarihi.data,
+            sonraki_muayene_tarihi=form.sonraki_muayene_tarihi.data,
+            hastane_adi=form.hastane_adi.data,
+            doktor_adi=form.doktor_adi.data,
+            sonuc=form.sonuc.data,
+            kisitlamalar=form.kisitlamalar.data,
+            hatirlatma_gun=form.hatirlatma_gun.data,
+            notlar=form.notlar.data
+        )
+        db.session.add(muayene)
+        db.session.commit()
+        flash('Sağlık muayenesi başarıyla kaydedildi.', 'success')
+        return redirect(url_for('isg.saglik_muayeneleri'))
+        
+    return render_template('isg/muayene_form.html', form=form)
+
+
+@isg_bp.route('/dokumanlar')
+@login_required
+@modul_erisim_gerekli('isg')
+def dokumanlar():
+    """İSG Doküman arşivi."""
+    page = request.args.get('page', 1, type=int)
+    dokuman_pagination = IsgDokumani.query.order_by(IsgDokumani.olusturma_tarihi.desc()).paginate(
+        page=page, per_page=20, error_out=False)
+        
+    return render_template('isg/dokumanlar.html', 
+                           dokumanlar=dokuman_pagination.items,
+                           pagination=dokuman_pagination)
+
+
+@isg_bp.route('/dokuman/ekle', methods=['GET', 'POST'])
+@login_required
+@modul_erisim_gerekli('isg', 'yazma')
+@log_action('İSG Dokümanı Ekleme')
+def dokuman_ekle():
+    """Yeni İSG dokümanı ekleme."""
+    form = IsgDokumaniForm()
+    
+    if form.validate_on_submit():
+        dokuman = IsgDokumani(
+            baslik=form.baslik.data,
+            kategori=form.kategori.data,
+            aciklama=form.aciklama.data,
+            ilgili_bolum=form.ilgili_bolum.data,
+            gecerlilik_tarihi=form.gecerlilik_tarihi.data,
+            versiyon=form.versiyon.data,
+            onay_durumu=form.onay_durumu.data or 'taslak',
+            sorumlu_id=current_user.id
+        )
+        db.session.add(dokuman)
+        db.session.commit()
+        flash('İSG dokümanı başarıyla kaydedildi.', 'success')
+        return redirect(url_for('isg.dokumanlar'))
+        
+    return render_template('isg/dokuman_form.html', form=form)
+
+
+@isg_bp.route('/dokuman/onayla/<int:dokuman_id>', methods=['POST'])
+@login_required
+@modul_erisim_gerekli('isg', 'yazma')
+@log_action('İSG Doküman Onayı')
+def dokuman_onayla(dokuman_id):
+    """Doküman onay durumu güncelleme."""
+    dokuman = IsgDokumani.query.get_or_404(dokuman_id)
+    yeni_durum = request.form.get('durum')
+    
+    if yeni_durum in dict(IsgDokumani.ONAY_DURUMLARI).keys():
+        dokuman.onay_durumu = yeni_durum
+        if yeni_durum == 'onaylandi':
+            dokuman.onaylayan_id = current_user.id
+            dokuman.onay_tarihi = datetime.now(timezone.utc)
+        db.session.commit()
+        flash('Doküman durumu güncellendi.', 'success')
+        
+    return redirect(url_for('isg.dokumanlar'))
+
+
+@isg_bp.route('/hatirlatmalar')
+@login_required
+@modul_erisim_gerekli('isg')
+def hatirlatmalar():
+    """Tüm İSG hatırlatmaları dashboard'u."""
+    from app.services.isg_hatirlatici import tum_hatirlatmalar
+    
+    hatirlatma_verisi = tum_hatirlatmalar()
+    return render_template('isg/hatirlatmalar.html', veriler=hatirlatma_verisi)

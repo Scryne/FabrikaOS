@@ -13,6 +13,7 @@
                 <!-- 5x5 Risk Matrisi Görseli -->
                 <div class="bg-light rounded p-3 mb-4">
                     <h6 class="text-center fw-bold mb-3 small text-muted">L Tipi 5x5 Matris Referansı</h6>
+                    <div class="table-responsive">
                     <table class="table table-sm table-bordered mb-0 text-center" style="max-width: 400px; margin: 0 auto; font-size: 0.75rem;">
                         <thead class="bg-white">
                             <tr>
@@ -79,12 +80,12 @@
                     {{ form.hidden_tag() }}
 
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.bolum.label }}</label>
                             {{ form.bolum(class="form-control" + (" is-invalid" if form.bolum.errors else ""), placeholder="Örn: Üretim Hattı, Depo") }}
                             {% for error in form.bolum.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.faaliyet.label }}</label>
                             {{ form.faaliyet(class="form-control", placeholder="Hangi işi/görevi yaparken?") }}
                         </div>
@@ -102,11 +103,11 @@
 
                         <h6 class="text-warning border-bottom pb-2 mb-3 mt-4"><i class="bi bi-calculator me-2"></i>Risk Skoru (Matris)</h6>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.olasilik.label }}</label>
                             {{ form.olasilik(class="form-select") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.siddet.label }}</label>
                             {{ form.siddet(class="form-select") }}
                         </div>
@@ -123,11 +124,11 @@
                             {{ form.ek_onlem(class="form-control", rows="2", placeholder="Riski azaltmak için alınması gereken İLAVE aksiyonlar") }}
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.sorumlu.label }}</label>
                             {{ form.sorumlu(class="form-control", placeholder="Aksiyon sorumlusu / Birim") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.hedef_tarih.label }}</label>
                             {{ form.hedef_tarih(class="form-control", type="date") }}
                         </div>

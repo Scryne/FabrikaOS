@@ -1,0 +1,166 @@
+{% extends "base.html" %}
+{% block title %}CRM Arama Sonuçları{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('crm.index') }}">CRM Merkezi</a></li>
+        <li class="breadcrumb-item active">Arama Sonuçları</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold"><i class="bi bi-search text-primary me-2"></i>Arama Sonuçları</h2>
+    {% if q %}
+    <p class="text-muted mt-1"><strong>"{{ q }}"</strong> için bulunan sonuçlar listeleniyor.</p>
+    {% else %}
+    <p class="text-muted mt-1">Lütfen aramak istediğiniz kelimeyi girin.</p>
+    {% endif %}
+</div>
+
+<!-- Arama Formu -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <form action="{{ url_for('crm.arama') }}" method="GET" class="row g-3">
+            <div class="col-md-8">
+                <input type="text" class="form-control form-control-lg" name="q" value="{{ q }}" placeholder="TC Kimlik, Ad Soyad, Firma Ünvanı, Telefon..." required>
+            </div>
+            <div class="col-md-2">
+                <select name="tip" class="form-select form-select-lg">
+                    <option value="" {% if not tip %}selected{% endif %}>Tümü</option>
+                    <option value="ortak" {% if tip == 'ortak' %}selected{% endif %}>Ortaklar</option>
+                    <option value="firma" {% if tip == 'firma' %}selected{% endif %}>Firmalar</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-grid">
+                <button type="submit" class="btn btn-primary btn-lg"><i class="bi bi-search me-2"></i>Ara</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% if sonuclar %}
+<div class="row g-4">
+    <!-- Ortaklar -->
+    {% if not tip or tip == 'ortak' %}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-people text-primary me-2"></i>Ortaklar ({{ sonuclar.ortaklar|length }})</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if sonuclar.ortaklar %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Ortak No</th>
+                                <th>Ad Soyad</th>
+                                <th>TC Kimlik</th>
+                                <th>Telefon</th>
+                                <th>Blok / Daire</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for ortak in sonuclar.ortaklar %}
+                            <tr>
+                                <td><span class="badge bg-light text-dark border">{{ ortak.ortak_no }}</span></td>
+                                <td class="fw-bold">{{ ortak.ad_soyad }}</td>
+                                <td>{{ ortak.tc_kimlik or '-' }}</td>
+                                <td>{{ ortak.telefon or '-' }}</td>
+                                <td>{{ ortak.konum_bilgi }}</td>
+                                <td>
+                                    {% if ortak.durum == 'aktif' %}
+                                    <span class="badge bg-success-subtle text-success">Aktif</span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">{{ ortak.durum_adi }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('crm.ortak_detay', id=ortak.id) }}" class="btn btn-sm btn-outline-primary">Detay</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-person-x fs-2 d-block mb-2 text-secondary"></i>
+                    Sonuç bulunamadı.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Firmalar -->
+    {% if not tip or tip == 'firma' %}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-buildings text-info me-2"></i>Firmalar ({{ sonuclar.firmalar|length }})</h5>
+            </div>
+            <div class="card-body p-0">
+                {% if sonuclar.firmalar %}
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Firma No</th>
+                                <th>Ünvan</th>
+                                <th>Vergi No</th>
+                                <th>Sektör</th>
+                                <th>Blok / Daire</th>
+                                <th>Durum</th>
+                                <th>İşlem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for firma in sonuclar.firmalar %}
+                            <tr>
+                                <td><span class="badge bg-light text-dark border">{{ firma.firma_no }}</span></td>
+                                <td class="fw-bold">{{ firma.unvan }}</td>
+                                <td>{{ firma.vergi_no or '-' }}</td>
+                                <td>{{ firma.sektor_adi }}</td>
+                                <td>{{ firma.konum_bilgi }}</td>
+                                <td>
+                                    {% if firma.durum == 'aktif' %}
+                                    <span class="badge bg-success-subtle text-success">Aktif</span>
+                                    {% else %}
+                                    <span class="badge bg-danger-subtle text-danger">{{ firma.durum_adi }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ url_for('crm.firma_detay', id=firma.id) }}" class="btn btn-sm btn-outline-info">Detay</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-building-dash fs-2 d-block mb-2 text-secondary"></i>
+                    Sonuç bulunamadı.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% elif q %}
+<div class="alert alert-warning border-0 shadow-sm p-4 text-center">
+    <i class="bi bi-exclamation-triangle fs-1 d-block mb-2 text-warning"></i>
+    <h5 class="fw-bold">Sonuç Bulunamadı</h5>
+    <p class="mb-0">"{{ q }}" aramasına uygun kayıt bulunamadı. Lütfen arama terimini değiştirerek tekrar deneyin.</p>
+</div>
+{% endif %}
+{% endblock %}

@@ -27,6 +27,12 @@ class Config:
     WTF_CSRF_TIME_LIMIT = 3600  # CSRF token geçerlilik süresi: 1 saat
     PERMANENT_SESSION_LIFETIME = timedelta(hours=1) # Oturum 1 saat sonra kapanır
 
+    # JWT Ayarları
+    JWT_SECRET_KEY = os.environ.get('JWT_SECRET_KEY') or 'jwt-degistir-bu-anahtari-uretimde'
+    JWT_ACCESS_TOKEN_EXPIRES = timedelta(hours=1)
+    JWT_REFRESH_TOKEN_EXPIRES = timedelta(days=30)
+    JWT_TOKEN_LOCATION = ['headers']
+
     # SocketIO
     SOCKETIO_CORS_ALLOWED_ORIGINS = os.environ.get('SOCKETIO_CORS_ALLOWED_ORIGINS', '*')
 
@@ -63,6 +69,22 @@ class Config:
     MAX_CONTENT_LENGTH = 32 * 1024 * 1024  # 32 MB maksimum dosya boyutu
     UPLOAD_FOLDER = os.path.join(basedir, 'app', 'static', 'uploads')
     ALLOWED_EXTENSIONS = {'jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv'}
+
+    # Logging Ayarları
+    LOG_LEVEL = os.environ.get('LOG_LEVEL', 'INFO')
+    DEBUG_SQL = os.environ.get('DEBUG_SQL', 'False').lower() == 'true'
+
+    # Celery & Asenkron Görevler
+    CELERY_BROKER_URL = os.environ.get('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+    CELERY_RESULT_BACKEND = os.environ.get('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
+
+    # SMS Gateway Ayarları (Faz 4 için altyapı)
+    SMS_GATEWAY_URL = os.environ.get('SMS_GATEWAY_URL', '')
+    SMS_API_KEY = os.environ.get('SMS_API_KEY', '')
+    SMS_SENDER_ID = os.environ.get('SMS_SENDER_ID', 'FABRIKA_OS')
+
+    # OCR Ayarları (Faz 2 için altyapı)
+    OCR_ENGINE = os.environ.get('OCR_ENGINE', 'tesseract')
 
     # SQLite WAL Modu (Performans + Yazma Güvenliği) — Sadece SQLite'da etkindir
     SQLITE_WAL_MODE = True

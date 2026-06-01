@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-12 col-md-8">
         <div class="card shadow-sm border-0">
             <div class="card-header bg-white py-3 border-bottom-0">
                 <h4 class="mb-0 fw-bold"><i class="bi bi-display me-2 text-primary"></i>{{ title }}</h4>
@@ -13,48 +13,48 @@
                     {{ form.hidden_tag() }}
                     
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.ad.label }}</label>
                             {{ form.ad(class="form-control" + (" is-invalid" if form.ad.errors else ""), placeholder="Örn: CNC Torna T-400") }}
                             {% for error in form.ad.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.kod.label }}</label>
                             {{ form.kod(class="form-control" + (" is-invalid" if form.kod.errors else ""), placeholder="Örn: CNC-001") }}
                             {% for error in form.kod.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                         </div>
                         
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.marka.label }}</label>
                             {{ form.marka(class="form-control", placeholder="Marka") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.model.label }}</label>
                             {{ form.model(class="form-control", placeholder="Model / Seri No") }}
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.teorik_kapasite.label }}</label>
                             {{ form.teorik_kapasite(class="form-control", type="number") }}
                             <small class="text-muted">Saatlik maksimum üretim</small>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.hedef_oee.label }}</label>
                             <div class="input-group">
                                 {{ form.hedef_oee(class="form-control", type="number", step="0.01") }}
                                 <span class="input-group-text">%</span>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.durum.label }}</label>
                             {{ form.durum(class="form-select") }}
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.satin_alma_tarihi.label }}</label>
                             {{ form.satin_alma_tarihi(class="form-control", type="date") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.periyodik_bakim_gun.label }}</label>
                             <div class="input-group">
                                 {{ form.periyodik_bakim_gun(class="form-control", type="number") }}

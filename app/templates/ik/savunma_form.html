@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('ik.savunma_liste') }}">Savunma / Tutanaklar</a></li>
+        <li class="breadcrumb-item active">{{ title }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold"><i class="bi bi-file-earmark-text me-2 text-warning"></i>{{ title }}</h2>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0">
+            <div class="card-body p-4">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.calisan_id.label.text }}</label>
+                            {{ form.calisan_id(class="form-select") }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.tur.label.text }}</label>
+                            {{ form.tur(class="form-select") }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{{ form.konu.label.text }}</label>
+                            {{ form.konu(class="form-control", placeholder="Konu başlığı") }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{{ form.icerik.label.text }}</label>
+                            {{ form.icerik(class="form-control", rows="5", placeholder="Detaylı içerik yazınız...") }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">{{ form.karar.label.text }}</label>
+                            {{ form.karar(class="form-control", rows="3", placeholder="Alınan karar (opsiyonel)") }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.karar_tarihi.label.text }}</label>
+                            {{ form.karar_tarihi(class="form-control") }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">{{ form.durum.label.text }}</label>
+                            {{ form.durum(class="form-select") }}
+                        </div>
+
+                        <!-- Tanık Bilgileri -->
+                        <div class="col-12">
+                            <hr>
+                            <h6 class="text-muted mb-3"><i class="bi bi-person-check me-1"></i>Tanık Bilgileri (Opsiyonel)</h6>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Tanık Ad Soyad</label>
+                            {{ form.tanik_ad_soyad(class="form-control", placeholder="Tanık adı soyadı") }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Tanık Sicil No</label>
+                            {{ form.tanik_sicil_no(class="form-control", placeholder="Sicil numarası") }}
+                        </div>
+
+                        {% if savunma is defined and savunma and savunma.taniklar %}
+                        <div class="col-12">
+                            <label class="form-label text-muted">Mevcut Tanıklar</label>
+                            <div class="d-flex flex-wrap gap-2">
+                                {% for t in savunma.taniklar %}
+                                <span class="badge bg-secondary py-2 px-3">
+                                    <i class="bi bi-person me-1"></i>{{ t.ad_soyad }}{% if t.sicil_no %} ({{ t.sicil_no }}){% endif %}
+                                </span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        {{ form.submit(class="btn btn-primary") }}
+                        <a href="{{ url_for('ik.savunma_liste') }}" class="btn btn-outline-secondary">İptal</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

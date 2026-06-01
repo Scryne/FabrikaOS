@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+{% block title %}Toplu Veri İçe Aktarımı{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('crm.index') }}">CRM Merkezi</a></li>
+        <li class="breadcrumb-item active">Toplu Veri Aktarımı</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h2 class="fw-bold"><i class="bi bi-file-earmark-arrow-up text-primary me-2"></i>Toplu Veri Aktarımı</h2>
+    <p class="text-muted mt-1">Excel (.xlsx) dosyalarından sisteme hızlıca veri yükleyin</p>
+</div>
+
+<div class="row g-4">
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-upload text-success me-2"></i>Dosya Yükleme</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" enctype="multipart/form-data" class="needs-validation" novalidate>
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">1. Veri Türünü Seçin</label>
+                        <div class="d-flex gap-3 mt-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="import_tipi" id="tipOrtak" value="ortak" checked>
+                                <label class="form-check-label" for="tipOrtak">
+                                    <i class="bi bi-people text-primary me-1"></i>Ortak / Malik Listesi
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="import_tipi" id="tipFirma" value="firma">
+                                <label class="form-check-label" for="tipFirma">
+                                    <i class="bi bi-buildings text-info me-1"></i>Firma Listesi
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">2. Excel Dosyasını Seçin (.xlsx)</label>
+                        
+                        <!-- Drag & Drop Zone -->
+                        <div class="border border-2 border-dashed rounded-3 p-5 text-center position-relative" style="background-color: var(--bg-card-hover); border-color: var(--border-light) !important;" id="dropZone">
+                            <input class="form-control position-absolute top-0 start-0 w-100 h-100 opacity-0" type="file" id="dosya" name="dosya" accept=".xlsx" style="cursor: pointer;" required>
+                            
+                            <i class="bi bi-file-earmark-excel text-success mb-2" style="font-size: 3rem;"></i>
+                            <h6 class="fw-bold mt-2" id="fileNameDisplay">Dosyayı buraya sürükleyin veya seçin</h6>
+                            <p class="text-muted small mb-0">Sadece .xlsx formatındaki Excel dosyaları desteklenir.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid mt-4">
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold" id="uploadBtn" disabled>
+                            <i class="bi bi-cloud-upload me-2"></i>Verileri İçe Aktar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-12 col-lg-6">
+        <div class="card border-0 shadow-sm h-100 bg-light">
+            <div class="card-header bg-transparent py-3 border-bottom-0">
+                <h5 class="mb-0 fw-bold"><i class="bi bi-info-circle text-info me-2"></i>Şablon Formatı</h5>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted">Excel dosyanızın hatasız işlenebilmesi için aşağıdaki sütun formatına uyması gerekmektedir. <strong class="text-body-color">Sütun başlıklarının (A, B, C...) aşağıdaki sırada olması yeterlidir.</strong></p>
+                
+                <div class="table-responsive mt-3 border rounded bg-white shadow-sm">
+                    <table class="table table-sm table-bordered mb-0" style="font-size: 0.85rem;" id="templateTable">
+                        <thead class="table-light">
+                            <tr id="templateHeaders">
+                                <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th>
+                            </tr>
+                        </thead>
+                        <tbody id="templateBody">
+                            <tr class="fw-bold bg-light" id="templateRowHeader">
+                                <td class="text-danger">Ortak No*</td>
+                                <td class="text-danger">Ad Soyad*</td>
+                                <td>TC Kimlik</td>
+                                <td>Telefon 1</td>
+                                <td>Telefon 2</td>
+                                <td>E-posta</td>
+                                <td>Blok</td>
+                                <td>Daire No</td>
+                                <td>Tipi (malik/kiraci)</td>
+                            </tr>
+                            <tr id="templateRowData">
+                                <td>ORT-0001</td>
+                                <td>Ahmet Yılmaz</td>
+                                <td>12345678901</td>
+                                <td>05551234567</td>
+                                <td>02123456789</td>
+                                <td>ahmet@mail.com</td>
+                                <td>A</td>
+                                <td>101</td>
+                                <td>malik</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="alert alert-warning mt-4 mb-0 border-0 shadow-sm">
+                    <h6 class="fw-bold alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Önemli Kurallar</h6>
+                    <ul class="mb-0 small ps-3">
+                        <li class="mb-1"><strong>Zorunlu Alanlar:</strong> A ve B sütunları boş bırakılamaz.</li>
+                        <li class="mb-1"><strong>Benzersiz No:</strong> Ortak No sistemde benzersiz olmalıdır. Mevcut bir no varsa kayıt atlanır.</li>
+                        <li class="mb-1"><strong>İlk Satır:</strong> Excel'in 1. satırı başlık olarak kabul edilir ve veritabanına eklenmez (işleme 2. satırdan başlanır).</li>
+                        <li><strong>Veri Tipi:</strong> Tipi sütunu (I) boş bırakılırsa varsayılan olarak "malik" kabul edilir.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const fileInput = document.getElementById('dosya');
+        const fileNameDisplay = document.getElementById('fileNameDisplay');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const dropZone = document.getElementById('dropZone');
+        
+        fileInput.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                const fileName = this.files[0].name;
+                fileNameDisplay.innerHTML = `<span class="text-success">${fileName}</span> dosyası seçildi`;
+                uploadBtn.disabled = false;
+                dropZone.style.borderColor = '#10b981';
+            } else {
+                fileNameDisplay.innerHTML = 'Dosyayı buraya sürükleyin veya seçin';
+                uploadBtn.disabled = true;
+                dropZone.style.borderColor = 'var(--border-light)';
+            }
+        });
+        
+        // Drag & Drop efektleri
+        dropZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = 'var(--bg-card)';
+            this.style.borderColor = '#3b82f6';
+        });
+        
+        dropZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.style.backgroundColor = 'var(--bg-card-hover)';
+            if(!fileInput.files.length) {
+                this.style.borderColor = 'var(--border-light)';
+            } else {
+                this.style.borderColor = '#10b981';
+            }
+        });
+        
+        // Şablon tablosunu değiştir
+        const radios = document.querySelectorAll('input[name="import_tipi"]');
+        const templateHeaders = document.getElementById('templateHeaders');
+        const templateRowHeader = document.getElementById('templateRowHeader');
+        const templateRowData = document.getElementById('templateRowData');
+        
+        radios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.value === 'firma') {
+                    templateHeaders.innerHTML = '<th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th><th>J</th><th>K</th>';
+                    templateRowHeader.innerHTML = `
+                        <td class="text-danger">Firma No*</td>
+                        <td class="text-danger">Ünvan*</td>
+                        <td>Vergi No</td>
+                        <td>Vergi Dairesi</td>
+                        <td>Sektör</td>
+                        <td>Faaliyet Alanı</td>
+                        <td>Yetkili Kişi</td>
+                        <td>Telefon</td>
+                        <td>E-posta</td>
+                        <td>Blok</td>
+                        <td>Daire No</td>
+                    `;
+                    templateRowData.innerHTML = `
+                        <td>FRM-0001</td>
+                        <td>Yılmaz Makine A.Ş.</td>
+                        <td>1234567890</td>
+                        <td>Marmara</td>
+                        <td>uretim</td>
+                        <td>CNC Parça Üretimi</td>
+                        <td>Ali Yılmaz</td>
+                        <td>02123456789</td>
+                        <td>info@yilmaz.com</td>
+                        <td>B</td>
+                        <td>205</td>
+                    `;
+                } else {
+                    templateHeaders.innerHTML = '<th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G</th><th>H</th><th>I</th>';
+                    templateRowHeader.innerHTML = `
+                        <td class="text-danger">Ortak No*</td>
+                        <td class="text-danger">Ad Soyad*</td>
+                        <td>TC Kimlik</td>
+                        <td>Telefon 1</td>
+                        <td>Telefon 2</td>
+                        <td>E-posta</td>
+                        <td>Blok</td>
+                        <td>Daire No</td>
+                        <td>Tipi (malik/kiraci)</td>
+                    `;
+                    templateRowData.innerHTML = `
+                        <td>ORT-0001</td>
+                        <td>Ahmet Yılmaz</td>
+                        <td>12345678901</td>
+                        <td>05551234567</td>
+                        <td>02123456789</td>
+                        <td>ahmet@mail.com</td>
+                        <td>A</td>
+                        <td>101</td>
+                        <td>malik</td>
+                    `;
+                }
+            });
+        });
+    });
+</script>
+{% endblock %}

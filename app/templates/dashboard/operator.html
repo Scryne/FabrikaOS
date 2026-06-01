@@ -4,7 +4,7 @@
 {% block content %}
 <!-- Karşılama (Hero) Alanı -->
 <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom" style="background: linear-gradient(90deg, rgba(59,130,246,0.05) 0%, transparent 100%); padding: 1.5rem; border-radius: 1rem;">
-    <div class="d-flex align-items-center gap-4">
+    <div class="d-flex flex-wrap align-items-center gap-4">
         <div class="fdys-avatar fdys-avatar-lg" style="width: 72px; height: 72px; font-size: 1.8rem; box-shadow: 0 8px 20px rgba(59,130,246,0.3);">
             {{ current_user.ad_soyad[:2]|upper }}
         </div>
@@ -32,7 +32,7 @@
             <div class="ai-kpi-icon"><i class="bi bi-speedometer"></i></div>
             <div class="flex-grow-1">
                 <div class="ai-kpi-label">Vardiya OEE Puanı</div>
-                <div class="d-flex align-items-baseline gap-2">
+                <div class="d-flex flex-wrap align-items-baseline gap-2">
                     <div class="ai-kpi-value text-info">{{ uretim_kpi.oee }}%</div>
                     <span class="badge bg-success-subtle text-success-emphasis rounded-pill"><i class="bi bi-arrow-up-short"></i>2.4%</span>
                 </div>
@@ -47,7 +47,7 @@
             <div class="ai-kpi-icon"><i class="bi bi-box-seam"></i></div>
             <div class="flex-grow-1">
                 <div class="ai-kpi-label">Gerçekleşen Üretim</div>
-                <div class="d-flex align-items-baseline gap-2">
+                <div class="d-flex flex-wrap align-items-baseline gap-2">
                     <div class="ai-kpi-value" style="color: #a855f7;">{{ uretim_kpi.uretim }}</div>
                     <span class="text-muted small">/ 1500 (Hedef)</span>
                 </div>
@@ -62,7 +62,7 @@
             <div class="ai-kpi-icon"><i class="bi bi-shield-check"></i></div>
             <div class="flex-grow-1">
                 <div class="ai-kpi-label">Kalite Oranı (Vardiya)</div>
-                <div class="d-flex align-items-baseline gap-2">
+                <div class="d-flex flex-wrap align-items-baseline gap-2">
                     <div class="ai-kpi-value text-warning">{{ uretim_kpi.kalite }}%</div>
                 </div>
                 <div class="progress mt-2" style="height: 4px; background: rgba(255,255,255,0.1);">
@@ -78,7 +78,7 @@
             </div>
             <div class="flex-grow-1">
                 <div class="ai-kpi-label">Makine Durumu</div>
-                <div class="d-flex align-items-baseline gap-2">
+                <div class="d-flex flex-wrap align-items-baseline gap-2">
                     <div class="ai-kpi-value {% if makine_durum.arizali > 0 %}text-danger{% else %}text-success{% endif %}">{{ makine_durum.aktif }}/{{ makine_durum.toplam }}</div>
                     <span class="text-muted small">Aktif</span>
                 </div>
@@ -133,7 +133,7 @@
                         <div class="position-absolute top-0 start-0 bottom-0" style="width: 4px; background: {% if ie.durum == 'acik' %}#3b82f6{% elif ie.durum == 'devam' %}#f59e0b{% else %}#10b981{% endif %};"></div>
                         <div class="d-flex justify-content-between align-items-start ms-2">
                             <div>
-                                <div class="d-flex align-items-center gap-2 mb-2">
+                                <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
                                     <span class="badge bg-secondary-subtle text-secondary-emphasis rounded-1 font-monospace">{{ ie.is_emri_no }}</span>
                                     <span class="badge {% if ie.durum == 'acik' %}bg-primary-subtle text-primary-emphasis{% elif ie.durum == 'devam' %}bg-warning-subtle text-warning-emphasis{% else %}bg-success-subtle text-success-emphasis{% endif %} rounded-pill py-1 px-2">
                                         <i class="bi bi-circle-fill me-1" style="font-size: 0.5rem; vertical-align: middle;"></i>{{ ie.durum | capitalize }}
@@ -166,7 +166,7 @@
                 <h5 class="card-title mb-0 fw-bold"><i class="bi bi-calendar-week-fill text-warning me-2"></i>Haftalık Vardiya Planı</h5>
             </div>
             <div class="card-body p-4">
-                <div class="d-flex justify-content-between gap-2 overflow-auto pb-2">
+                <div class="d-flex flex-wrap justify-content-between gap-2 overflow-auto pb-2">
                     {% for gun in haftalik_program %}
                     <div class="text-center flex-fill" style="min-width: 80px;">
                         <div class="mb-2 text-muted fw-bold small text-uppercase">{{ gun.gun_adi }}</div>

@@ -212,3 +212,77 @@ class IsgEgitimiForm(FlaskForm):
     egitmen = StringField('Eğitmen / Eğitim Kurumu', validators=[Optional(), Length(max=100)])
     
     submit = SubmitField('Eğitim Kaydını Oluştur')
+
+
+# ─── İSG Sağlık Muayenesi Formu ─────────────────────────────────────
+
+class SaglikMuayenesiForm(FlaskForm):
+    calisan_id = SelectField('Çalışan', coerce=int, validators=[DataRequired()])
+
+    muayene_turu = SelectField('Muayene Türü', choices=[
+        ('ise_giris', 'İşe Giriş Muayenesi'),
+        ('periyodik', 'Periyodik Muayene'),
+        ('ozel', 'Özel Muayene'),
+        ('ayrilma', 'İşten Ayrılış Muayenesi')
+    ], validators=[DataRequired()])
+
+    muayene_tarihi = DateField('Muayene Tarihi', format='%Y-%m-%d',
+                                validators=[DataRequired()],
+                                default=lambda: datetime.now(timezone.utc))
+    sonraki_muayene_tarihi = DateField('Sonraki Muayene Tarihi', format='%Y-%m-%d',
+                                        validators=[Optional()])
+
+    hastane_adi = StringField('Hastane / Kurum Adı', validators=[Optional(), Length(max=200)])
+    doktor_adi = StringField('Doktor Adı', validators=[Optional(), Length(max=150)])
+
+    sonuc = SelectField('Muayene Sonucu', choices=[
+        ('uygun', 'Uygun — İş için sağlık engeli yok'),
+        ('sinirli_uygun', 'Sınırlı Uygun — Kısıtlamalarla çalışabilir'),
+        ('uygun_degil', 'Uygun Değil — Bu pozisyonda çalışamaz')
+    ], validators=[DataRequired()])
+
+    kisitlamalar = TextAreaField('Kısıtlamalar / Özel Koşullar',
+                                 validators=[Optional()],
+                                 description='Sınırlı uygun ise kısıtlamaları belirtin.')
+
+    hatirlatma_gun = IntegerField('Hatırlatma (Gün Öncesinden)',
+                                   validators=[Optional(), NumberRange(min=1, max=365)],
+                                   default=30)
+    notlar = TextAreaField('Ek Notlar', validators=[Optional()])
+
+    submit = SubmitField('Muayene Kaydını Kaydet')
+
+
+# ─── İSG Doküman Formu ──────────────────────────────────────────────
+
+class IsgDokumaniForm(FlaskForm):
+    baslik = StringField('Doküman Başlığı', validators=[DataRequired(), Length(max=200)])
+
+    kategori = SelectField('Kategori', choices=[
+        ('tutanak', 'Tutanak'),
+        ('form', 'Form'),
+        ('saha_raporu', 'Saha Raporu'),
+        ('talimat', 'Talimat'),
+        ('prosedur', 'Prosedür'),
+        ('egitim_materyali', 'Eğitim Materyali')
+    ], validators=[DataRequired()])
+
+    aciklama = TextAreaField('Açıklama / Doküman Özeti', validators=[Optional()])
+
+    ilgili_bolum = StringField('İlgili Bölüm / Departman',
+                                validators=[Optional(), Length(max=100)])
+
+    gecerlilik_tarihi = DateField('Geçerlilik Tarihi', format='%Y-%m-%d',
+                                   validators=[Optional()])
+
+    versiyon = IntegerField('Versiyon No', validators=[Optional(), NumberRange(min=1)],
+                             default=1)
+
+    onay_durumu = SelectField('Onay Durumu', choices=[
+        ('taslak', 'Taslak'),
+        ('onay_bekliyor', 'Onay Bekliyor'),
+        ('onaylandi', 'Onaylandı'),
+        ('reddedildi', 'Reddedildi')
+    ], validators=[Optional()])
+
+    submit = SubmitField('Dokümanı Kaydet')

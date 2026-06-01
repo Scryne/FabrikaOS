@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block title %}İK Raporları{% endblock %}
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3"><ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+    <li class="breadcrumb-item active">Raporlar</li>
+</ol></nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-bar-chart-line me-2 text-warning"></i>İK Raporları & Analitik</h2>
+        <p class="text-muted mb-0 mt-1">İnsan kaynakları verilerinin görselleştirilmiş analizi</p>
+    </div>
+    <form method="GET" class="d-flex gap-2">
+        <select name="yil" class="form-select" onchange="this.form.submit()">
+            <option value="{{ yil - 1 }}">{{ yil - 1 }}</option>
+            <option value="{{ yil }}" selected>{{ yil }}</option>
+            <option value="{{ yil + 1 }}">{{ yil + 1 }}</option>
+        </select>
+    </form>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Departman Dağılımı -->
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 h-100">
+            <div class="card-header"><h6 class="mb-0">Departman Dağılımı</h6></div>
+            <div class="card-body">
+                <canvas id="departmanChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- İzin Dağılımı -->
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 h-100">
+            <div class="card-header"><h6 class="mb-0">İzin Kullanım Dağılımı ({{ yil }})</h6></div>
+            <div class="card-body">
+                <canvas id="izinChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Savunma Dağılımı -->
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 h-100">
+            <div class="card-header"><h6 class="mb-0">Disiplin Süreçleri Dağılımı</h6></div>
+            <div class="card-body">
+                <canvas id="savunmaChart" height="250"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Aylık Fazla Mesai -->
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card border-0">
+            <div class="card-header"><h6 class="mb-0">Aylık Onaylanan Fazla Mesai Saatleri ({{ yil }})</h6></div>
+            <div class="card-body">
+                <canvas id="mesaiChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Renk paleti
+    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#6366f1'];
+    
+    // Ortak Chart Options
+    const pieOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { color: '#a3a3a3', padding: 20 } } }
+    };
+
+    // 1. Departman Chart (Doughnut)
+    const depData = {{ departman_dagilimi|tojson }};
+    if (depData.length > 0) {
+        new Chart(document.getElementById('departmanChart').getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: depData.map(d => d[0]),
+                datasets: [{
+                    data: depData.map(d => d[1]),
+                    backgroundColor: colors,
+                    borderWidth: 0
+                }]
+            },
+            options: pieOptions
+        });
+    }
+
+    // 2. İzin Chart (Pie)
+    const izinData = {{ izin_dagilimi|tojson }};
+    if (izinData.length > 0) {
+        const izinLabels = izinData.map(d => d[0].charAt(0).toUpperCase() + d[0].slice(1));
+        new Chart(document.getElementById('izinChart').getContext('2d'), {
+            type: 'pie',
+            data: {
+                labels: izinLabels,
+                datasets: [{
+                    data: izinData.map(d => d[1]),
+                    backgroundColor: ['#3b82f6', '#10b981', '#ef4444', '#f59e0b'],
+                    borderWidth: 0
+                }]
+            },
+            options: pieOptions
+        });
+    }
+
+    // 3. Savunma Chart (PolarArea)
+    const savData = {{ savunma_dagilimi|tojson }};
+    if (savData.length > 0) {
+        new Chart(document.getElementById('savunmaChart').getContext('2d'), {
+            type: 'polarArea',
+            data: {
+                labels: savData.map(d => d[0].replace('_', ' ').toUpperCase()),
+                datasets: [{
+                    data: savData.map(d => d[1]),
+                    backgroundColor: colors.map(c => c + '80'), // %50 opacity
+                    borderWidth: 1,
+                    borderColor: colors
+                }]
+            },
+            options: { ...pieOptions, scales: { r: { ticks: { display: false } } } }
+        });
+    }
+
+    // 4. Mesai Chart (Bar)
+    const mesaiData = {{ aylik_mesai|tojson }};
+    new Chart(document.getElementById('mesaiChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+            datasets: [{
+                label: 'Toplam Saat',
+                data: mesaiData,
+                backgroundColor: 'rgba(59, 130, 246, 0.5)',
+                borderColor: '#3b82f6',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { display: false } },
+                y: { grid: { color: 'rgba(255,255,255,0.05)' }, beginAtZero: true }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

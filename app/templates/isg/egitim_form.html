@@ -3,7 +3,7 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
+    <div class="col-12 col-md-8">
         <div class="card shadow-sm border-0 border-top border-4 border-success">
             <div class="card-header bg-white py-3 border-bottom-0">
                 <h5 class="mb-0 fw-bold"><i class="bi bi-mortarboard me-2 text-success"></i>Yeni İSG Eğitim Kaydı</h5>
@@ -19,37 +19,37 @@
                             {{ form.calisan_id(class="form-select") }}
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.egitim_kategorisi.label }}</label>
                             {{ form.egitim_kategorisi(class="form-select") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.egitim_adi.label }}</label>
                             {{ form.egitim_adi(class="form-control" + (" is-invalid" if form.egitim_adi.errors else ""), placeholder="Eğitim başlığı") }}
                             {% for error in form.egitim_adi.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.egitim_suresi.label }}</label>
                             <div class="input-group">
                                 {{ form.egitim_suresi(class="form-control", type="number", step="0.5") }}
                                 <span class="input-group-text">Saat</span>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.egitim_tarihi.label }}</label>
                             {{ form.egitim_tarihi(class="form-control", type="date") }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.gecerlilik_bitis.label }}</label>
                             {{ form.gecerlilik_bitis(class="form-control", type="date") }}
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.sertifika_no.label }}</label>
                             {{ form.sertifika_no(class="form-control", placeholder="Belge / Sertifika Numarası") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.egitmen.label }}</label>
                             {{ form.egitmen(class="form-control", placeholder="Kurum veya eğitmen adı") }}
                         </div>

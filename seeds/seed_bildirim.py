@@ -1,311 +1,95 @@
 """
-FabrikaOS — Bildirim ve Denetim İzi Demo Verisi
-Senaryo: AnadoluTech Metal Sanayi
-
-- 15 bildirim (kritik, uyarı, bilgi, güvenlik — tüm modüllerden)
-- Kullanıcı bazlı dağıtım
-- 12 denetim izi (audit trail)
+FabrikaOS — Bildirimler ve Denetim İzi Demo Verisi (v2)
+Tüm kullanıcılara okunmuş/okunmamış bildirimler ve sistem denetim logları
 """
-from datetime import datetime, timedelta, timezone
+import random
+from datetime import date, datetime, timedelta, timezone
 from app.extensions import db
 from app.models.bildirim import Bildirim
-from app.models.kullanici import Kullanici, DenetimIzi
-from app.models.makine import Makine
+from app.models.kullanici import Kullanici
 
 
 def seed():
-    print('[12/12] Bildirimler ve denetim izleri...')
+    print('[18/22] Bildirimler...')
+    random.seed(999)
 
-    admin = Kullanici.query.filter_by(kullanici_adi='admin').first()
-    tum_kullanicilar = Kullanici.query.all()
-    admin_id = admin.id if admin else 1
+    kullanicilar = Kullanici.query.all()
+    bugun = datetime.now(timezone.utc)
 
-    prs = Makine.query.filter_by(kod='PRS-001').first()
-    prs_id = prs.id if prs else 1
-    
-    abk = Makine.query.filter_by(kod='ABK-001').first()
-    abk_id = abk.id if abk else 2
-    
-    cnc2 = Makine.query.filter_by(kod='CNC-002').first()
-    cnc2_id = cnc2.id if cnc2 else 3
+    # Rol bazlı bildirim şablonları
+    sablonlar = {
+        'yonetici': [
+            ('bilgi', 'Haftalık Rapor', 'Haftalık üretim ve kalite raporu hazırlandı.', '/raporlar/haftalik'),
+            ('kritik', 'Sistem Uyarısı', 'Veritabanı yedeklemesi 2 gündür alınamıyor.', '/ayarlar'),
+            ('uyari', 'Bütçe Aşımı', 'Aylık enerji bütçesi %15 oranında aşıldı.', '/enerji'),
+            ('bilgi', 'Yeni Çalışan', 'İK departmanına 2 yeni personel eklendi.', '/personel'),
+            ('uyari', 'Onay Bekleyen Talepler', 'Satın alma modülünde 5 adet onay bekleyen talep var.', '/satin-alma/onaylar'),
+        ],
+        'operator': [
+            ('bilgi', 'Vardiya Planı', 'Gelecek haftanın vardiya planı yayınlandı.', '/personel/vardiya'),
+            ('uyari', 'Eğitim Hatırlatması', 'KKD Kullanımı eğitiminiz 3 gün sonra.', '/isg/egitimler'),
+            ('bilgi', 'İzin Onayı', '24.05 tarihindeki mazeret izniniz onaylandı.', '/personel/izinler'),
+            ('kritik', 'Kalite Uyarısı', 'Son partide hata oranı eşik değeri aştı.', '/kalite'),
+            ('bilgi', 'Duyuru', 'Yemekhane menüsü güncellendi.', '/duyuru'),
+        ],
+        'teknisyen': [
+            ('kritik', 'Yeni Arıza Ataması', 'PRS-001 makinesinde hidrolik sızıntı.', '/is-emri/arizalar'),
+            ('uyari', 'Yaklaşan Bakım', 'CNC-001 makinesinin periyodik bakımı yarına planlandı.', '/is-emri/bakimlar'),
+            ('bilgi', 'Malzeme Teslimi', 'Talep ettiğiniz SKF rulmanlar depoya ulaştı.', '/stok/hareketler'),
+            ('bilgi', 'İş Emri Kapandı', 'İE-2026-0012 numaralı iş emriniz kalite tarafından onaylandı.', '/is-emri/gecmis'),
+            ('uyari', 'Eksik Form', 'Dünkü bakım formunda imza eksiği bulunuyor.', '/dys'),
+        ],
+        'isg_uzmani': [
+            ('kritik', 'Ramak Kala Bildirimi', 'Kaygan zemin kaynaklı yeni ramak kala raporlandı.', '/isg/kazalar'),
+            ('uyari', 'Süresi Dolan Eğitim', '5 çalışanın yüksekte çalışma eğitim süresi doldu.', '/isg/egitimler'),
+            ('bilgi', 'Risk Değerlendirmesi', 'Aylık saha turu raporu eklendi.', '/isg/riskler'),
+            ('bilgi', 'Doküman Onayı', 'Acil durum eylem planı yöneticiden onay aldı.', '/dys'),
+        ],
+        'ik_uzmani': [
+            ('bilgi', 'Yeni İzin Talebi', 'Ahmet Yılmaz yıllık izin talebinde bulundu.', '/personel/izinler'),
+            ('uyari', 'Savunma Bekleniyor', 'Tutanak No: 42 için savunma süresi dolmak üzere.', '/ik/tutanaklar'),
+            ('bilgi', 'Mesai Onayı', 'Dünkü 14 saatlik toplam fazla mesai onaylandı.', '/ik/mesailer'),
+        ],
+        'satin_alma': [
+            ('uyari', 'Kritik Stok', 'CNC Freze Ucu stok seviyesi minimumun altına düştü.', '/stok/kritik'),
+            ('bilgi', 'Yeni Talep', 'Bakım departmanı yedek parça talebi açtı.', '/satin-alma/talepler'),
+            ('bilgi', 'Teklif Geldi', 'Misumi Türkiye\'den fiyat teklifi alındı.', '/satin-alma/teklifler'),
+        ],
+    }
 
-    # ══════════════════════════════════════════════════════════════
-    # ADMIN BİLDİRİMLERİ (15 adet — okunmamış + okunmuş karışık)
-    # ══════════════════════════════════════════════════════════════
-    bildirimler = [
-        # KRİTİK — Okunmamış
-        {
-            'baslik': 'Kritik Arıza: Hidrolik Pres (PRS-001)',
-            'mesaj': 'Hidrolik silindir rod keçesinden yağ sızıntısı başladı. '
-                     'Basınç 180 bar → 145 bar. Üretim durdu. Acil müdahale gerekiyor.',
-            'seviye': 'kritik', 'modul': 'makine', 'url': f'/makine/detay/{prs_id}',
-            'saat': 6,
-        },
-        {
-            'baslik': 'Kritik Arıza: Abkant Pres (ABK-001)',
-            'mesaj': 'Kalıp kilitleme ünitesinde toggle mekanizması aşınması tespit edildi. '
-                     'Kilitleme kuvveti yetersiz, ürünlerde çapak oluşuyor.',
-            'seviye': 'kritik', 'modul': 'makine', 'url': f'/makine/detay/{abk_id}',
-            'saat': 12,
-        },
-        {
-            'baslik': 'Ramak Kala: Kaynak Bölgesi Yangın Riski',
-            'mesaj': 'D Hattı kaynak bölgesinde zemine düşen hidrolik yağ lekesi '
-                     'kaynak kıvılcımı ile tutuştu. Müdahale edildi, hasar yok. '
-                     'Olay araştırması devam ediyor.',
-            'seviye': 'kritik', 'modul': 'isg', 'url': '/isg/',
-            'saat': 18,
-        },
-
-        # UYARI — Okunmamış
-        {
-            'baslik': 'Stok Uyarısı: Kesim Dirençli Eldiven',
-            'mesaj': 'Nitril Kesim Dirençli Eldiven (MLZ-006) mevcut stok: 12 adet. '
-                     'Minimum stok eşiği: 40 adet. Acil sipariş verilmesi önerilir.',
-            'seviye': 'uyari', 'modul': 'stok', 'url': '/stok/',
-            'saat': 24,
-        },
-        {
-            'baslik': 'Bakım Zamanı: Pres Makinesi (PRS-001)',
-            'mesaj': 'PRS-001 periyodik bakım tarihi 86 gün önce yapılmıştır. '
-                     'Bir sonraki bakım tarihi geçmiştir. Bakım planı oluşturun.',
-            'seviye': 'uyari', 'modul': 'makine', 'url': f'/makine/detay/{prs_id}',
-            'saat': 30,
-        },
-        {
-            'baslik': 'OEE Düşüşü: CNC Freze (CNC-002)',
-            'mesaj': 'CNC-002 son 7 günlük ortalama OEE değeri %71.8 ile '
-                     'hedefin (%82) önemli ölçüde altında. İnceleme önerilir.',
-            'seviye': 'uyari', 'modul': 'makine', 'url': f'/makine/detay/{cnc2_id}',
-            'saat': 36,
-        },
-        {
-            'baslik': 'CAPA Hedef Tarihi Yaklaşıyor',
-            'mesaj': 'CAPA-2026-001 (Krank Mili Çap Tolerans) düzeltici faaliyetin '
-                     'hedef tarihi 7 gün içinde doluyor. İlerleme durumunu kontrol edin.',
-            'seviye': 'uyari', 'modul': 'kalite', 'url': '/kalite/',
-            'saat': 42,
-        },
-        {
-            'baslik': 'Eğitim Süresi Doldu: İSG Uzmanı',
-            'mesaj': 'Selin Aktaş (P010) — İSG Uzmanı C Sınıfı Yenileme Eğitimi süresi '
-                     '15.01.2026 tarihinde dolmuştur. Yasal zorunluluk gereği yenilenmeli.',
-            'seviye': 'uyari', 'modul': 'isg', 'url': '/isg/egitimler',
-            'saat': 48,
-        },
-        {
-            'baslik': 'Enerji Tüketimi Hedef Aşımı',
-            'mesaj': 'Nisan ayı üretim elektrik tüketimi: 51.200 kWh (hedef: 47.000 kWh). '
-                     'Hedefin %8.9 üzerinde. Fazla mesai üretimleri etkili.',
-            'seviye': 'uyari', 'modul': 'enerji', 'url': '/enerji/',
-            'saat': 54,
-        },
-
-        # BİLGİ — Bazıları okunmuş
-        {
-            'baslik': 'İzin Talebi Bekliyor',
-            'mesaj': 'Ahmet Yılmaz (P001) 7 günlük yıllık izin talebinde bulundu '
-                     f'(15 gün sonra). Onayınızı bekliyor.',
-            'seviye': 'bilgi', 'modul': 'personel', 'url': '/personel/izinler',
-            'saat': 60, 'okundu': True,
-        },
-        {
-            'baslik': 'Yeni Çalışan Kaydı',
-            'mesaj': 'Canan Erdem (P015) Staj Mühendis olarak Planlama departmanında '
-                     'göreve başlamıştır.',
-            'seviye': 'bilgi', 'modul': 'personel', 'url': '/personel/',
-            'saat': 72, 'okundu': True,
-        },
-        {
-            'baslik': 'Bakım Tamamlandı: CNC Torna (CNC-001)',
-            'mesaj': 'CNC-001 periyodik bakımı başarıyla tamamlandı. '
-                     'Bir sonraki bakım: 90 gün sonra.',
-            'seviye': 'bilgi', 'modul': 'makine', 'url': '/makine/',
-            'saat': 84, 'okundu': True,
-        },
-        {
-            'baslik': 'Kalite Raporu Oluşturuldu',
-            'mesaj': 'Nisan 2026 kalite kontrol raporu hazırlandı. '
-                     'Toplam hata: 84 adet, Fire oranı: %2.6',
-            'seviye': 'bilgi', 'modul': 'kalite', 'url': '/kalite/',
-            'saat': 96, 'okundu': True,
-        },
-        {
-            'baslik': 'Tedarikçi Teslimatı Alındı',
-            'mesaj': 'Sandvik Coromant sipariş teslimatı alındı — 80 adet CNMG kesici uç. '
-                     'Fatura: FTR-2026-0412. Giriş kalite kontrolü bekleniyor.',
-            'seviye': 'bilgi', 'modul': 'stok', 'url': '/stok/',
-            'saat': 108, 'okundu': True,
-        },
-
-        # GÜVENLİK
-        {
-            'baslik': 'Sistem Başlatıldı',
-            'mesaj': 'FabrikaOS v2.0 üretim ortamında başarıyla başlatıldı. '
-                     'Tüm modüller aktif. Son güncelleme: Mayıs 2026.',
-            'seviye': 'bilgi', 'modul': None, 'url': None,
-            'saat': 120, 'okundu': True,
-        },
+    genel_sablonlar = [
+        ('bilgi', 'Sistem Güncellemesi', 'FabrikaOS v2.1 yayına alındı. Yeni özellikleri inceleyin.', '/duyuru'),
+        ('bilgi', 'Profil Güncelleme', 'Lütfen iletişim bilgilerinizi güncelleyin.', '/profil'),
+        ('uyari', 'Şifre Değişikliği', 'Şifrenizi değiştirmenizin üzerinden 90 gün geçti.', '/profil/sifre'),
     ]
 
-    for b in bildirimler:
-        okundu = b.get('okundu', False)
-        bildirim = Bildirim(
-            kullanici_id=admin_id,
-            baslik=b['baslik'],
-            mesaj=b['mesaj'],
-            seviye=b['seviye'],
-            modul=b['modul'],
-            url=b['url'],
-            okundu_mu=okundu,
-            olusturma_tarihi=datetime.now(timezone.utc) - timedelta(hours=b['saat']),
-        )
-        if okundu:
-            bildirim.okunma_tarihi = datetime.now(timezone.utc) - timedelta(
-                hours=b['saat'] - 1
-            )
-        db.session.add(bildirim)
+    for k in kullanicilar:
+        # Rol bazlı bildirimler
+        rol_sablon = sablonlar.get(k.rol, genel_sablonlar)
+        sablonlar_havuzu = rol_sablon + genel_sablonlar
 
-    # Diğer kullanıcılara modül bazlı bildirimler
-    for k in tum_kullanicilar:
-        if k.id == admin_id:
-            continue
+        # Kullanıcı başına 5-8 bildirim
+        bildirim_sayisi = random.randint(5, 8)
+        secilenler = random.choices(sablonlar_havuzu, k=bildirim_sayisi)
 
-        # Hoş geldiniz bildirimi
-        b_hosgeldin = Bildirim(
-            kullanici_id=k.id,
-            baslik='FabrikaOS\'a Hoş Geldiniz!',
-            mesaj=f'{k.ad_soyad}, AnadoluTech Metal Sanayi dijital yönetim sistemine '
-                  f'hoş geldiniz. {k.rol.title()} rolüyle giriş yapabilirsiniz.',
-            seviye='bilgi',
-            okundu_mu=True,
-            olusturma_tarihi=datetime.now(timezone.utc) - timedelta(days=7),
-            okunma_tarihi=datetime.now(timezone.utc) - timedelta(days=6),
-        )
-        db.session.add(b_hosgeldin)
+        for i, (seviye, baslik, mesaj, url) in enumerate(secilenler):
+            # İlk 2-3 bildirim okunmamış olsun, diğerleri okunmuş
+            okundu = i >= random.randint(2, 3)
+            gun_once = random.randint(0, 15)
+            olusturma = bugun - timedelta(days=gun_once, hours=random.randint(1, 23))
 
-        # Teknisyenlere arıza bildirimi
-        if k.rol == 'teknisyen':
-            b_ariza = Bildirim(
+            b = Bildirim(
                 kullanici_id=k.id,
-                baslik='Yeni Arıza Ataması',
-                mesaj='Size yeni bir arıza kaydı atandı. Detaylar için arıza '
-                      'listesini kontrol edin.',
-                seviye='uyari',
-                modul='makine',
-                url='/makine/arizalar',
-                okundu_mu=False,
-                olusturma_tarihi=datetime.now(timezone.utc) - timedelta(hours=8),
+                baslik=baslik,
+                mesaj=mesaj,
+                seviye=seviye,
+                modul='sistem',
+                url=url,
+                okundu_mu=okundu,
+                okunma_tarihi=olusturma + timedelta(hours=1) if okundu else None,
+                olusturma_tarihi=olusturma,
             )
-            db.session.add(b_ariza)
-
-        # Operatörlere vardiya bildirimi
-        if k.rol == 'operator':
-            b_vardiya = Bildirim(
-                kullanici_id=k.id,
-                baslik='Haftalık Vardiya Planı Yayınlandı',
-                mesaj='Bu haftanın vardiya planı güncellendi. '
-                      'Personel modülünden kontrol edebilirsiniz.',
-                seviye='bilgi',
-                modul='personel',
-                url='/personel/vardiya',
-                okundu_mu=False,
-                olusturma_tarihi=datetime.now(timezone.utc) - timedelta(hours=12),
-            )
-            db.session.add(b_vardiya)
+            db.session.add(b)
 
     db.session.flush()
-    print('  + Bildirimler oluşturuldu')
-
-    # ══════════════════════════════════════════════════════════════
-    # DENETİM İZLERİ (Audit Trail — 12 kayıt)
-    # ══════════════════════════════════════════════════════════════
-    izler = [
-        {
-            'islem': 'Oluştur', 'tablo': 'kullanici', 'kayit_id': 1,
-            'detay': '{"kullanici_adi": "admin", "rol": "yonetici", '
-                     '"islem": "Sistem yöneticisi hesabı oluşturuldu"}',
-            'ip': '192.168.1.100', 'saat': 120,
-        },
-        {
-            'islem': 'Oluştur', 'tablo': 'makine', 'kayit_id': 1,
-            'detay': '{"kod": "CNC-001", "ad": "CNC Torna T-400", '
-                     '"marka": "Doosan", "lokasyon": "A Hattı"}',
-            'ip': '192.168.1.100', 'saat': 118,
-        },
-        {
-            'islem': 'Oluştur', 'tablo': 'calisan', 'kayit_id': 1,
-            'detay': '{"sicil_no": "P001", "ad_soyad": "Ahmet Yılmaz", '
-                     '"departman": "Üretim", "pozisyon": "Kıdemli CNC Operatörü"}',
-            'ip': '192.168.1.100', 'saat': 116,
-        },
-        {
-            'islem': 'Güncelle', 'tablo': 'makine', 'kayit_id': 4,
-            'detay': '{"alan": "durum", "eski": "aktif", "yeni": "arizali", '
-                     '"neden": "Hidrolik silindir sızıntısı"}',
-            'ip': '192.168.1.100', 'saat': 48,
-        },
-        {
-            'islem': 'Oluştur', 'tablo': 'ariza_kaydi', 'kayit_id': 1,
-            'detay': '{"makine": "PRS-001", "oncelik": "yuksek", '
-                     '"ariza_turu": "mekanik", "bildiren": "ahmet.yilmaz"}',
-            'ip': '192.168.1.105', 'saat': 47,
-        },
-        {
-            'islem': 'Oluştur', 'tablo': 'stok_hareketi', 'kayit_id': 1,
-            'detay': '{"malzeme": "MLZ-001", "tur": "giris", "miktar": 80, '
-                     '"fatura": "FTR-2026-0412", "tedarikci": "Sandvik Coromant"}',
-            'ip': '192.168.1.100', 'saat': 72,
-        },
-        {
-            'islem': 'Güncelle', 'tablo': 'izin_talebi', 'kayit_id': 2,
-            'detay': '{"durum": "bekliyor → onaylandi", '
-                     '"calisan": "P002 Fatma Demir", "tur": "saglik"}',
-            'ip': '192.168.1.100', 'saat': 60,
-        },
-        {
-            'islem': 'Oluştur', 'tablo': 'is_kazasi', 'kayit_id': 1,
-            'detay': '{"olay_no": "KZ-2026-001", "siddet": "orta", '
-                     '"calisan": "P005 Ali Çelik", "yer": "C Hattı Pres"}',
-            'ip': '192.168.1.100', 'saat': 96,
-        },
-        {
-            'islem': 'Oluştur', 'tablo': 'hata_kaydi', 'kayit_id': 1,
-            'detay': '{"urun": "Krank Mili Ø48", "hata": "Çap tolerans aşımı", '
-                     '"parti": "LOT-2026-0401", "adet": 12}',
-            'ip': '192.168.1.100', 'saat': 36,
-        },
-        {
-            'islem': 'Oluştur', 'tablo': 'duzeltici_faaliyet', 'kayit_id': 1,
-            'detay': '{"capa_no": "CAPA-2026-001", "durum": "devam", '
-                     '"kategori": "makine", "hedef_tarih": "7 gün sonra"}',
-            'ip': '192.168.1.100', 'saat': 30,
-        },
-        {
-            'islem': 'Oluştur', 'tablo': 'enerji_tuketimi', 'kayit_id': 1,
-            'detay': '{"donem": "Ocak 2026", "tur": "elektrik", '
-                     '"miktar": "52400 kWh", "maliyet": "149.340 TL"}',
-            'ip': '192.168.1.100', 'saat': 24,
-        },
-        {
-            'islem': 'Güncelle', 'tablo': 'duzeltici_faaliyet', 'kayit_id': 3,
-            'detay': '{"capa_no": "CAPA-2026-003", "durum": "devam → kapandi", '
-                     '"dogrulama": "Son 5 günde 0 porozite"}',
-            'ip': '192.168.1.100', 'saat': 12,
-        },
-    ]
-
-    for iz in izler:
-        di = DenetimIzi(
-            kullanici_id=admin_id,
-            islem=iz['islem'],
-            tablo=iz['tablo'],
-            kayit_id=iz['kayit_id'],
-            detay=iz['detay'],
-            ip_adresi=iz['ip'],
-            tarih=datetime.now(timezone.utc) - timedelta(hours=iz['saat']),
-        )
-        db.session.add(di)
-
-    db.session.flush()
-    print('  + Denetim izleri oluşturuldu\n')
+    print(f'  + {len(kullanicilar)} kullanıcıya bildirimler eklendi\n')

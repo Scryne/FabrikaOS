@@ -3,8 +3,8 @@
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-6">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="col-12 col-md-6">
+        <div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
             <h2>Vardiya Ata</h2>
             <a href="{{ url_for('personel.vardiya') }}" class="btn btn-outline-secondary">
                 <i class="bi bi-arrow-left me-1"></i>Vardiya Planına Dön
@@ -31,20 +31,20 @@
                     {{ form.hidden_tag() }}
                     
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.tarih.label }}</label>
                             {{ form.tarih(class="form-control bg-light", readonly=True) }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.vardiya_turu.label }}</label>
                             {{ form.vardiya_turu(class="form-select" + (" is-invalid" if form.vardiya_turu.errors else "")) }}
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.baslangic.label }}</label>
                             {{ form.baslangic(class="form-control" + (" is-invalid" if form.baslangic.errors else ""), type="time") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.bitis.label }}</label>
                             {{ form.bitis(class="form-control" + (" is-invalid" if form.bitis.errors else ""), type="time") }}
                         </div>

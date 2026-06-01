@@ -17,24 +17,40 @@ function yukleInsightlar() {
         const c = document.getElementById('insightCards');
         if (!c) return;
         const renkler = {success:'#10b981',danger:'#ef4444',warning:'#f59e0b',info:'#06b6d4'};
+        if (!document.getElementById('insightCardStyles')) {
+            const style = document.createElement('style');
+            style.id = 'insightCardStyles';
+            style.innerHTML = `
+                .insight-card:hover {
+                    transform: translateY(-5px);
+                    box-shadow: 0 15px 30px rgba(0,0,0,0.3) !important;
+                    background: linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%) !important;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
         c.innerHTML = data.map(d => {
             const renk = renkler[d.seviye] || '#3b82f6';
             let bg;
-            if (d.seviye === 'danger') bg = 'rgba(239, 68, 68, 0.12)';
-            else if (d.seviye === 'warning') bg = 'rgba(245, 158, 11, 0.12)';
-            else if (d.seviye === 'success') bg = 'rgba(16, 185, 129, 0.12)';
-            else bg = 'rgba(59, 130, 246, 0.12)';
+            if (d.seviye === 'danger') bg = 'rgba(239, 68, 68, 0.15)';
+            else if (d.seviye === 'warning') bg = 'rgba(245, 158, 11, 0.15)';
+            else if (d.seviye === 'success') bg = 'rgba(16, 185, 129, 0.15)';
+            else bg = 'rgba(59, 130, 246, 0.15)';
 
             return `
-            <div class="col-xl col-md-6">
-                <div class="card border-0 shadow-sm h-100 p-3" style="border-left: 4px solid ${renk} !important; border-radius: 1rem; transition: transform 0.2s ease;">
-                    <div class="d-flex align-items-start gap-3">
-                        <div class="d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px; border-radius: 12px; background: ${bg}; color: ${renk};">
+            <div class="col-xl-4 col-lg-6 col-md-6 col-sm-12">
+                <div class="card insight-card border-0 h-100 p-4" style="background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); border-radius: 1.25rem; border: 1px solid rgba(255,255,255,0.05) !important; border-top: 4px solid ${renk} !important; position: relative; overflow: hidden; transition: all 0.3s ease;">
+                    <!-- Decorative blur glow -->
+                    <div style="position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: ${renk}; opacity: 0.15; filter: blur(40px); border-radius: 50%;"></div>
+                    
+                    <div class="d-flex align-items-start gap-3 position-relative z-1">
+                        <div class="d-flex align-items-center justify-content-center flex-shrink-0 shadow-sm" style="width: 52px; height: 52px; border-radius: 14px; background: ${bg}; color: ${renk}; border: 1px solid rgba(255,255,255,0.08);">
                             <i class="bi ${d.icon} fs-4"></i>
                         </div>
                         <div>
-                            <div class="fw-bold mb-1" style="color: var(--text-heading); font-size: 0.95rem; line-height: 1.3;">${d.baslik}</div>
-                            <div class="text-muted" style="font-size: 0.8rem; line-height: 1.4;">${d.aciklama}</div>
+                            <div class="fw-bold mb-2" style="color: var(--text-heading); font-size: 1.05rem; line-height: 1.4; letter-spacing: -0.01em;">${d.baslik}</div>
+                            <div class="text-muted" style="font-size: 0.85rem; line-height: 1.5;">${d.aciklama}</div>
                         </div>
                     </div>
                 </div>

@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+{% block title %}Savunma / Tutanaklar{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('ik.index') }}">İK İşlemleri</a></li>
+        <li class="breadcrumb-item active">Savunma / Tutanaklar</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2 text-warning"></i>Savunma / Tutanaklar</h2>
+        <p class="text-muted mb-0 mt-1">Savunma, tutanak, uyarı, ihtar ve disiplin kurulu kararları</p>
+    </div>
+    <a href="{{ url_for('ik.savunma_ekle') }}" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-circle me-1"></i>Yeni Kayıt
+    </a>
+</div>
+
+<!-- Filtreler -->
+<div class="card border-0 mb-4">
+    <div class="card-body p-3">
+        <form method="GET" class="row g-3">
+            <div class="col-12 col-md-3">
+                <select name="tur" class="form-select">
+                    <option value="">Tüm Türler</option>
+                    <option value="savunma" {% if tur == 'savunma' %}selected{% endif %}>Savunma</option>
+                    <option value="tutanak" {% if tur == 'tutanak' %}selected{% endif %}>Tutanak</option>
+                    <option value="uyari" {% if tur == 'uyari' %}selected{% endif %}>Uyarı</option>
+                    <option value="ihtar" {% if tur == 'ihtar' %}selected{% endif %}>İhtar</option>
+                    <option value="disiplin_kurulu" {% if tur == 'disiplin_kurulu' %}selected{% endif %}>Disiplin Kurulu</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <select name="calisan_id" class="form-select">
+                    <option value="">Tüm Çalışanlar</option>
+                    {% for c in calisanlar %}
+                    <option value="{{ c.id }}" {% if c.id == calisan_id %}selected{% endif %}>{{ c.ad_soyad }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <select name="durum" class="form-select">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="acik" {% if durum == 'acik' %}selected{% endif %}>Açık</option>
+                    <option value="kapatildi" {% if durum == 'kapatildi' %}selected{% endif %}>Kapatıldı</option>
+                    <option value="itiraz_edildi" {% if durum == 'itiraz_edildi' %}selected{% endif %}>İtiraz Edildi</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <button type="submit" class="btn btn-secondary w-100">Filtrele</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Tarih</th>
+                        <th>Çalışan</th>
+                        <th>Tür</th>
+                        <th>Konu</th>
+                        <th>Durum</th>
+                        <th class="text-end pe-4">İşlemler</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in savunmalar.items %}
+                    <tr>
+                        <td class="ps-4">{{ s.olusturma_tarihi.strftime('%d.%m.%Y') }}</td>
+                        <td class="fw-medium">
+                            <a href="{{ url_for('ik.personel_karti', id=s.calisan_id) }}" class="text-decoration-none">{{ s.calisan.ad_soyad }}</a>
+                        </td>
+                        <td>
+                            {% if s.tur == 'ihtar' %}<span class="badge bg-danger">{{ s.tur_adi }}</span>
+                            {% elif s.tur == 'uyari' %}<span class="badge bg-warning">{{ s.tur_adi }}</span>
+                            {% elif s.tur == 'disiplin_kurulu' %}<span class="badge bg-danger-subtle">{{ s.tur_adi }}</span>
+                            {% else %}<span class="badge bg-secondary">{{ s.tur_adi }}</span>{% endif %}
+                        </td>
+                        <td class="text-muted">{{ s.konu[:50] }}{% if s.konu|length > 50 %}...{% endif %}</td>
+                        <td>
+                            {% if s.durum == 'acik' %}<span class="badge bg-warning-subtle">Açık</span>
+                            {% elif s.durum == 'kapatildi' %}<span class="badge bg-success-subtle">Kapatıldı</span>
+                            {% else %}<span class="badge bg-danger-subtle">İtiraz</span>{% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="btn-group btn-group-sm">
+                                <a href="{{ url_for('ik.savunma_detay', id=s.id) }}" class="btn btn-outline-info"><i class="bi bi-eye"></i></a>
+                                <a href="{{ url_for('ik.savunma_duzenle', id=s.id) }}" class="btn btn-outline-primary"><i class="bi bi-pencil"></i></a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-check-circle fs-1 d-block mb-2 text-success"></i>
+                            <p>Savunma/tutanak kaydı bulunamadı.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% if savunmalar.pages > 1 %}
+    <div class="card-footer d-flex justify-content-center pt-3 pb-3">
+        <nav>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item {% if not savunmalar.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('ik.savunma_liste', page=savunmalar.prev_num, tur=tur, calisan_id=calisan_id, durum=durum) }}">Önceki</a>
+                </li>
+                {% for pn in savunmalar.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if pn %}
+                    <li class="page-item {% if pn == savunmalar.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('ik.savunma_liste', page=pn, tur=tur, calisan_id=calisan_id, durum=durum) }}">{{ pn }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not savunmalar.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('ik.savunma_liste', page=savunmalar.next_num, tur=tur, calisan_id=calisan_id, durum=durum) }}">Sonraki</a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

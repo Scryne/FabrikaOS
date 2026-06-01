@@ -8,7 +8,7 @@
         <h2>Hoş geldiniz, {{ current_user.ad_soyad }}👋</h2>
         <p class="text-muted mb-0">Tüm modüllerden canlı veriler ve KPI takibi</p>
     </div>
-    <div class="d-flex gap-2 align-items-center">
+    <div class="d-flex flex-wrap gap-2 align-items-center">
         {% if current_user.yonetici_mi() %}
         <a href="{{ url_for('dashboard.kiosk') }}" class="btn btn-primary btn-sm fw-bold shadow-sm" style="border-radius: 8px;">
             <i class="bi bi-tv me-1"></i>Kiosk Modu
@@ -480,7 +480,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         container.style.opacity = '0';
         
-        fetch('/api/dashboard/insights')
+        fetch("{{ url_for('dashboard.api_dashboard_insights') }}")
             .then(r => r.json())
             .then(data => {
                 const insights = data.insights;

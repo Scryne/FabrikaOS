@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Şablon Düzenle' if is_edit else 'Şablon Ekle' }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('sozlesme.index') }}">Sözleşme Merkezi</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('sozlesme.sablonlar') }}">Şablonlar</a></li>
+        <li class="breadcrumb-item active">{{ 'Düzenle' if is_edit else 'Ekle' }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 px-4">
+                <h4 class="mb-0 fw-bold">
+                    <i class="bi bi-file-earmark-code text-secondary me-2"></i>
+                    {{ 'Şablon Düzenle' if is_edit else 'Yeni Şablon Oluştur' }}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    {{ form.hidden_tag() }}
+
+                    <div class="row g-4">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Şablon Başlığı <span class="text-danger">*</span></label>
+                            {{ form.baslik(class="form-control", placeholder="Örn: Standart Zemin Kat Dükkan Kirası") }}
+                            {% if form.baslik.errors %}
+                                <div class="text-danger small mt-1">{{ form.baslik.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Şablon Türü <span class="text-danger">*</span></label>
+                            {{ form.tur(class="form-select") }}
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="d-flex justify-content-between align-items-end mb-2">
+                                <label class="form-label fw-bold mb-0">Şablon İçeriği <span class="text-danger">*</span></label>
+                                <button type="button" class="btn btn-sm btn-outline-info" data-bs-toggle="collapse" data-bs-target="#degiskenlerListesi">
+                                    <i class="bi bi-info-circle me-1"></i>Değişkenleri Göster
+                                </button>
+                            </div>
+                            
+                            <div class="collapse mb-3" id="degiskenlerListesi">
+                                <div class="card card-body bg-light border-info small">
+                                    <h6 class="fw-bold text-info mb-2"><i class="bi bi-code-square me-2"></i>Kullanılabilir Değişkenler</h6>
+                                    <p class="mb-2 text-muted">Aşağıdaki değişkenleri metin içinde kullanarak sözleşme oluşturulurken otomatik doldurulmasını sağlayabilirsiniz. (Sistem tarafından daha sonra entegre edilebilir)</p>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        <span class="badge bg-white text-dark border p-2 font-monospace">{sozlesme_no}</span>
+                                        <span class="badge bg-white text-dark border p-2 font-monospace">{taraf_adi}</span>
+                                        <span class="badge bg-white text-dark border p-2 font-monospace">{baslangic_tarihi}</span>
+                                        <span class="badge bg-white text-dark border p-2 font-monospace">{bitis_tarihi}</span>
+                                        <span class="badge bg-white text-dark border p-2 font-monospace">{tutar}</span>
+                                        <span class="badge bg-white text-dark border p-2 font-monospace">{para_birimi}</span>
+                                        <span class="badge bg-white text-dark border p-2 font-monospace">{konum_bilgi}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            {{ form.icerik(class="form-control font-monospace", rows="15") }}
+                            {% if form.icerik.errors %}
+                                <div class="text-danger small mt-1">{{ form.icerik.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top text-end">
+                        <a href="{{ url_for('sozlesme.sablonlar') }}" class="btn btn-light border px-4 me-2">İptal</a>
+                        {{ form.submit(class="btn btn-secondary px-4 fw-bold") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -16,6 +16,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from flask_socketio import SocketIO
 from flask_migrate import Migrate
+from flask_jwt_extended import JWTManager
 
 # ── Veritabanı ──
 from sqlalchemy import MetaData
@@ -32,6 +33,9 @@ db = SQLAlchemy(metadata=MetaData(naming_convention=naming_convention))
 
 # ── Veritabanı Migration ──
 migrate = Migrate()
+
+# ── JWT Kimlik Doğrulama ──
+jwt = JWTManager()
 
 # ── Kimlik Doğrulama ──
 login_manager = LoginManager()

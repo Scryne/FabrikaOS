@@ -11,12 +11,12 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
     <div>
         <h2 class="mb-0 fw-bold"><i class="bi bi-shield-check me-2 text-success"></i>İş Sağlığı ve Güvenliği (İSG)</h2>
         <p class="text-muted mb-0 mt-1">Olay bildirimi, risk değerlendirme ve eğitim takibi</p>
     </div>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
         <a href="{{ url_for('rapor.excel_isg') }}" class="btn btn-outline-success shadow-sm" title="Excel'e Aktar">
             <i class="bi bi-file-excel me-1"></i><span class="d-none d-md-inline">Excel</span>
         </a>
@@ -26,6 +26,16 @@
         <a href="{{ url_for('isg.risk_ekle') }}" class="btn btn-outline-warning shadow-sm">
             <i class="bi bi-exclamation-triangle me-1"></i>Risk Kaydet
         </a>
+        <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-grid-fill me-1"></i>Menü
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{{ url_for('isg.saglik_muayeneleri') }}"><i class="bi bi-heart-pulse me-2 text-danger"></i>Sağlık Muayeneleri</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('isg.dokumanlar') }}"><i class="bi bi-folder-check me-2 text-info"></i>Dokümanlar</a></li>
+                <li><a class="dropdown-item" href="{{ url_for('isg.hatirlatmalar') }}"><i class="bi bi-bell-fill me-2 text-warning"></i>Hatırlatmalar</a></li>
+            </ul>
+        </div>
         <a href="{{ url_for('isg.egitimler') }}" class="btn btn-outline-info shadow-sm">
             <i class="bi bi-mortarboard me-1"></i>Eğitimler
         </a>
@@ -74,10 +84,10 @@
         </div>
     </div>
     <div class="col-lg-3 col-md-6">
-        <div class="card border-0 h-100 border-start border-4 border-warning">
+        <div class="card border-0 h-100">
             <div class="card-body">
                 <h6 class="text-muted small text-uppercase fw-bold mb-2">Risk Dağılımı</h6>
-                <div class="d-flex gap-2">
+                <div class="d-flex flex-wrap gap-2">
                     <span class="badge bg-danger">Yüksek: {{ stats.yuksek_risk }}</span>
                     <span class="badge bg-warning text-dark">Orta: {{ stats.orta_risk }}</span>
                     <span class="badge bg-success">Düşük: {{ stats.dusuk_risk }}</span>
@@ -118,7 +128,7 @@
 
         <!-- Olay Bildirimleri Tablosu -->
         <div class="card border-0">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2">
                 <h5 class="card-title mb-0 fw-bold"><i class="bi bi-megaphone me-2"></i>Olay Bildirim Günlüğü</h5>
                 <span class="badge bg-secondary">{{ olaylar|length }} Kayıt</span>
             </div>
@@ -210,7 +220,7 @@
 
         <!-- Risk Değerlendirme Matrisi -->
         <div class="card border-0 border-top border-4 border-warning">
-            <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="card-header d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2">
                 <h6 class="card-title mb-0 fw-bold"><i class="bi bi-exclamation-triangle me-2 text-warning"></i>Risk Değerlendirmeleri</h6>
                 <a href="{{ url_for('isg.risk_ekle') }}" class="btn btn-sm btn-outline-warning"><i class="bi bi-plus"></i></a>
             </div>
@@ -237,7 +247,7 @@
                             <strong>Aksiyon:</strong> {{ r.ek_onlem }}
                         </small>
                         {% endif %}
-                        <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mt-2">
                             <span class="badge {% if r.durum == 'acik' %}bg-danger-subtle text-danger-emphasis{% elif r.durum == 'devam' %}bg-warning-subtle text-warning-emphasis{% else %}bg-success-subtle text-success-emphasis{% endif %} small border {% if r.durum == 'acik' %}border-danger{% elif r.durum == 'devam' %}border-warning{% else %}border-success{% endif %}">
                                 {{ r.durum.upper() }}
                             </span>

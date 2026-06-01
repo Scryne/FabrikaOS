@@ -1,0 +1,364 @@
+{% extends "base.html" %}
+{% block title %}{{ 'Sözleşme Düzenle' if is_edit else 'Sözleşme Ekle' }}{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('sozlesme.index') }}">Sözleşme Merkezi</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('sozlesme.sozlesme_listesi') }}">Sözleşmeler</a></li>
+        <li class="breadcrumb-item active">{{ 'Düzenle' if is_edit else 'Ekle' }}</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent border-bottom-0 pt-4 pb-0 px-4">
+                <h4 class="mb-0 fw-bold">
+                    <i class="bi bi-file-earmark-text text-primary me-2"></i>
+                    {{ 'Sözleşme Düzenle' if is_edit else 'Yeni Sözleşme Oluştur' }}
+                </h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" id="sozlesmeForm">
+                    {{ form.hidden_tag() }}
+                    {{ kira_form.hidden_tag() if kira_form else '' }}
+
+                    <div class="row g-4">
+                        <!-- Temel Bilgiler -->
+                        <div class="col-12">
+                            <h5 class="border-bottom pb-2 mb-3 text-secondary">Temel Bilgiler</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Sözleşme No <span class="text-danger">*</span></label>
+                            {{ form.sozlesme_no(class="form-control", readonly=True if is_edit else False) }}
+                            {% if form.sozlesme_no.errors %}
+                                <div class="text-danger small mt-1">{{ form.sozlesme_no.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Sözleşme Türü <span class="text-danger">*</span></label>
+                            {{ form.tur(class="form-select", id="sozlesmeTuru") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Durum</label>
+                            {{ form.durum(class="form-select") }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Sözleşme Başlığı <span class="text-danger">*</span></label>
+                            {{ form.baslik(class="form-control", placeholder="Örn: A Blok Zemin Kat Dükkan Kira Kontratı") }}
+                            {% if form.baslik.errors %}
+                                <div class="text-danger small mt-1">{{ form.baslik.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Taraf Bilgileri -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3 text-secondary">Taraf Bilgileri</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Taraf Tipi <span class="text-danger">*</span></label>
+                            {{ form.taraf_tip(class="form-select", id="tarafTipSelect") }}
+                        </div>
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">İlgili Kişi / Firma <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-2">
+                                {{ form.taraf_id(class="form-select", id="tarafIdSelect") }}
+                                <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#hizliEkleModal" title="Hızlı Ekle"><i class="bi bi-plus-lg"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Tarih ve Mali Bilgiler -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3 text-secondary">Tarih & Mali Bilgiler</h5>
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <label class="form-label fw-bold">Başlangıç Tarihi <span class="text-danger">*</span></label>
+                            {{ form.baslangic_tarihi(class="form-control", type="date") }}
+                            {% if form.baslangic_tarihi.errors %}
+                                <div class="text-danger small mt-1">{{ form.baslangic_tarihi.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <label class="form-label fw-bold">Bitiş Tarihi</label>
+                            {{ form.bitis_tarihi(class="form-control", type="date") }}
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <label class="form-label fw-bold">Sözleşme Tutarı</label>
+                            {{ form.tutar(class="form-control", type="number", step="0.01") }}
+                        </div>
+                        <div class="col-md-6 col-lg-3">
+                            <label class="form-label fw-bold">Para Birimi</label>
+                            {{ form.para_birimi(class="form-select") }}
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Ödeme Periyodu</label>
+                            {{ form.odeme_periyodu(class="form-select") }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Hatırlatma (Gün Önce)</label>
+                            {{ form.hatirlatma_gun(class="form-control", type="number", min="1") }}
+                        </div>
+                        <div class="col-md-3 d-flex align-items-center">
+                            <div class="form-check form-switch mt-4">
+                                {{ form.otomatik_yenileme(class="form-check-input", role="switch", id="otomatikYenilemeSwitch") }}
+                                <label class="form-check-label fw-bold" for="otomatikYenilemeSwitch">Otomatik Yenileme</label>
+                            </div>
+                        </div>
+                        <div class="col-md-1" id="yenilemeSuresiAlani" style="display: none;">
+                            <label class="form-label fw-bold" title="Yenileme Süresi (Ay)">Süre(Ay)</label>
+                            {{ form.yenileme_suresi_ay(class="form-control", type="number", min="1") }}
+                        </div>
+
+                        <!-- KİRA KONTRAT DETAYLARI (Sadece Tür=kira ise gösterilir) -->
+                        <div id="kiraKontratAlani" class="col-12 mt-4" style="display: none;">
+                            <div class="p-4 bg-light rounded border">
+                                <h5 class="border-bottom pb-2 mb-3 text-primary"><i class="bi bi-house text-primary me-2"></i>Kira Kontrat Detayları</h5>
+                                <div class="row g-3">
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Blok</label>
+                                        {{ kira_form.blok(class="form-control") }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Daire/Dükkan No</label>
+                                        {{ kira_form.daire_no(class="form-control") }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Alan (m²)</label>
+                                        {{ kira_form.m2(class="form-control", type="number", step="0.01") }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Aylık Kira (₺)</label>
+                                        {{ kira_form.kira_tutari(class="form-control", type="number", step="0.01") }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Depozito (₺)</label>
+                                        {{ kira_form.depozito(class="form-control", type="number", step="0.01") }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label fw-bold">Aidat (₺)</label>
+                                        {{ kira_form.aidat_tutari(class="form-control", type="number", step="0.01") }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Artış Türü</label>
+                                        {{ kira_form.artis_turu(class="form-select") }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Artış Oranı (%)</label>
+                                        {{ kira_form.artis_orani(class="form-control", type="number", step="0.01") }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Sonraki Artış Tarihi</label>
+                                        {{ kira_form.sonraki_artis_tarihi(class="form-control", type="date") }}
+                                    </div>
+                                    <div class="col-md-3">
+                                        <label class="form-label fw-bold">Ödeme Günü (Ayın)</label>
+                                        {{ kira_form.odeme_gunu(class="form-control", type="number", min="1", max="31") }}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Diğer Bilgiler -->
+                        <div class="col-12 mt-4">
+                            <h5 class="border-bottom pb-2 mb-3 text-secondary">Ek Bilgiler</h5>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label fw-bold">Açıklama</label>
+                            {{ form.aciklama(class="form-control", rows="3") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Standart Şablon (Metin oluşturmak için)</label>
+                            {{ form.standart_metin_id(class="form-select") }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Özel Notlar (İç kullanım)</label>
+                            {{ form.notlar(class="form-control", rows="3") }}
+                        </div>
+
+                    </div>
+                    <div class="mt-4 pt-3 border-top text-end">
+                        <a href="{{ url_for('sozlesme.sozlesme_listesi') }}" class="btn btn-light border px-4 me-2">İptal</a>
+                        {{ form.submit(class="btn btn-primary px-4 fw-bold") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block modals %}
+<!-- Hızlı Taraf Ekle Modalı -->
+<div class="modal fade" id="hizliEkleModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="hizliEkleTitle"><i class="bi bi-person-plus-fill text-primary me-2"></i>Yeni Ortak/Firma Ekle</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Kayıt Türü</label>
+                    <select class="form-select" id="hizliEkleTip">
+                        <option value="ortak">Ortak (Kişi)</option>
+                        <option value="firma">Firma</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-bold" id="hizliEkleIsimLabel">Ad Soyad</label>
+                    <input type="text" class="form-control" id="hizliEkleIsim" placeholder="İsim girin">
+                </div>
+                <div id="hizliEkleHata" class="text-danger small d-none"></div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">İptal</button>
+                <button type="button" class="btn btn-primary" id="btnHizliEkle">Kaydet ve Seç</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tipSelect = document.getElementById('tarafTipSelect');
+    const idSelect = document.getElementById('tarafIdSelect');
+    const turSelect = document.getElementById('sozlesmeTuru');
+    const kiraAlani = document.getElementById('kiraKontratAlani');
+
+    // Taraf tipi değiştiğinde AJAX ile listeyi güncelle
+    tipSelect.addEventListener('change', function() {
+        const tip = this.value;
+        fetch(`/sozlesme/api/taraf-getir/${tip}`)
+            .then(response => response.json())
+            .then(data => {
+                idSelect.innerHTML = '';
+                if(data.length === 0) {
+                    idSelect.innerHTML = '<option value="">Kayıt bulunamadı</option>';
+                } else {
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.id;
+                        option.textContent = item.text;
+                        idSelect.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => console.error('Taraf listesi yüklenemedi:', error));
+    });
+
+    // Sözleşme türüne göre kira kontratı alanını göster/gizle
+    function toggleKiraAlani() {
+        if(turSelect.value === 'kira') {
+            kiraAlani.style.display = 'block';
+        } else {
+            kiraAlani.style.display = 'none';
+        }
+    }
+
+    turSelect.addEventListener('change', toggleKiraAlani);
+    // İlk yüklemede çalıştır
+    toggleKiraAlani();
+
+    // Otomatik Yenileme Toggle
+    const otoYenilemeSwitch = document.getElementById('otomatikYenilemeSwitch');
+    const yenilemeSuresiAlani = document.getElementById('yenilemeSuresiAlani');
+    
+    function toggleYenileme() {
+        if(otoYenilemeSwitch && otoYenilemeSwitch.checked) {
+            yenilemeSuresiAlani.style.display = 'block';
+        } else if (yenilemeSuresiAlani) {
+            yenilemeSuresiAlani.style.display = 'none';
+        }
+    }
+    if (otoYenilemeSwitch) {
+        otoYenilemeSwitch.addEventListener('change', toggleYenileme);
+        toggleYenileme();
+    }
+
+    // Hızlı Ekle Modal Logic
+    const hizliEkleTip = document.getElementById('hizliEkleTip');
+    const hizliEkleIsimLabel = document.getElementById('hizliEkleIsimLabel');
+    const hizliEkleIsim = document.getElementById('hizliEkleIsim');
+    const btnHizliEkle = document.getElementById('btnHizliEkle');
+    const hizliEkleHata = document.getElementById('hizliEkleHata');
+
+    if (hizliEkleTip) {
+        hizliEkleTip.addEventListener('change', function() {
+            if (this.value === 'firma') {
+                hizliEkleIsimLabel.textContent = 'Firma Ünvanı';
+            } else {
+                hizliEkleIsimLabel.textContent = 'Ad Soyad';
+            }
+        });
+
+        document.getElementById('hizliEkleModal').addEventListener('show.bs.modal', function() {
+            hizliEkleTip.value = tipSelect.value;
+            hizliEkleTip.dispatchEvent(new Event('change'));
+            hizliEkleIsim.value = '';
+            hizliEkleHata.classList.add('d-none');
+        });
+
+        btnHizliEkle.addEventListener('click', function() {
+            const tip = hizliEkleTip.value;
+            const isim = hizliEkleIsim.value;
+            
+            if (!isim.trim()) {
+                hizliEkleHata.textContent = 'Lütfen isim girin.';
+                hizliEkleHata.classList.remove('d-none');
+                return;
+            }
+            
+            btnHizliEkle.disabled = true;
+            btnHizliEkle.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...';
+            
+            fetch('/crm/api/hizli-ekle', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({tip: tip, isim: isim})
+            })
+            .then(response => response.json())
+            .then(data => {
+                btnHizliEkle.disabled = false;
+                btnHizliEkle.innerHTML = 'Kaydet ve Seç';
+                
+                if (data.success) {
+                    // Modalı kapat
+                    const modalEl = document.getElementById('hizliEkleModal');
+                    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                    modal.hide();
+                    
+                    // Tip select'i güncelle ve eventi tetiklemeden idSelect'i ayarla
+                    tipSelect.value = tip;
+                    
+                    // Option ekle ve seç
+                    const option = document.createElement('option');
+                    option.value = data.id;
+                    option.textContent = data.text;
+                    idSelect.appendChild(option);
+                    idSelect.value = data.id;
+                } else {
+                    hizliEkleHata.textContent = data.message || 'Bir hata oluştu.';
+                    hizliEkleHata.classList.remove('d-none');
+                }
+            })
+            .catch(err => {
+                btnHizliEkle.disabled = false;
+                btnHizliEkle.innerHTML = 'Kaydet ve Seç';
+                hizliEkleHata.textContent = 'Ağ hatası oluştu.';
+                hizliEkleHata.classList.remove('d-none');
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

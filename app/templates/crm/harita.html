@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Sanayi Sitesi Haritası{% endblock %}
+
+{% block extra_css %}
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+
+<style>
+    #map {
+        height: calc(100vh - 200px);
+        min-height: 500px;
+        width: 100%;
+        border-radius: 0.5rem;
+        z-index: 1; /* Bootstrap nav'ın altında kalması için */
+    }
+    
+    .map-popup-header {
+        font-family: 'Outfit', sans-serif;
+        font-weight: 600;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: 0.5rem;
+    }
+    
+    .map-filter-card {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        width: 250px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+</style>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('crm.index') }}">CRM Merkezi</a></li>
+        <li class="breadcrumb-item active">Harita Görünümü</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-map text-primary me-2"></i>Saha Haritası</h2>
+        <p class="text-muted mb-0 mt-1">Ortak ve firmaların mekansal dağılımı</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('crm.ortaklar') }}" class="btn btn-outline-secondary">Liste Görünümü</a>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm position-relative">
+    <div class="card-body p-1">
+        <div id="map"></div>
+        
+        <!-- Harita İçi Filtre Paneli -->
+        <div class="card map-filter-card rounded-3">
+            <div class="card-header bg-transparent py-2 px-3 border-bottom-0">
+                <h6 class="mb-0 fw-bold small text-muted text-uppercase"><i class="bi bi-funnel me-1"></i>Harita Filtreleri</h6>
+            </div>
+            <div class="card-body p-3 pt-0">
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="layerOrtaklar" checked>
+                    <label class="form-check-label text-primary fw-medium" for="layerOrtaklar">Ortaklar</label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                    <input class="form-check-input" type="checkbox" id="layerFirmalar" checked>
+                    <label class="form-check-label text-success fw-medium" for="layerFirmalar">Firmalar</label>
+                </div>
+                <hr class="my-2">
+                <div class="d-flex flex-column gap-2 mt-2">
+                    <button class="btn btn-sm btn-outline-secondary w-100" id="btnSifirla">
+                        <i class="bi bi-aspect-ratio me-1"></i>Görünümü Sıfırla
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Leaflet JS -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<!-- Custom Map Logic -->
+<script src="{{ url_for('static', filename='js/crm_harita.js') }}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Tema bilgisini harita script'ine geçir
+        const isDark = document.documentElement.getAttribute('data-bs-theme') !== 'light';
+        initMap('map', '{{ url_for("crm.api_harita_verileri") }}', isDark);
+    });
+</script>
+{% endblock %}

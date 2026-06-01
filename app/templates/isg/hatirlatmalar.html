@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block title %}İSG Hatırlatmaları{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-start align-items-md-center flex-column flex-md-row gap-2 mb-4">
+    <div>
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{{ url_for('isg.index') }}">İSG</a></li>
+                <li class="breadcrumb-item active">Hatırlatmalar</li>
+            </ol>
+        </nav>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-bell-fill me-2 text-warning"></i>İSG Hatırlatmaları</h2>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Sağlık Muayeneleri -->
+    <div class="col-12 col-xl-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-heart-pulse me-2 text-danger"></i>Sağlık Muayeneleri</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for m in veriler.muayene.geciken %}
+                    <div class="list-group-item bg-danger-subtle border-danger">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-danger">{{ m.calisan.ad_soyad }}</h6>
+                            <small class="text-danger fw-bold">{{ m.gecikme_gun }} gün gecikti</small>
+                        </div>
+                        <p class="mb-1 small">{{ m.muayene.tur_adi }} muayenesi yapılması gerekiyor.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% for m in veriler.muayene.yaklasan %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-heading">{{ m.calisan.ad_soyad }}</h6>
+                            <small class="text-warning fw-bold">{{ m.kalan_gun }} gün kaldı</small>
+                        </div>
+                        <p class="mb-1 small text-muted">{{ m.muayene.tur_adi }} yaklaşıyor.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not veriler.muayene.geciken and not veriler.muayene.yaklasan %}
+                    <div class="p-4 text-center text-muted">Yaklaşan muayene bulunmuyor.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Eğitimler -->
+    <div class="col-12 col-xl-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-mortarboard me-2 text-success"></i>İSG Eğitimleri</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for e in veriler.egitim.geciken %}
+                    <div class="list-group-item bg-danger-subtle border-danger">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-danger">{{ e.calisan.ad_soyad }}</h6>
+                            <small class="text-danger fw-bold">Süresi doldu</small>
+                        </div>
+                        <p class="mb-1 small">"{{ e.egitim.egitim_adi }}" eğitimi geçerliliğini yitirdi.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% for e in veriler.egitim.yaklasan %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-heading">{{ e.calisan.ad_soyad }}</h6>
+                            <small class="text-warning fw-bold">{{ e.kalan_gun }} gün kaldı</small>
+                        </div>
+                        <p class="mb-1 small text-muted">"{{ e.egitim.egitim_adi }}" eğitimi yenilenmeli.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not veriler.egitim.geciken and not veriler.egitim.yaklasan %}
+                    <div class="p-4 text-center text-muted">Yaklaşan eğitim bulunmuyor.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Değerlendirmeleri -->
+    <div class="col-12 col-xl-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-exclamation-triangle me-2 text-warning"></i>Risk Gözden Geçirme</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for r in veriler.risk.geciken %}
+                    <div class="list-group-item bg-danger-subtle border-danger">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-danger">{{ r.risk.bolum }}</h6>
+                            <small class="text-danger fw-bold">{{ r.gecikme_gun }} gün gecikti</small>
+                        </div>
+                        <p class="mb-1 small">{{ r.risk.tehlike[:60] }}... risk değerlendirmesi yenilenmeli.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% for r in veriler.risk.yaklasan %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-heading">{{ r.risk.bolum }}</h6>
+                            <small class="text-warning fw-bold">{{ r.kalan_gun }} gün kaldı</small>
+                        </div>
+                        <p class="mb-1 small text-muted">{{ r.risk.tehlike[:60] }}... gözden geçirilmeli.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not veriler.risk.geciken and not veriler.risk.yaklasan %}
+                    <div class="p-4 text-center text-muted">Gözden geçirme süresi yaklaşan risk yok.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- İSG Dokümanları -->
+    <div class="col-12 col-xl-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header bg-white py-3">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-file-earmark-text me-2 text-info"></i>Doküman Geçerliliği</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for d in veriler.dokuman.geciken %}
+                    <div class="list-group-item bg-danger-subtle border-danger">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-danger">{{ d.dokuman.baslik }}</h6>
+                            <small class="text-danger fw-bold">Geçerlilik doldu</small>
+                        </div>
+                        <p class="mb-1 small">v{{ d.dokuman.versiyon }} versiyonu güncellenmeli.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% for d in veriler.dokuman.yaklasan %}
+                    <div class="list-group-item">
+                        <div class="d-flex w-100 justify-content-between">
+                            <h6 class="mb-1 fw-bold text-heading">{{ d.dokuman.baslik }}</h6>
+                            <small class="text-warning fw-bold">{{ d.kalan_gun }} gün kaldı</small>
+                        </div>
+                        <p class="mb-1 small text-muted">v{{ d.dokuman.versiyon }} doküman geçerliliği yaklaşıyor.</p>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if not veriler.dokuman.geciken and not veriler.dokuman.yaklasan %}
+                    <div class="p-4 text-center text-muted">Geçerlilik süresi yaklaşan doküman yok.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

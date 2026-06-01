@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Standart Metin Şablonları{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('sozlesme.index') }}">Sözleşme Merkezi</a></li>
+        <li class="breadcrumb-item active">Şablonlar</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+    <div>
+        <h2 class="mb-0 fw-bold"><i class="bi bi-file-earmark-code text-secondary me-2"></i>Standart Şablonlar</h2>
+        <p class="text-muted mb-0 mt-1">Sözleşmelerde kullanılacak hazır metin şablonları</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{{ url_for('sozlesme.sablon_ekle') }}" class="btn btn-secondary shadow-sm">
+            <i class="bi bi-plus-lg me-1"></i>Yeni Şablon
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for metin in metinler %}
+    <div class="col-12 col-md-6 col-xl-4">
+        <div class="card border-0 shadow-sm h-100">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center pt-3 pb-2 border-bottom">
+                <span class="badge bg-light text-dark border">{{ metin.tur_adi }}</span>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><a class="dropdown-item" href="{{ url_for('sozlesme.sablon_duzenle', id=metin.id) }}"><i class="bi bi-pencil me-2 text-primary"></i>Düzenle</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <form action="{{ url_for('sozlesme.sablon_sil', id=metin.id) }}" method="POST" class="d-inline">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="dropdown-item text-danger" onclick="return confirm('Bu şablonu silmek istediğinize emin misiniz?');">
+                                    <i class="bi bi-trash me-2"></i>Sil
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <h5 class="card-title fw-bold text-truncate mb-3" title="{{ metin.baslik }}">{{ metin.baslik }}</h5>
+                <div class="card-text text-muted small position-relative" style="height: 100px; overflow: hidden;">
+                    {{ metin.icerik[:200] }}...
+                    <div class="position-absolute bottom-0 start-0 w-100" style="height: 40px; background: linear-gradient(transparent, var(--bg-card));"></div>
+                </div>
+            </div>
+            <div class="card-footer bg-light border-top-0 py-3">
+                <div class="d-flex align-items-center justify-content-between small">
+                    <span class="text-muted"><i class="bi bi-clock me-1"></i>{{ metin.olusturma_tarihi.strftime('%d.%m.%Y') }}</span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#metinModal{{ metin.id }}">Önizle</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Önizleme Modalı -->
+    <div class="modal fade" id="metinModal{{ metin.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">{{ metin.baslik }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3"><span class="badge bg-secondary">{{ metin.tur_adi }}</span></div>
+                    <div class="p-3 bg-light border rounded" style="white-space: pre-wrap; font-family: monospace;">{{ metin.icerik }}</div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                    <a href="{{ url_for('sozlesme.sablon_duzenle', id=metin.id) }}" class="btn btn-primary">Düzenle</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm p-5 text-center text-muted">
+            <i class="bi bi-file-earmark-x fs-1 d-block mb-3"></i>
+            <h5>Henüz hiç şablon eklenmemiş.</h5>
+            <p>Sözleşmelerde kullanmak için standart metin şablonları oluşturabilirsiniz.</p>
+            <div>
+                <a href="{{ url_for('sozlesme.sablon_ekle') }}" class="btn btn-secondary">İlk Şablonu Ekle</a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,8 +1,9 @@
 """
-FDYS — Yardımcı Dekoratörler
+FDYS — Yardımcı Dekoratörler (Faz 0 — Genişletilmiş)
 
-@role_required: Rol bazlı erişim kontrolü
-@log_action: Denetim izi kaydı
+@role_required:          Rol bazlı erişim kontrolü
+@modul_erisim_gerekli:   Granüler modül erişim kontrolü (okuma/yazma/silme)
+@log_action:             Denetim izi kaydı
 """
 
 import logging
@@ -18,6 +19,7 @@ def role_required(*roller):
     Kullanım:
         @role_required('yonetici')
         @role_required('yonetici', 'teknisyen')
+        @role_required('yonetici', 'ik_uzmani', 'isg_uzmani')
     """
     def decorator(f):
         @wraps(f)
@@ -34,10 +36,18 @@ def role_required(*roller):
     return decorator
 
 
-def modul_erisim_gerekli(modul_adi):
+def modul_erisim_gerekli(modul_adi, izin_turu=None):
     """
-    Kullanıcının belirtilen modüle erişimi olup olmadığını kontrol eder.
-    Yöneticiler tüm modüllere otomatik erişir.
+    Kullanıcının belirtilen modüle (ve opsiyonel izin türüne) erişimi
+    olup olmadığını kontrol eder. Yöneticiler tüm modüllere otomatik erişir.
+
+    Granüler kullanım:
+        @modul_erisim_gerekli('crm', 'yazma')   # CRM yazma izni gerekli
+        @modul_erisim_gerekli('crm', 'silme')   # CRM silme izni gerekli
+        @modul_erisim_gerekli('crm', 'okuma')   # CRM okuma izni gerekli
+
+    Basit kullanım (geriye dönük uyumlu):
+        @modul_erisim_gerekli('personel')        # Herhangi bir personel erişimi
     """
     def decorator(f):
         @wraps(f)
@@ -46,13 +56,34 @@ def modul_erisim_gerekli(modul_adi):
                 flash('Bu sayfaya erişmek için giriş yapmanız gerekiyor.', 'warning')
                 return redirect(url_for('auth.login'))
 
-            if not current_user.modul_erisim_var_mi(modul_adi):
-                flash('Bu modüle erişim yetkiniz bulunmuyor.', 'danger')
+            if not current_user.modul_erisim_var_mi(modul_adi, izin_turu):
+                izin_mesaji = f' ({izin_turu})' if izin_turu else ''
+                flash(f'Bu modüle{izin_mesaji} erişim yetkiniz bulunmuyor.', 'danger')
                 abort(403)
 
             return f(*args, **kwargs)
         return decorated_function
     return decorator
+
+
+def yazma_izni_gerekli(modul_adi):
+    """
+    Belirtilen modülde yazma izni olup olmadığını kontrol eden kısayol dekoratör.
+
+    Kullanım:
+        @yazma_izni_gerekli('crm')
+    """
+    return modul_erisim_gerekli(modul_adi, 'yazma')
+
+
+def silme_izni_gerekli(modul_adi):
+    """
+    Belirtilen modülde silme izni olup olmadığını kontrol eden kısayol dekoratör.
+
+    Kullanım:
+        @silme_izni_gerekli('personel')
+    """
+    return modul_erisim_gerekli(modul_adi, 'silme')
 
 
 def log_action(islem_adi):

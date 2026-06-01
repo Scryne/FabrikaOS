@@ -1,0 +1,62 @@
+{% extends "dis_panel/base_panel.html" %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0 fw-bold">Taleplerim</h4>
+        <p class="text-muted mb-0 mt-1">Açmış olduğunuz tüm talep ve şikayetler</p>
+    </div>
+    <a href="{{ url_for('dis_panel.yeni_talep') }}" class="btn btn-primary shadow-sm">
+        <i class="bi bi-plus-lg me-1"></i>Yeni Talep Oluştur
+    </a>
+</div>
+
+<div class="card border-0 shadow-sm bg-card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 custom-table">
+                <thead class="table-light">
+                    <tr>
+                        <th>Takip No</th>
+                        <th>Başlık</th>
+                        <th>Durum</th>
+                        <th>Tarih</th>
+                        <th class="text-end">İşlem</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for talep in talepler %}
+                    <tr>
+                        <td class="fw-bold"><a href="{{ url_for('dis_panel.talep_detay', id=talep.id) }}" class="text-decoration-none">{{ talep.talep_no }}</a></td>
+                        <td>
+                            <div class="text-truncate" style="max-width: 300px;" title="{{ talep.baslik }}">{{ talep.baslik }}</div>
+                            <small class="text-muted">{{ talep.kategori_adi }}</small>
+                        </td>
+                        <td>
+                            <span class="badge bg-{{ talep.durum_sinif }}"><i class="bi {{ talep.durum_icon }} me-1"></i>{{ talep.durum_adi }}</span>
+                        </td>
+                        <td>
+                            <div title="{{ talep.olusturma_tarihi.strftime('%d.%m.%Y %H:%M') }}">{{ talep.olusturma_tarihi.strftime('%d.%m.%Y') }}</div>
+                            <small class="text-muted">{{ talep.gecen_sure_str }} önce</small>
+                        </td>
+                        <td class="text-end">
+                            <a href="{{ url_for('dis_panel.talep_detay', id=talep.id) }}" class="btn btn-sm btn-outline-primary shadow-sm" title="Detayı Gör">
+                                İncele
+                            </a>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox fs-1 d-block mb-3"></i>
+                            <p class="mb-0">Henüz talep oluşturmadınız.</p>
+                            <a href="{{ url_for('dis_panel.yeni_talep') }}" class="btn btn-primary mt-3">İlk Talebinizi Oluşturun</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

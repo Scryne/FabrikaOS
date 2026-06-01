@@ -1,0 +1,283 @@
+/*
+ * FDYS — Dış Kullanıcı (Ortak) Paneli Premium Tasarım
+ * Eşsiz, profesyonel ve modern (Glassmorphism & Glows)
+ */
+
+:root {
+    --premium-bg-light: #f8fafc;
+    --premium-bg-dark: #0b0f19;
+    --premium-card-light: rgba(255, 255, 255, 0.7);
+    --premium-card-dark: rgba(17, 24, 39, 0.6);
+    --premium-border-light: rgba(255, 255, 255, 0.4);
+    --premium-border-dark: rgba(255, 255, 255, 0.08);
+    --premium-shadow-light: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+    --premium-shadow-dark: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    
+    --premium-accent: #3b82f6;
+    --premium-accent-glow: rgba(59, 130, 246, 0.4);
+    --premium-gold: #f59e0b;
+    --premium-gold-glow: rgba(245, 158, 11, 0.4);
+    --premium-success: #10b981;
+    --premium-success-glow: rgba(16, 185, 129, 0.4);
+}
+
+/* ── Base ── */
+body.premium-panel-body {
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(245, 158, 11, 0.03) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.04) 0px, transparent 50%);
+    background-attachment: fixed;
+}
+
+[data-bs-theme="dark"] body.premium-panel-body {
+    background-color: var(--premium-bg-dark);
+    background-image: 
+        radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(139, 92, 246, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+}
+
+/* ── Navbar ── */
+.premium-navbar {
+    background: var(--premium-card-light) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--premium-border-light) !important;
+    box-shadow: var(--premium-shadow-light);
+    transition: all 0.3s ease;
+}
+
+[data-bs-theme="dark"] .premium-navbar {
+    background: var(--premium-card-dark) !important;
+    border-bottom: 1px solid var(--premium-border-dark) !important;
+    box-shadow: var(--premium-shadow-dark);
+}
+
+.premium-brand-text {
+    background: linear-gradient(135deg, var(--premium-accent), #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800;
+}
+
+/* ── Glass Cards (Glassmorphism) ── */
+.glass-card {
+    background: var(--premium-card-light) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--premium-border-light) !important;
+    box-shadow: var(--premium-shadow-light) !important;
+    border-radius: 1.25rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    overflow: hidden;
+}
+
+[data-bs-theme="dark"] .glass-card {
+    background: var(--premium-card-dark) !important;
+    border: 1px solid var(--premium-border-dark) !important;
+    box-shadow: var(--premium-shadow-dark) !important;
+}
+
+.glass-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1) !important;
+    border-color: rgba(59, 130, 246, 0.3) !important;
+}
+
+[data-bs-theme="dark"] .glass-card:hover {
+    box-shadow: 0 15px 35px rgba(0,0,0,0.4) !important;
+    border-color: rgba(59, 130, 246, 0.4) !important;
+}
+
+/* ── Gradient Texts ── */
+.text-gradient-primary {
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.text-gradient-gold {
+    background: linear-gradient(135deg, #f59e0b, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+.text-gradient-success {
+    background: linear-gradient(135deg, #10b981, #34d399);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+/* ── Sidebar Nav Pills ── */
+.premium-sidebar-nav .nav-link {
+    border-radius: 0.75rem;
+    padding: 0.85rem 1.25rem;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    color: var(--text-secondary);
+}
+
+.premium-sidebar-nav .nav-link:hover {
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--premium-accent);
+    transform: translateX(4px);
+}
+
+.premium-sidebar-nav .nav-link.active {
+    background: linear-gradient(135deg, var(--premium-accent), #60a5fa);
+    color: white !important;
+    box-shadow: 0 4px 15px var(--premium-accent-glow);
+}
+
+.premium-sidebar-nav .nav-link i {
+    transition: transform 0.3s ease;
+}
+
+.premium-sidebar-nav .nav-link:hover i {
+    transform: scale(1.1);
+}
+
+/* ── Hero Banner ── */
+.hero-banner {
+    position: relative;
+    border-radius: 1.5rem;
+    overflow: hidden;
+    padding: 3rem 2rem;
+    background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+    color: white;
+    box-shadow: 0 10px 30px var(--premium-accent-glow);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.hero-banner::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -10%;
+    width: 300px;
+    height: 300px;
+    background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+    border-radius: 50%;
+}
+
+.hero-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    font-family: 'Outfit', sans-serif;
+}
+
+.hero-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+/* ── 3D KPI Cards ── */
+.kpi-3d-card {
+    position: relative;
+    padding: 1.5rem;
+    border-radius: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    z-index: 1;
+}
+
+.kpi-3d-card .kpi-icon-wrap {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: white;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.kpi-danger-wrap { background: linear-gradient(135deg, #ef4444, #f87171); box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4) !important; }
+.kpi-info-wrap { background: linear-gradient(135deg, #06b6d4, #38bdf8); box-shadow: 0 4px 15px rgba(6, 182, 212, 0.4) !important; }
+.kpi-success-wrap { background: linear-gradient(135deg, #10b981, #34d399); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important; }
+
+.kpi-3d-value {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.2;
+    font-family: 'Outfit', sans-serif;
+}
+
+.kpi-3d-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+/* ── Interactive List Items ── */
+.premium-list-group .list-group-item {
+    border: none;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1.25rem 1.5rem;
+    transition: all 0.2s ease;
+    background: transparent;
+}
+
+.premium-list-group .list-group-item:last-child {
+    border-bottom: none;
+}
+
+.premium-list-group .list-group-item:hover {
+    background: rgba(59, 130, 246, 0.03);
+    padding-left: 1.75rem;
+}
+
+[data-bs-theme="dark"] .premium-list-group .list-group-item:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+/* ── Avatar with Glow ── */
+.premium-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 1.2rem;
+    box-shadow: 0 0 15px var(--premium-accent-glow);
+    border: 2px solid rgba(255,255,255,0.2);
+    transition: transform 0.3s ease;
+}
+
+.premium-avatar:hover {
+    transform: scale(1.05) rotate(5deg);
+}
+
+/* ── Buttons Premium Override ── */
+.btn-premium {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    border: none;
+    color: white;
+    box-shadow: 0 4px 15px var(--premium-accent-glow);
+    transition: all 0.3s ease;
+    border-radius: 0.5rem;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+}
+
+.btn-premium:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px var(--premium-accent-glow);
+    color: white;
+}

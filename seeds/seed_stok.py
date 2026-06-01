@@ -1,171 +1,125 @@
 """
-FabrikaOS — Stok, Malzeme ve Tedarikçi Demo Verisi
-Senaryo: AnadoluTech Metal Sanayi — Gerçekçi endüstriyel stok yönetimi
-
-- 7 tedarikçi (Türkiye'nin bilinen sanayi firmaları)
-- 12 malzeme (Kesici takım, yağ, rulman, elektrik, KKD, hammadde...)
-- 18+ stok hareketi (giriş/çıkış, fatura numaralı)
+FabrikaOS — Stok Yönetimi Demo Verisi (v2 — Genişletilmiş)
+10 tedarikçi, 18 malzeme (5 kritik stok), 30+ stok hareketi
 """
-from datetime import datetime, timedelta, timezone
+import random
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from app.extensions import db
-from app.models.stok import Malzeme, StokHareketi, Tedarikci
+from app.models.stok import Tedarikci, Malzeme, StokHareketi
 from app.models.kullanici import Kullanici
 
 
 def seed():
-    print('[7/12] Tedarikçiler ve Stok...')
+    print('[7/22] Stok yönetimi...')
+    random.seed(42)
 
-    # ── TEDARİKÇİLER ──
+    admin = Kullanici.query.filter_by(kullanici_adi='admin').first()
+    bugun = date.today()
+
+    # ── TEDARİKÇİLER (10) ──
     tedarikciler = [
-        {
-            'ad': 'Borusan Mannesmann',
-            'yetkili_kisi': 'Kemal Yıldırım',
-            'telefon': '0262 677 30 00',
-            'eposta': 'kemal.yildirim@borusan.com.tr',
-            'adres': 'Kocaeli Gebze Organize Sanayi Bölgesi, D-101 Cad. No:15',
-            'ortalama_teslimat_gun': 5,
-            'performans_puani': 4.5,
-        },
-        {
-            'ad': 'Kardemir Karabük Demir Çelik',
-            'yetkili_kisi': 'Sevda Akın',
-            'telefon': '0370 418 90 00',
-            'eposta': 'sevda.akin@kardemir.com',
-            'adres': 'Karabük OSB, 2. Cadde No:15',
-            'ortalama_teslimat_gun': 7,
-            'performans_puani': 4.0,
-        },
-        {
-            'ad': 'Petrol Ofisi Endüstriyel Yağlar',
-            'yetkili_kisi': 'Burak Demirtaş',
-            'telefon': '0216 578 70 00',
-            'eposta': 'burak.demirtas@poas.com.tr',
-            'adres': 'İstanbul Kartal, Yakacık Cad. No:111',
-            'ortalama_teslimat_gun': 3,
-            'performans_puani': 4.7,
-        },
-        {
-            'ad': 'SKF Türkiye',
-            'yetkili_kisi': 'Derya Korkmaz',
-            'telefon': '0216 578 40 00',
-            'eposta': 'derya.korkmaz@skf.com',
-            'adres': 'İstanbul Dudullu OSB, 2. Sanayi Cad. No:8',
-            'ortalama_teslimat_gun': 4,
-            'performans_puani': 4.8,
-        },
-        {
-            'ad': 'Siemens Türkiye',
-            'yetkili_kisi': 'Cenk Aydın',
-            'telefon': '0216 459 20 00',
-            'eposta': 'cenk.aydin@siemens.com.tr',
-            'adres': 'İstanbul Yakacık, Siemens Fabrikası',
-            'ortalama_teslimat_gun': 6,
-            'performans_puani': 4.6,
-        },
-        {
-            'ad': 'Sandvik Coromant Türkiye',
-            'yetkili_kisi': 'Tuğrul Kaya',
-            'telefon': '0216 574 31 00',
-            'eposta': 'tugrul.kaya@sandvik.com',
-            'adres': 'İstanbul Tuzla OSB',
-            'ortalama_teslimat_gun': 3,
-            'performans_puani': 4.9,
-        },
-        {
-            'ad': 'Atlas Copco Kompresör',
-            'yetkili_kisi': 'Sinem Çetin',
-            'telefon': '0262 648 58 00',
-            'eposta': 'sinem.cetin@atlascopco.com',
-            'adres': 'Kocaeli Gebze OSB, 3. Bölge',
-            'ortalama_teslimat_gun': 5,
-            'performans_puani': 4.3,
-        },
-        {
-            'ad': 'Erdemir Demir Çelik',
-            'yetkili_kisi': 'Ali Vefa',
-            'telefon': '0372 329 30 00',
-            'eposta': 'ali.vefa@erdemir.com.tr',
-            'adres': 'Zonguldak Karadeniz Ereğli',
-            'ortalama_teslimat_gun': 4,
-            'performans_puani': 4.6,
-        }
+        {'ad': 'Borusan Mannesmann', 'yetkili_kisi': 'Ercan Koçak', 'telefon': '0216 581 00 00', 'eposta': 'satis@borusan.com', 'adres': 'İstanbul, Kadıköy', 'ortalama_teslimat_gun': 3, 'performans_puani': 4.8},
+        {'ad': 'Kardemir Çelik', 'yetkili_kisi': 'Hakan Demir', 'telefon': '0370 418 60 00', 'eposta': 'siparis@kardemir.com.tr', 'adres': 'Karabük', 'ortalama_teslimat_gun': 5, 'performans_puani': 4.2},
+        {'ad': 'Castrol Türkiye', 'yetkili_kisi': 'Seda Akçay', 'telefon': '0212 366 11 00', 'eposta': 'satis@castrol.com.tr', 'adres': 'İstanbul, Beylikdüzü', 'ortalama_teslimat_gun': 2, 'performans_puani': 4.9},
+        {'ad': 'SKF Türkiye', 'yetkili_kisi': 'Murat Çetin', 'telefon': '0262 679 78 00', 'eposta': 'siparis@skf.com.tr', 'adres': 'Kocaeli, Gebze', 'ortalama_teslimat_gun': 7, 'performans_puani': 4.5},
+        {'ad': 'Festo Türkiye', 'yetkili_kisi': 'Aylin Ertürk', 'telefon': '0212 622 65 30', 'eposta': 'satis@festo.com.tr', 'adres': 'İstanbul, Esenyurt', 'ortalama_teslimat_gun': 10, 'performans_puani': 4.0},
+        {'ad': 'İzocam', 'yetkili_kisi': 'Selim Boran', 'telefon': '0262 648 74 00', 'eposta': 'siparis@izocam.com.tr', 'adres': 'Kocaeli, Gebze', 'ortalama_teslimat_gun': 4, 'performans_puani': 3.8},
+        {'ad': 'Lincoln Electric Türkiye', 'yetkili_kisi': 'Kenan Yavuz', 'telefon': '0216 544 16 00', 'eposta': 'satis@lincolnelectric.com.tr', 'adres': 'İstanbul, Tuzla', 'ortalama_teslimat_gun': 5, 'performans_puani': 4.6},
+        {'ad': 'IGUS Türkiye', 'yetkili_kisi': 'Banu Kılıç', 'telefon': '0216 394 52 00', 'eposta': 'siparis@igus.com.tr', 'adres': 'İstanbul, Maltepe', 'ortalama_teslimat_gun': 8, 'performans_puani': 4.3},
+        {'ad': 'Misumi Türkiye', 'yetkili_kisi': 'Taner Öz', 'telefon': '0212 320 98 00', 'eposta': 'satis@misumi.com.tr', 'adres': 'İstanbul, Beylikdüzü', 'ortalama_teslimat_gun': 12, 'performans_puani': 4.1},
+        {'ad': 'Linde Gaz', 'yetkili_kisi': 'Pınar Şen', 'telefon': '0212 444 56 54', 'eposta': 'siparis@lindegaz.com.tr', 'adres': 'İstanbul, Gebze', 'ortalama_teslimat_gun': 3, 'performans_puani': 4.7},
     ]
 
     for t_data in tedarikciler:
-        if Tedarikci.query.filter_by(ad=t_data['ad']).first():
-            continue
         t = Tedarikci(**t_data, aktif=True)
         db.session.add(t)
-        print(f'  + Tedarikçi: {t_data["ad"]}')
+        print(f'  + Tedarikçi: {t_data["ad"]} (⭐{t_data["performans_puani"]})')
 
     db.session.flush()
-    ted_ids = {t.ad: t.id for t in Tedarikci.query.all()}
 
-    # ── MALZEMELER (12 kalem) ──
+    # Tedarikçi ID'lerini al
+    teds = {t.ad: t.id for t in Tedarikci.query.all()}
+
+    # ── MALZEMELER (18 — 5'i kritik stok altında) ──
     malzemeler = [
-            {'ad': 'CNC Kesici Uç CNMG 120408', 'kod': 'MLZ-001', 'birim': 'adet', 'kategori': 'Kesici Takım', 'lokasyon': 'Raf A-01', 'birim_fiyat': 92.50, 'mevcut_miktar': 145, 'minimum_stok': 50, 'tedarikci_id': ted_ids.get('Sandvik Coromant Türkiye')},
-            {'ad': 'Parmak Freze Ø12 (HSS-Co)', 'kod': 'MLZ-010', 'birim': 'adet', 'kategori': 'Kesici Takım', 'lokasyon': 'Raf A-02', 'birim_fiyat': 185.00, 'mevcut_miktar': 28, 'minimum_stok': 15, 'tedarikci_id': ted_ids.get('Sandvik Coromant Türkiye')},
-            {'ad': 'Hidrolik Yağ (ISO VG 46)', 'kod': 'MLZ-002', 'birim': 'litre', 'kategori': 'Endüstriyel Yağ', 'lokasyon': 'Depo B-03', 'birim_fiyat': 45.80, 'mevcut_miktar': 280, 'minimum_stok': 100, 'tedarikci_id': ted_ids.get('Petrol Ofisi Endüstriyel Yağlar')},
-            {'ad': 'CNC Soğutma Sıvısı (Emülsiyon)', 'kod': 'MLZ-007', 'birim': 'litre', 'kategori': 'Endüstriyel Yağ', 'lokasyon': 'Depo B-05', 'birim_fiyat': 62.00, 'mevcut_miktar': 95, 'minimum_stok': 50, 'tedarikci_id': ted_ids.get('Petrol Ofisi Endüstriyel Yağlar')},
-            {'ad': 'Bilyalı Rulman SKF 6205-2RS', 'kod': 'MLZ-003', 'birim': 'adet', 'kategori': 'Rulman/Yatak', 'lokasyon': 'Raf C-02', 'birim_fiyat': 148.00, 'mevcut_miktar': 22, 'minimum_stok': 10, 'tedarikci_id': ted_ids.get('SKF Türkiye')},
-            {'ad': 'MIG Kaynak Teli ER70S-6 (Ø1.0mm)', 'kod': 'MLZ-004', 'birim': 'kg', 'kategori': 'Kaynak Malzemesi', 'lokasyon': 'Raf D-01', 'birim_fiyat': 105.00, 'mevcut_miktar': 42, 'minimum_stok': 25, 'tedarikci_id': ted_ids.get('Borusan Mannesmann')},
-            {'ad': 'Siemens S7-1200 PLC CPU Modülü', 'kod': 'MLZ-005', 'birim': 'adet', 'kategori': 'Otomasyon / Elektronik', 'lokasyon': 'Raf E-01', 'birim_fiyat': 4250.00, 'mevcut_miktar': 2, 'minimum_stok': 1, 'tedarikci_id': ted_ids.get('Siemens Türkiye')},
-            {'ad': 'Proksimiti Sensör (M12, NPN)', 'kod': 'MLZ-009', 'birim': 'adet', 'kategori': 'Otomasyon / Elektronik', 'lokasyon': 'Raf E-03', 'birim_fiyat': 320.00, 'mevcut_miktar': 8, 'minimum_stok': 5, 'tedarikci_id': ted_ids.get('Siemens Türkiye')},
-            {'ad': 'Nitril Kesim Dirençli Eldiven', 'kod': 'MLZ-006', 'birim': 'adet', 'kategori': 'KKD', 'lokasyon': 'Raf F-02', 'birim_fiyat': 38.50, 'mevcut_miktar': 12, 'minimum_stok': 40, 'tedarikci_id': ted_ids.get('Kardemir Karabük Demir Çelik')},
-            {'ad': 'St37 Çelik Levha (2mm, 1500×3000)', 'kod': 'MLZ-008', 'birim': 'kg', 'kategori': 'Hammadde', 'lokasyon': 'Depo A-01', 'birim_fiyat': 24.80, 'mevcut_miktar': 1200, 'minimum_stok': 500, 'tedarikci_id': ted_ids.get('Kardemir Karabük Demir Çelik')},
-            {'ad': 'Alüminyum Çubuk (Ø25, 6082-T6)', 'kod': 'MLZ-011', 'birim': 'kg', 'kategori': 'Hammadde', 'lokasyon': 'Depo A-03', 'birim_fiyat': 85.00, 'mevcut_miktar': 180, 'minimum_stok': 80, 'tedarikci_id': ted_ids.get('Borusan Mannesmann')},
-            {'ad': 'Kompresör Yağ Filtresi (Atlas Copco)', 'kod': 'MLZ-012', 'birim': 'adet', 'kategori': 'Filtre / Sarf', 'lokasyon': 'Raf G-01', 'birim_fiyat': 520.00, 'mevcut_miktar': 3, 'minimum_stok': 2, 'tedarikci_id': ted_ids.get('Atlas Copco Kompresör')},
-        ]
-    hareketler = [
-        ('MLZ-001', 'giris', 80, 92.50, 'FTR-2026-0412', 'Sandvik sipariş teslimatı — 80 adet CNMG uç', 28),
-        ('MLZ-001', 'cikis', 15, None, None, 'CNC-001 ve CNC-002 için takım değişimi', 20),
-        ('MLZ-001', 'cikis', 8, None, None, 'Müşteri acil sipariş — ek takım tüketimi', 10),
-        ('MLZ-010', 'giris', 20, 185.00, 'FTR-2026-0445', 'Parmak freze haftalık sipariş', 14),
-        ('MLZ-002', 'giris', 200, 45.80, 'FTR-2026-0398', 'Petrol Ofisi aylık teslimat — 200L HLP 46', 25),
-        ('MLZ-002', 'cikis', 35, None, None, 'PRS-001 hidrolik yağ ikmali', 15),
-        ('MLZ-007', 'giris', 50, 62.00, 'FTR-2026-0430', 'CNC soğutma sıvısı ikmali', 12),
-        ('MLZ-003', 'giris', 15, 148.00, 'FTR-2026-0401', 'SKF rulman sipariş teslimatı', 22),
-        ('MLZ-003', 'cikis', 3, None, None, 'TSL-001 taşlama mil rulmanı değişimi', 8),
-        ('MLZ-004', 'giris', 30, 105.00, 'FTR-2026-0410', 'Borusan kaynak teli teslimatı — 30 kg', 21),
-        ('MLZ-004', 'cikis', 18, None, None, 'KYN-001 kaynak robotu aylık tüketim', 7),
-        ('MLZ-006', 'giris', 100, 38.50, 'FTR-2026-0420', 'KKD yenileme siparişi — 100 çift eldiven', 18),
-        ('MLZ-006', 'cikis', 88, None, None, 'Tüm departmanlara dağıtım (üretim + bakım)', 5),
-        ('MLZ-008', 'giris', 800, 24.80, 'FTR-2026-0415', 'Kardemir haftalık çelik levha siparişi', 16),
-        ('MLZ-008', 'cikis', 350, None, None, 'PRS-001 pres hattı — aylık levha tüketimi', 9),
-        ('MLZ-008', 'cikis', 180, None, None, 'KYN-001 kaynak hattı — şase üretimi', 3),
-        ('MLZ-011', 'giris', 100, 85.00, 'FTR-2026-0440', 'Alüminyum çubuk sipariş teslimatı', 11),
-        ('MLZ-012', 'giris', 2, 520.00, 'FTR-2026-0425', 'Atlas Copco kompresör filtresi', 13),
+        # Talaşlı imalat malzemeleri
+        {'ad': 'CNC Tornalama Ucu (CNMG 120408)', 'kod': 'MLZ-001', 'birim': 'adet', 'kategori': 'Kesici Takım', 'lokasyon': 'Raf A1-01', 'birim_fiyat': 85.00, 'mevcut_miktar': 45, 'minimum_stok': 20, 'tedarikci_id': teds.get('Misumi Türkiye')},
+        {'ad': 'CNC Freze Ucu Ø10 HSS', 'kod': 'MLZ-002', 'birim': 'adet', 'kategori': 'Kesici Takım', 'lokasyon': 'Raf A1-02', 'birim_fiyat': 120.00, 'mevcut_miktar': 8, 'minimum_stok': 15, 'tedarikci_id': teds.get('Misumi Türkiye')},  # KRİTİK
+        {'ad': 'Taşlama Taşı Ø300 (Alumina)', 'kod': 'MLZ-003', 'birim': 'adet', 'kategori': 'Aşındırıcı', 'lokasyon': 'Raf A2-01', 'birim_fiyat': 450.00, 'mevcut_miktar': 3, 'minimum_stok': 5, 'tedarikci_id': teds.get('Misumi Türkiye')},  # KRİTİK
+        # Sac işleme malzemeleri
+        {'ad': 'Sac Levha DKP 2mm (1250×2500)', 'kod': 'MLZ-004', 'birim': 'adet', 'kategori': 'Hammadde', 'lokasyon': 'Depo B-Raf 1', 'birim_fiyat': 2800.00, 'mevcut_miktar': 42, 'minimum_stok': 10, 'tedarikci_id': teds.get('Kardemir Çelik')},
+        {'ad': 'Sac Levha HRP 3mm (1500×3000)', 'kod': 'MLZ-005', 'birim': 'adet', 'kategori': 'Hammadde', 'lokasyon': 'Depo B-Raf 2', 'birim_fiyat': 4200.00, 'mevcut_miktar': 28, 'minimum_stok': 8, 'tedarikci_id': teds.get('Kardemir Çelik')},
+        {'ad': 'Çelik Çubuk Ø45 (Ç1040)', 'kod': 'MLZ-006', 'birim': 'metre', 'kategori': 'Hammadde', 'lokasyon': 'Depo B-Raf 3', 'birim_fiyat': 185.00, 'mevcut_miktar': 120, 'minimum_stok': 30, 'tedarikci_id': teds.get('Borusan Mannesmann')},
+        # Sarf malzemeler
+        {'ad': 'Soğutma Sıvısı (Henkel Bonderite)', 'kod': 'MLZ-007', 'birim': 'litre', 'kategori': 'Sarf Malzeme', 'lokasyon': 'Raf C1-01', 'birim_fiyat': 42.00, 'mevcut_miktar': 15, 'minimum_stok': 50, 'tedarikci_id': teds.get('Castrol Türkiye')},  # KRİTİK
+        {'ad': 'Hidrolik Yağ (Shell Tellus S2 46)', 'kod': 'MLZ-008', 'birim': 'litre', 'kategori': 'Sarf Malzeme', 'lokasyon': 'Raf C1-02', 'birim_fiyat': 68.00, 'mevcut_miktar': 80, 'minimum_stok': 30, 'tedarikci_id': teds.get('Castrol Türkiye')},
+        {'ad': 'Gres Yağ (SKF LGMT 2)', 'kod': 'MLZ-009', 'birim': 'kg', 'kategori': 'Sarf Malzeme', 'lokasyon': 'Raf C1-03', 'birim_fiyat': 175.00, 'mevcut_miktar': 12, 'minimum_stok': 5, 'tedarikci_id': teds.get('SKF Türkiye')},
+        # Yedek parçalar
+        {'ad': 'SKF Rulman 6205-2RS', 'kod': 'MLZ-010', 'birim': 'adet', 'kategori': 'Yedek Parça', 'lokasyon': 'Raf D1-01', 'birim_fiyat': 320.00, 'mevcut_miktar': 6, 'minimum_stok': 4, 'tedarikci_id': teds.get('SKF Türkiye')},
+        {'ad': 'Pnömatik Silindir Ø32×100', 'kod': 'MLZ-011', 'birim': 'adet', 'kategori': 'Yedek Parça', 'lokasyon': 'Raf D1-02', 'birim_fiyat': 890.00, 'mevcut_miktar': 2, 'minimum_stok': 3, 'tedarikci_id': teds.get('Festo Türkiye')},  # KRİTİK
+        {'ad': 'Servo Motor Fan (80×80mm)', 'kod': 'MLZ-012', 'birim': 'adet', 'kategori': 'Yedek Parça', 'lokasyon': 'Raf D1-03', 'birim_fiyat': 245.00, 'mevcut_miktar': 4, 'minimum_stok': 2, 'tedarikci_id': teds.get('IGUS Türkiye')},
+        # Kaynak malzemeleri
+        {'ad': 'MIG Kaynak Teli Ø1.0 (ER70S-6)', 'kod': 'MLZ-013', 'birim': 'kg', 'kategori': 'Kaynak Malzeme', 'lokasyon': 'Raf E1-01', 'birim_fiyat': 45.00, 'mevcut_miktar': 75, 'minimum_stok': 25, 'tedarikci_id': teds.get('Lincoln Electric Türkiye')},
+        {'ad': 'Argon Gazı (50 lt tüp)', 'kod': 'MLZ-014', 'birim': 'adet', 'kategori': 'Kaynak Malzeme', 'lokasyon': 'Gaz Deposu', 'birim_fiyat': 1200.00, 'mevcut_miktar': 1, 'minimum_stok': 2, 'tedarikci_id': teds.get('Linde Gaz')},  # KRİTİK
+        # Lazer malzemeleri
+        {'ad': 'Lazer Koruyucu Cam (Trumpf Uyumlu)', 'kod': 'MLZ-015', 'birim': 'adet', 'kategori': 'Lazer Sarf', 'lokasyon': 'Raf F1-01', 'birim_fiyat': 650.00, 'mevcut_miktar': 5, 'minimum_stok': 3, 'tedarikci_id': teds.get('Misumi Türkiye')},
+        {'ad': 'Lazer Kesim Nozulu Ø1.5', 'kod': 'MLZ-016', 'birim': 'adet', 'kategori': 'Lazer Sarf', 'lokasyon': 'Raf F1-02', 'birim_fiyat': 380.00, 'mevcut_miktar': 8, 'minimum_stok': 4, 'tedarikci_id': teds.get('Misumi Türkiye')},
+        # Genel
+        {'ad': 'Emniyet Eldiveni (Mekanik)', 'kod': 'MLZ-017', 'birim': 'adet', 'kategori': 'KKD', 'lokasyon': 'Raf G1-01', 'birim_fiyat': 28.00, 'mevcut_miktar': 50, 'minimum_stok': 20, 'tedarikci_id': teds.get('İzocam')},
+        {'ad': 'Yalıtım Bandı (Isıya Dayanıklı)', 'kod': 'MLZ-018', 'birim': 'adet', 'kategori': 'Genel', 'lokasyon': 'Raf G1-02', 'birim_fiyat': 65.00, 'mevcut_miktar': 15, 'minimum_stok': 5, 'tedarikci_id': teds.get('İzocam')},
     ]
 
     for m_data in malzemeler:
-        if Malzeme.query.filter_by(kod=m_data['kod']).first():
-            continue
         m = Malzeme(**m_data, aktif=True)
         db.session.add(m)
-        print(f'  + Malzeme: {m_data["ad"]} ({m_data["kod"]})')
+        kritik = ' ⚠️ KRİTİK' if m_data['mevcut_miktar'] <= m_data['minimum_stok'] else ''
+        print(f'  + {m_data["ad"]} ({m_data["kod"]}) — Stok: {m_data["mevcut_miktar"]}/{m_data["minimum_stok"]}{kritik}')
 
     db.session.flush()
 
-    # ── STOK HAREKETLERİ (18 işlem) ──
-    admin = Kullanici.query.filter_by(kullanici_adi='admin').first()
-    admin_id = admin.id if admin else 1
+    # ── STOK HAREKETLERİ (30+) ──
+    malzeme_kayitlari = Malzeme.query.all()
+    fatura_prefix = ['FTR-2026-', 'IRS-2026-', 'SAS-2026-']
 
-    for kod, tur, miktar, fiyat, fatura, neden, gun_once in hareketler:
-        malzeme = Malzeme.query.filter_by(kod=kod).first()
-        if not malzeme:
-            continue
-        h = StokHareketi(
-            malzeme_id=malzeme.id,
-            hareket_turu=tur,
-            miktar=miktar,
-            birim_fiyat=fiyat,
-            fatura_no=fatura,
-            neden=neden,
-            islem_yapan_id=admin_id,
-            tarih=datetime.now(timezone.utc) - timedelta(days=gun_once),
-        )
-        db.session.add(h)
+    for i, mlz in enumerate(malzeme_kayitlari):
+        # Her malzeme için 1-3 giriş, 1-2 çıkış hareketi
+        giris_sayisi = random.randint(1, 3)
+        for j in range(giris_sayisi):
+            gun_once = random.randint(5, 150)
+            miktar = random.randint(5, 50) if mlz.birim == 'adet' else random.randint(10, 100)
+            sh = StokHareketi(
+                malzeme_id=mlz.id,
+                hareket_turu='giris',
+                miktar=miktar,
+                birim_fiyat=float(mlz.birim_fiyat) * random.uniform(0.95, 1.05),
+                fatura_no=f'{random.choice(fatura_prefix)}{1000 + i * 3 + j:05d}',
+                neden='Tedarikçi siparişi teslim alındı',
+                islem_yapan_id=admin.id if admin else 1,
+                tarih=datetime.now(timezone.utc) - timedelta(days=gun_once),
+            )
+            db.session.add(sh)
+
+        cikis_sayisi = random.randint(1, 2)
+        for j in range(cikis_sayisi):
+            gun_once = random.randint(1, 60)
+            miktar = random.randint(1, 10) if mlz.birim == 'adet' else random.randint(5, 30)
+            nedenler = [
+                'Üretim hattına malzeme çıkışı',
+                'Bakım operasyonu için çıkış',
+                'Kalıp/takım değişimi',
+                'Arıza onarımı için kullanıldı',
+                'Vardiya sarf malzeme dağıtımı',
+            ]
+            sh = StokHareketi(
+                malzeme_id=mlz.id,
+                hareket_turu='cikis',
+                miktar=miktar,
+                neden=random.choice(nedenler),
+                islem_yapan_id=admin.id if admin else 1,
+                tarih=datetime.now(timezone.utc) - timedelta(days=gun_once),
+            )
+            db.session.add(sh)
 
     db.session.flush()
-    print('  + Stok hareketleri oluşturuldu\n')
+    print(f'  + {len(malzeme_kayitlari)} malzeme için stok hareketleri oluşturuldu\n')

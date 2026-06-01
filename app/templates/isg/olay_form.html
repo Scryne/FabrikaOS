@@ -16,50 +16,50 @@
                     <div class="row g-3">
                         <h6 class="text-danger border-bottom pb-2 mb-3 mt-3"><i class="bi bi-info-circle me-2"></i>Genel Bilgiler</h6>
 
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.olay_no.label }}</label>
                             {{ form.olay_no(class="form-control", placeholder="Sistem atayabilir") }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.tarih.label }}</label>
                             {{ form.tarih(class="form-control", type="date") }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.vardiya.label }}</label>
                             {{ form.vardiya(class="form-select") }}
                         </div>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.olay_turu.label }}</label>
                             {{ form.olay_turu(class="form-select") }}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.calisan_id.label }}</label>
                             {{ form.calisan_id(class="form-select") }}
                         </div>
 
                         <h6 class="text-danger border-bottom pb-2 mb-3 mt-4"><i class="bi bi-geo-alt me-2"></i>Olay Yeri ve Türü</h6>
 
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.yer.label }}</label>
                             {{ form.yer(class="form-control" + (" is-invalid" if form.yer.errors else ""), placeholder="Örn: Üretim Hattı B, Depo Giriş vb.") }}
                             {% for error in form.yer.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-medium">{{ form.kaza_sekli.label }}</label>
                             {{ form.kaza_sekli(class="form-select") }}
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.yaralanma_tipi.label }}</label>
                             {{ form.yaralanma_tipi(class="form-control" + (" is-invalid" if form.yaralanma_tipi.errors else ""), placeholder="Örn: Kesik, Yanık, Kırık vb.") }}
                             {% for error in form.yaralanma_tipi.errors %}<div class="invalid-feedback">{{ error }}</div>{% endfor %}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.uzuv.label }}</label>
                             {{ form.uzuv(class="form-control", placeholder="Örn: Sağ El İşaret Parmağı") }}
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.siddet.label }}</label>
                             {{ form.siddet(class="form-select") }}
                         </div>
@@ -82,7 +82,7 @@
                             {{ form.duzeltici_faaliyet(class="form-control", rows="2", placeholder="Alınan ilk müdahale ve önleyici aksiyonlar") }}
                         </div>
 
-                        <div class="col-md-4">
+                        <div class="col-12 col-md-4">
                             <label class="form-label fw-medium">{{ form.kayip_gun.label }}</label>
                             <div class="input-group">
                                 {{ form.kayip_gun(class="form-control", type="number") }}

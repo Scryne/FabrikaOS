@@ -457,7 +457,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 html = `<div class="tkv-detail-row"><span class="tkv-detail-label">Makine</span><span class="tkv-detail-value">${props.makine_ad || '—'}</span></div>`;
                 if(props.bakim_turu) html += `<div class="tkv-detail-row"><span class="tkv-detail-label">Bakım Türü</span><span class="tkv-detail-value">${props.bakim_turu}</span></div>`;
                 html += `<div class="tkv-detail-row"><span class="tkv-detail-label">Tarih</span><span class="tkv-detail-value">${info.event.startStr}</span></div>`;
-                if(props.gecikti) html += `<div class="alert alert-danger py-2 mt-3 mb-0 d-flex align-items-center gap-2"><i class="bi bi-exclamation-triangle"></i><span class="fw-bold">Bu bakım gecikmiş durumda!</span></div>`;
+                if(props.gecikti) html += `<div class="alert alert-danger py-2 mt-3 mb-0 d-flex flex-wrap align-items-center gap-2"><i class="bi bi-exclamation-triangle"></i><span class="fw-bold">Bu bakım gecikmiş durumda!</span></div>`;
             } else if (props.tip === 'vardiya') {
                 tipBadge.className = 'badge bg-primary-subtle text-primary-emphasis mb-2';
                 tipBadge.innerHTML = '<i class="bi bi-clock-history me-1"></i>Vardiya';

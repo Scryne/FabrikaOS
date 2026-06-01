@@ -1,0 +1,128 @@
+{% extends"base.html" %}
+{% block title %}Satın Alma Siparişleri{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('satin_alma.index') }}">Satın Alma</a></li>
+        <li class="breadcrumb-item active">Siparişler</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="mb-0 fw-bold">Satın Alma Siparişleri</h2>
+        <p class="text-muted mb-0 mt-1">Tedarikçilere verilen siparişlerin takibi</p>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label text-muted small">Arama</label>
+                <div class="input-group">
+                    <span class="input-group-text text-muted"><i class="bi bi-search"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Sipariş No veya Fatura No" value="{{ arama }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label text-muted small">Durum</label>
+                <select name="durum" class="form-select">
+                    <option value="">Tümü</option>
+                    <option value="siparis_verildi" {% if durum == 'siparis_verildi' %}selected{% endif %}>Sipariş Verilenler</option>
+                    <option value="kargo" {% if durum == 'kargo' %}selected{% endif %}>Kargoda Olanlar</option>
+                    <option value="teslim_alindi" {% if durum == 'teslim_alindi' %}selected{% endif %}>Teslim Alınanlar</option>
+                    <option value="iade" {% if durum == 'iade' %}selected{% endif %}>İade Edilenler</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100">Filtrele</button>
+            </div>
+            {% if arama or durum %}
+            <div class="col-md-2">
+                <a href="{{ url_for('satin_alma.siparisler') }}" class="btn btn-outline-secondary w-100">Temizle</a>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="table-responsive">
+        <table class="table table-hover mb-0 align-middle">
+            <thead>
+                <tr class="text-muted small text-uppercase">
+                    <th class="py-3 ps-4">Sipariş No</th>
+                    <th class="py-3">Sipariş Tarihi</th>
+                    <th class="py-3">Tedarikçi</th>
+                    <th class="py-3">İlgili Talep</th>
+                    <th class="py-3 text-end">Toplam Tutar</th>
+                    <th class="py-3 ps-4">Durum</th>
+                    <th class="py-3 text-end pe-4">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for siparis in siparisler.items %}
+                <tr>
+                    <td class="ps-4">
+                        <a href="{{ url_for('satin_alma.siparis_detay', id=siparis.id) }}" class="fw-bold text-decoration-none">{{ siparis.siparis_no }}</a>
+                    </td>
+                    <td >{{ siparis.siparis_tarihi.strftime('%d.%m.%Y') }}</td>
+                    <td >{{ siparis.tedarikci.ad if siparis.tedarikci else '—' }}</td>
+                    <td >
+                        <a href="{{ url_for('satin_alma.talep_detay', id=siparis.talep_id) }}" class="text-decoration-none text-muted">
+                            <i class="bi bi-link-45deg"></i> {{ siparis.talep.talep_no }}
+                        </a>
+                    </td>
+                    <td class="text-end fw-medium text-success">
+                        {{"₺{:,.2f}".format(siparis.genel_toplam) if siparis.genel_toplam else '—' }}
+                    </td>
+                    <td class="ps-4">
+                        <span class="badge {{ siparis.durum_badge }}">{{ siparis.durum_adi }}</span>
+                        {% if siparis.gecikme_var_mi %}
+                        <div class="text-danger small mt-1"><i class="bi bi-clock-history"></i> {{ siparis.gecikme_gun }} gün gecikti</div>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-4">
+                        <a href="{{ url_for('satin_alma.siparis_detay', id=siparis.id) }}" class="btn btn-sm btn-outline-info">
+                            <i class="bi bi-eye"></i> Detay
+                        </a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="text-center py-4 text-muted">Kriterlere uygun sipariş bulunamadı.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Sayfalama -->
+{% if siparisler.pages > 1 %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if siparisler.has_prev %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('satin_alma.siparisler', page=siparisler.prev_num, q=arama, durum=durum) }}">&laquo;</a></li>
+        {% endif %}
+        
+        {% for p in siparisler.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+            {% if p %}
+            <li class="page-item {{ 'active' if p == siparisler.page }}"><a class="page-link {% if p != siparisler.page %} {% endif %}" href="{{ url_for('satin_alma.siparisler', page=p, q=arama, durum=durum) }}">{{ p }}</a></li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link text-muted">…</span></li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if siparisler.has_next %}
+        <li class="page-item"><a class="page-link" href="{{ url_for('satin_alma.siparisler', page=siparisler.next_num, q=arama, durum=durum) }}">&raquo;</a></li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}
