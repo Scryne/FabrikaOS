@@ -8,8 +8,20 @@ ortamlarının aynı kod tabanıyla çalışmasını sağlar.
 """
 
 import os
+import sys
 from flask import Flask
 from config import config
+
+
+def _get_socketio_async_mode():
+    configured_mode = os.environ.get('FDYS_SOCKETIO_ASYNC_MODE')
+    if configured_mode:
+        return configured_mode
+
+    if sys.version_info >= (3, 13):
+        return 'threading'
+
+    return 'eventlet'
 
 
 def create_app(config_name=None):
@@ -75,7 +87,11 @@ def _register_extensions(app):
     csrf.init_app(app)
     cache.init_app(app)
     limiter.init_app(app)
-    socketio.init_app(app, async_mode='eventlet', cors_allowed_origins=app.config.get('SOCKETIO_CORS_ALLOWED_ORIGINS', '*'))
+    socketio.init_app(
+        app,
+        async_mode=_get_socketio_async_mode(),
+        cors_allowed_origins=app.config.get('SOCKETIO_CORS_ALLOWED_ORIGINS', '*')
+    )
 
     # Flask-Login kullanıcı yükleyici
     from app.models.kullanici import Kullanici

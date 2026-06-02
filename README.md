@@ -170,13 +170,13 @@ cd FabrikaOS
 
 ### 2. Sanal Ortam ve Bağımlılıklar
 ```bash
-python -m venv venv
+python -m venv .venv
 # Windows:
-venv\Scripts\activate
+.venv\Scripts\activate
 # Linux/Mac:
-# source venv/bin/activate
+# source .venv/bin/activate
 
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 ```
 
 ### 3. Çevre Değişkenleri (.env)

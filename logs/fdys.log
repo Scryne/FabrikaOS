@@ -1415,3 +1415,9 @@ werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'crm.in
 [2026-06-02 20:35:56,312] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
 [2026-06-02 20:35:56,958] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
 [2026-06-02 20:35:57,562] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-03 00:18:01,951] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-03 00:18:02,923] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-03 00:18:03,652] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-03 00:18:04,266] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-03 00:20:06,260] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-03 00:20:06,813] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.

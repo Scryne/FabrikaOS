@@ -40,7 +40,7 @@ if __name__ == '__main__':
         from app.services.mock_engine import MockDataEngine
         mock_engine = MockDataEngine(app)
         mock_engine.start()
-    except ImportError:
+    except Exception:
         pass
 
     socketio.run(
