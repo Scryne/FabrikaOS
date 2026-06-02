@@ -10,6 +10,13 @@
     .fc-theme-standard td, .fc-theme-standard th { border: 1px solid var(--border-color); }
     .fc-day-today { background-color: rgba(59, 130, 246, 0.05) !important; }
     
+    /* FullCalendar Liste Görünümü Dark Tema Düzeltmeleri */
+    .fc-theme-standard .fc-list { border-color: var(--border-color) !important; }
+    .fc-list-empty { background-color: var(--bg-card); color: var(--text-muted); }
+    .fc-list-day-cushion { background-color: var(--bg-sidebar) !important; color: var(--text-heading) !important; }
+    .fc-list-event td { background-color: var(--bg-card) !important; border-color: var(--border-color) !important; color: var(--text-body) !important; }
+    .fc-list-event:hover td { background-color: rgba(255, 255, 255, 0.05) !important; }
+    .fc-list-event-title a { color: var(--text-body) !important; }
     .timeline-item {
         position: relative;
         padding-left: 2rem;
@@ -144,10 +151,13 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block modals %}
 <!-- Olay Detay Modalı -->
 <div class="modal fade" id="eventModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0">
+        <div class="modal-content border-0" style="background-color: var(--bg-card);">
             <div class="modal-header text-white" id="eventModalHeader">
                 <h5 class="modal-title fw-bold" id="eventTitle">Başlık</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -166,7 +176,7 @@
                     <div class="fw-bold" id="eventInfo"></div>
                 </div>
             </div>
-            <div class="modal-footer bg-light border-top-0">
+            <div class="modal-footer border-top-0" style="background-color: var(--bg-sidebar);">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
                 <a href="#" class="btn btn-primary" id="eventLink">Detaya Git</a>
             </div>

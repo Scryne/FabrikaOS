@@ -1354,3 +1354,64 @@ werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'crm.in
 [2026-06-01 11:52:36,401] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
 [2026-06-01 11:57:14,300] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
 [2026-06-01 11:57:14,858] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 11:58:20,956] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 11:58:21,535] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:01:22,415] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:01:23,053] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:01:25,017] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:01:25,674] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:01:27,600] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:01:28,235] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:01:30,223] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:01:30,896] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:04:27,825] INFO in tahmin_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: AI Modül [bakim]: 8 kayıt, 3.523s
+[2026-06-01 12:04:27,837] INFO in tahmin_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: AI Modül [oee]: 8 kayıt, 0.012s
+[2026-06-01 12:04:27,877] INFO in tahmin_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: AI Modül [stok]: 18 kayıt, 0.039s
+[2026-06-01 12:04:27,907] INFO in tahmin_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: AI Modül [anomali]: 5 kayıt, 0.03s
+[2026-06-01 12:04:27,939] INFO in otomasyon_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: [OTOMASYON AUDIT] Kural: bakim_is_emri | Durum: BAŞARILI | Detay: Makine PRS-001: Mevcut açık bakım emri var (IE #IE-2026-0001), atlanıyor.
+[2026-06-01 12:10:32,282] INFO in tahmin_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: AI Modül [bakim]: 8 kayıt, 2.093s
+[2026-06-01 12:10:32,290] INFO in tahmin_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: AI Modül [oee]: 8 kayıt, 0.008s
+[2026-06-01 12:10:32,303] INFO in tahmin_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: AI Modül [stok]: 18 kayıt, 0.013s
+[2026-06-01 12:10:32,321] INFO in tahmin_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: AI Modül [anomali]: 5 kayıt, 0.018s
+[2026-06-01 12:10:32,326] INFO in otomasyon_motoru [127.0.0.1 - http://localhost:5000/tahmin/api/hesapla]: [OTOMASYON AUDIT] Kural: bakim_is_emri | Durum: BAŞARILI | Detay: Makine PRS-001: Mevcut açık bakım emri var (IE #IE-2026-0001), atlanıyor.
+[2026-06-01 12:12:40,612] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:12:41,164] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:13:32,271] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:13:32,846] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:14:00,370] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:14:23,838] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:14:24,424] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:14:42,012] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:15:04,475] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:15:05,112] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:15:14,770] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:15:25,036] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:15:25,645] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-01 12:15:41,094] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:15:43,500] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-01 12:15:44,025] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:15:41,362] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:15:42,223] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:15:42,863] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:15:43,471] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:23:57,001] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:23:57,599] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:26:04,590] WARNING in is_emri_servisi [127.0.0.1 - http://localhost:5000/is-emri/]: SLA eskalasyon tetiklendi: IE-2026-0001
+[2026-06-02 10:34:38,711] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:34:39,330] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:34:39,975] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:34:40,587] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:53:34,551] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:53:35,140] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:53:42,866] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:53:43,643] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:53:44,240] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:53:44,844] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:53:46,213] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:53:46,795] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 10:53:46,880] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 10:53:47,414] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 20:35:55,493] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 20:35:56,312] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 20:35:56,958] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 20:35:57,562] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
