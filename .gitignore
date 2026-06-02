@@ -1,4 +1,6 @@
 # ===========================
 # FDYS - FabrikaOS .gitignore
 # ===========================
-# Kullanici istegi uzerine tum dosyalar (venv dahil) pushlanmaktadir.
+
+venv/
+.venv/
