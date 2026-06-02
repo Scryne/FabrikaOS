@@ -1415,3 +1415,16 @@ werkzeug.routing.exceptions.BuildError: Could not build url for endpoint 'crm.in
 [2026-06-02 20:35:56,312] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
 [2026-06-02 20:35:56,958] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
 [2026-06-02 20:35:57,562] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 23:21:02,055] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 23:21:32,483] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 23:21:33,384] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 23:21:34,211] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 23:21:34,883] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-02 23:21:56,587] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-02 23:21:57,262] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-03 00:11:56,421] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-03 00:11:57,151] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-03 00:15:42,507] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-03 00:15:43,247] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.
+[2026-06-03 00:15:59,895] INFO in logger [None - None]: FDYS Uygulaması Başlatıldı - Logging Aktif
+[2026-06-03 00:16:00,627] INFO in mock_engine [None - None]: Mock Data Engine (Dinamik Veri Simülatörü) başlatıldı.

@@ -5,776 +5,373 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description"
-    content="FabrikaOS — Üretim hatlarındaki görünmez kayıpları bitirin. AI destekli MES+ERP entegrasyonu ile OEE oranınızı %18 artırın. Metal sanayi ve ağır endüstri için geliştirilmiş akıllı fabrika platformu.">
-  <meta name="keywords"
-    content="MES, ERP, OEE, fabrika yönetimi, üretim takibi, kestirimci bakım, endüstri 4.0, IoT, PLC">
-  <title>FabrikaOS | Üretim Hatlarındaki Görünmez Kayıpları Bitirin</title>
+    content="FabrikaOS (FDYS) — Metal sanayi için yapay zeka destekli, kendi sunucunuzda çalışan akıllı fabrika yönetim sistemi. 27 entegre modül, gerçek zamanlı OEE takibi ve kestirimci bakım tek platformda.">
+  <meta name="keywords" content="MES, ERP, OEE, fabrika yönetimi, kestirimci bakım, endüstri 4.0, FDYS, FabrikaOS">
+  <meta name="theme-color" content="#131317">
+  <title>FabrikaOS — Akıllı Fabrika Yönetim Sistemi</title>
 
-  <!-- Google Fonts -->
+  <!-- Fonts: Plus Jakarta Sans (display) + Inter (body) per DESIGN.md -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
     rel="stylesheet">
 
-  <!-- Material Symbols -->
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,1,0"
-    rel="stylesheet">
-
-  <!-- Custom CSS -->
-  <link href="{{ url_for('static', filename='css/landing.css') }}?v=31.0" rel="stylesheet">
+  <link href="{{ url_for('static', filename='css/landing.css') }}?v=40.0" rel="stylesheet">
 </head>
 
 <body class="landing-body">
 
-
-
-  <!-- ══════════════════════════════════════════════
-       NAVIGATION
-       ══════════════════════════════════════════════ -->
-  <nav class="nav-landing" id="navbar">
+  <!-- ════════════════ NAV ════════════════ -->
+  <nav class="nav" id="nav">
     <div class="nav-inner">
-      <a href="/" class="nav-brand">
-        <span class="material-symbols-outlined brand-icon">precision_manufacturing</span>
-        <span class="brand-text">Fabrika<span>OS</span></span>
+      <a href="/" class="brand">
+        <span class="brand-icon material-symbols-outlined">precision_manufacturing</span>
+        <b>Fabrika<span>OS</span></b>
       </a>
-
-      <div class="nav-links" id="navLinks">
-        <a href="#features" data-section="features">Modüller</a>
-        <a href="#showcase" data-section="showcase">Fabrika</a>
-        <a href="#pricing" data-section="pricing">Fiyatlandırma</a>
-        <a href="#testimonials" data-section="testimonials">Referanslar</a>
+      <div class="nav-links">
+        <a href="#modules">Modüller</a>
+        <a href="#preview">Panel</a>
+        <a href="#ai">Yapay Zeka</a>
+        <a href="#stack">Teknoloji</a>
       </div>
-
-      <div class="nav-cta">
-        <a href="{{ url_for('auth.login') }}" class="btn-nav-cta hidden-mobile">
-          Panele Giriş
-          <span class="material-symbols-outlined">arrow_forward</span>
+      <div class="nav-actions">
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+          Panele Giriş <span class="material-symbols-outlined">arrow_forward</span>
         </a>
-        <button class="hamburger-btn" id="menuToggle" aria-label="Menüyü aç">
+        <button class="nav-hamburger" id="menuOpen" aria-label="Menü">
           <span class="material-symbols-outlined">menu</span>
         </button>
       </div>
     </div>
   </nav>
 
-  <!-- Mobile Menu -->
-  <div class="mobile-overlay" id="mobileOverlay"></div>
-  <div class="mobile-menu" id="mobileMenu">
-    <div class="mobile-menu-header">
-      <div class="nav-brand">
-        <span class="material-symbols-outlined brand-icon">precision_manufacturing</span>
-        <span class="brand-text">Fabrika<span>OS</span></span>
-      </div>
-      <button class="mobile-menu-close" id="menuClose">
-        <span class="material-symbols-outlined">close</span>
-      </button>
+  <!-- Mobile menu -->
+  <div class="m-menu" id="mMenu">
+    <div class="m-menu-top">
+      <span class="brand"><span class="brand-icon material-symbols-outlined">precision_manufacturing</span>
+        <b>Fabrika<span>OS</span></b></span>
+      <button class="m-menu-close" id="menuClose" aria-label="Kapat"><span
+          class="material-symbols-outlined">close</span></button>
     </div>
-    <div class="mobile-menu-links">
-      <a href="#features" class="mobile-link">Modüller</a>
-      <a href="#showcase" class="mobile-link">Fabrika</a>
-      <a href="#pricing" class="mobile-link">Fiyatlandırma</a>
-      <a href="#testimonials" class="mobile-link">Referanslar</a>
-    </div>
-    <div class="mobile-menu-actions">
-      <a href="{{ url_for('auth.login') }}" class="btn-primary" style="width: 100%; justify-content: center;">
-        Panele Giriş <span class="material-symbols-outlined">arrow_forward</span>
-      </a>
-    </div>
+    <a href="#modules" class="m-link">Modüller</a>
+    <a href="#preview" class="m-link">Panel</a>
+    <a href="#ai" class="m-link">Yapay Zeka</a>
+    <a href="#stack" class="m-link">Teknoloji</a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Panele Giriş <span
+        class="material-symbols-outlined">arrow_forward</span></a>
   </div>
 
-  <main class="landing-main">
+  <main>
 
-    <!-- ══════════════════════════════════════════════
-         1. HERO — Cinematic Command Center
-         ══════════════════════════════════════════════ -->
-    <section class="hero-section" id="hero-section">
-      <div class="hero-inner">
-        <!-- Left: Content -->
+    <!-- ════════════════ HERO ════════════════ -->
+    <section class="hero">
+      <div class="shell hero-grid">
         <div class="hero-content">
-          <div class="hero-badge stagger-1 glass-panel">
+          <div class="hero-eyebrow glass reveal">
             <span class="pulse-dot"></span>
-            <span class="font-label-caps text-on-surface-variant">CANLI — AKILLI FABRİKA SİSTEMİ</span>
+            <span class="font-label-caps text-variant">CANLI ÜRETİM ZEKÂSI</span>
           </div>
-
-          <h1 class="hero-title font-display-lg stagger-2">
-            Üretim Hatlarındaki<br>
-            <span>Görünmez Kayıpları</span> <span class="hero-typewriter">Bitirin</span>
+          <h1 class="font-display-lg reveal d1">
+            Fabrikanızın her saniyesi<br>
+            <span class="grad">ölçülebilir</span> olsun.
           </h1>
-
-          <p class="hero-subtitle stagger-3">
-            Yapay zeka destekli Kestirimci Bakım, tam entegre MES+ERP ve gerçek zamanlı OEE takibi ile fabrikadaki
-            her saniyeyi verimli ve karlı kılın.
+          <p class="hero-sub reveal d2">
+            FabrikaOS (FDYS); metal ve ağır sanayi için geliştirilmiş, kendi sunucunuzda çalışan bir MES + ERP
+            platformudur. Gerçek zamanlı OEE takibi, yapay zeka destekli kestirimci bakım ve 27 entegre modül tek bir
+            karanlık komuta merkezinde toplanır.
           </p>
-
-          <div class="hero-trust-strip stagger-3">
-            <span class="hero-trust-item">
-              <span class="material-symbols-outlined">check_circle</span> 27 Modül
-            </span>
-            <span class="hero-trust-item">
-              <span class="material-symbols-outlined">check_circle</span> AI Destekli
-            </span>
-            <span class="hero-trust-item">
-              <span class="material-symbols-outlined">check_circle</span> Gerçek Zamanlı
-            </span>
+          <div class="hero-cta reveal d3">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">
+              Demo Panele Giriş <span class="material-symbols-outlined">login</span>
+            </a>
+            <a href="#modules" class="btn btn-ghost">
+              Modülleri Keşfet <span class="material-symbols-outlined">grid_view</span>
+            </a>
           </div>
-
-          <div class="hero-buttons stagger-4">
-            <a href="#contact-form" class="btn-primary">
-              Ücretsiz Fabrika Keşfi
-              <span class="material-symbols-outlined">arrow_forward</span>
-            </a>
-            <a href="#features" class="btn-ghost">
-              Modülleri Keşfet
-              <span class="material-symbols-outlined">explore</span>
-            </a>
+          <div class="hero-meta reveal d4">
+            <span><span class="material-symbols-outlined">check_circle</span> 27 entegre modül</span>
+            <span><span class="material-symbols-outlined">check_circle</span> Gerçek zamanlı (Socket.IO)</span>
+            <span><span class="material-symbols-outlined">check_circle</span> Kendi sunucunuzda</span>
           </div>
         </div>
 
-        <!-- Right: Interactive Dashboard Mock -->
-        <div class="hero-dashboard stagger-5">
-          <div class="hero-dash-card">
-            <div class="hero-dash-header">
-              <span class="hero-dash-title">Fabrika Durum Paneli</span>
-              <div class="hero-dash-live">
-                <span class="live-dot"></span>
-                CANLI
-              </div>
-            </div>
+        <!-- Telemetry panel -->
+        <div class="telemetry glass reveal d2">
+          <div class="tele-head">
+            <span class="tele-title"><span class="material-symbols-outlined">monitoring</span> Fabrika Durum
+              Paneli</span>
+            <span class="chip chip-live"><span class="pulse-dot"></span> CANLI</span>
+          </div>
 
-            <!-- OEE Gauge -->
-            <div class="oee-gauge-wrap">
-              <svg class="oee-gauge-svg" viewBox="0 0 140 140">
+          <div class="tele-body">
+            <div class="oee-ring">
+              <svg viewBox="0 0 132 132">
                 <defs>
-                  <linearGradient id="gaugeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stop-color="#3b82f6" />
-                    <stop offset="50%" stop-color="#22d3ee" />
-                    <stop offset="100%" stop-color="#a78bfa" />
+                  <linearGradient id="oeeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#2f3aa3" />
+                    <stop offset="55%" stop-color="#38bdf8" />
+                    <stop offset="100%" stop-color="#56e5a9" />
                   </linearGradient>
                 </defs>
-                <circle class="oee-gauge-bg" cx="70" cy="70" r="60" />
-                <circle class="oee-gauge-fill" id="oeeGaugeFill" cx="70" cy="70" r="60" />
+                <circle class="track" cx="66" cy="66" r="56" />
+                <circle class="fill" id="oeeFill" cx="66" cy="66" r="56" />
               </svg>
-              <div class="oee-gauge-label">
-                <span class="oee-gauge-value" id="oeeValue">0</span>
-                <span class="oee-gauge-unit">OEE %</span>
+              <div class="oee-center">
+                <b id="oeeNum">0</b>
+                <small>Tesis OEE</small>
               </div>
             </div>
-
-            <!-- Machine Status Grid -->
-            <div class="machine-grid">
-              <div class="machine-item">
-                <div class="machine-status online"></div>
-                <div class="machine-name">CNC-01</div>
-                <div class="machine-type">Freze</div>
-              </div>
-              <div class="machine-item">
-                <div class="machine-status online"></div>
-                <div class="machine-name">CNC-02</div>
-                <div class="machine-type">Torna</div>
-              </div>
-              <div class="machine-item">
-                <div class="machine-status warning"></div>
-                <div class="machine-name">PRS-01</div>
-                <div class="machine-type">Pres</div>
-              </div>
-              <div class="machine-item">
-                <div class="machine-status online"></div>
-                <div class="machine-name">KYN-01</div>
-                <div class="machine-type">Kaynak</div>
-              </div>
-              <div class="machine-item">
-                <div class="machine-status offline"></div>
-                <div class="machine-name">BYA-01</div>
-                <div class="machine-type">Boya</div>
-              </div>
-              <div class="machine-item">
-                <div class="machine-status online"></div>
-                <div class="machine-name">MTJ-01</div>
-                <div class="machine-type">Montaj</div>
-              </div>
+            <div class="tele-kpis">
+              <div class="tele-kpi"><span class="k">Aktif Makine</span><span class="v text-emerald">42 / 45</span></div>
+              <div class="tele-kpi"><span class="k">Günlük Üretim</span><span class="v">14.250 ad.</span></div>
+              <div class="tele-kpi"><span class="k">Fire Oranı</span><span class="v text-emerald">%0.8</span></div>
             </div>
+          </div>
 
-            <!-- Mini Chart -->
-            <div class="hero-mini-chart">
-              <div class="hero-mini-chart-label">Haftalık OEE Trendi</div>
-              <svg viewBox="0 0 400 50" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="miniChartGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="rgba(99, 102, 241, 0.4)" />
-                    <stop offset="100%" stop-color="rgba(99, 102, 241, 0)" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M 0 40 C 50 30, 100 45, 150 25 C 200 10, 250 35, 300 15 C 350 5, 380 12, 400 8 L 400 50 L 0 50 Z"
-                  fill="url(#miniChartGrad)" />
-                <path d="M 0 40 C 50 30, 100 45, 150 25 C 200 10, 250 35, 300 15 C 350 5, 380 12, 400 8" fill="none"
-                  stroke="var(--accent-cta)" stroke-width="2" />
-                <circle cx="300" cy="15" r="3" fill="var(--surface-container)" stroke="var(--accent-cyan)"
-                  stroke-width="1.5" />
-                <circle cx="400" cy="8" r="3" fill="var(--surface-container)" stroke="var(--tertiary)"
-                  stroke-width="1.5" />
-              </svg>
+          <div class="tele-machines">
+            <div class="mpip on"><i></i><span>CNC-01</span></div>
+            <div class="mpip on"><i></i><span>CNC-02</span></div>
+            <div class="mpip warn"><i></i><span>PRS-01</span></div>
+            <div class="mpip on"><i></i><span>KYN-01</span></div>
+            <div class="mpip off"><i></i><span>BYA-01</span></div>
+            <div class="mpip on"><i></i><span>MTJ-01</span></div>
+          </div>
+
+          <div class="tele-ticker">
+            <div class="tele-ticker-track">
+              <span><b>●</b> CNC-02 titreşim 0.42 mm/s — normal</span>
+              <span><b>●</b> İş emri #4821 tamamlandı</span>
+              <span><b>●</b> KYN-01 OEE %88.4</span>
+              <span><b>●</b> Stok uyarısı: Çelik levha 2.450 kg</span>
+              <span><b>●</b> CNC-02 titreşim 0.42 mm/s — normal</span>
+              <span><b>●</b> İş emri #4821 tamamlandı</span>
+              <span><b>●</b> KYN-01 OEE %88.4</span>
+              <span><b>●</b> Stok uyarısı: Çelik levha 2.450 kg</span>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ══════════════════════════════════════════════
-         2. STATS BAR — Social Proof Strip
-         ══════════════════════════════════════════════ -->
-    <section class="stats-section section-landing container-landing reveal" id="stats-section">
-      <div class="stats-bar">
-        <div class="stat-item reveal reveal-delay-1">
-          <span class="material-symbols-outlined stat-icon">bolt</span>
-          <div class="stat-number" data-target="35" data-prefix="%">%0</div>
-          <div class="stat-label">Ortalama Duruş Süresi Azaltma</div>
-          <div class="stat-progress">
-            <div class="stat-progress-fill" data-fill="35"></div>
-          </div>
-        </div>
-
-        <div class="stat-item reveal reveal-delay-2">
-          <span class="material-symbols-outlined stat-icon">trending_down</span>
-          <div class="stat-number" data-target="22" data-prefix="%">%0</div>
-          <div class="stat-label">Hurda ve Fire Oranında Düşüş</div>
-          <div class="stat-progress">
-            <div class="stat-progress-fill" data-fill="22"></div>
-          </div>
-        </div>
-
-        <div class="stat-item reveal reveal-delay-3">
-          <span class="material-symbols-outlined stat-icon">speed</span>
-          <div class="stat-number" data-target="18" data-prefix="+%">+%0</div>
-          <div class="stat-label">Toplam Ekipman Etkinliği (OEE) Artışı</div>
-          <div class="stat-progress">
-            <div class="stat-progress-fill" data-fill="18"></div>
-          </div>
-        </div>
-
-        <div class="stat-item reveal reveal-delay-4">
-          <span class="material-symbols-outlined stat-icon">widgets</span>
-          <div class="stat-number" data-target="27" data-suffix="">0</div>
-          <div class="stat-label">Entegre Modül</div>
-          <div class="stat-progress">
-            <div class="stat-progress-fill" data-fill="27"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Marquee Trust Logos -->
-      <div class="trust-marquee-wrap reveal">
-        <p class="trust-marquee-label font-label-caps text-on-surface-variant">AĞIR SANAYİNİN ÖNCÜLERİ TARAFINDAN
-          GÜVENİLİYOR</p>
-        <div class="trust-marquee-track" id="marqueeTrack">
-          <div class="trust-logo-item"><span class="material-symbols-outlined">factory</span> OTO-YAN SANAYİ</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">precision_manufacturing</span> DÖKÜM-TEK
-          </div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">architecture</span> ÇELİK METALURJİ</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">settings_suggest</span> MAKİNA-PARK</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">memory</span> CNC-MÜHENDİSLİK</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">engineering</span> OTOMAT-SAN</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">construction</span> DEMİR-ÇELİK A.Ş.
-          </div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">handyman</span> KALIP-TEKNİK</div>
-          <!-- Duplicated for infinite loop -->
-          <div class="trust-logo-item"><span class="material-symbols-outlined">factory</span> OTO-YAN SANAYİ</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">precision_manufacturing</span> DÖKÜM-TEK
-          </div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">architecture</span> ÇELİK METALURJİ</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">settings_suggest</span> MAKİNA-PARK</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">memory</span> CNC-MÜHENDİSLİK</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">engineering</span> OTOMAT-SAN</div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">construction</span> DEMİR-ÇELİK A.Ş.
-          </div>
-          <div class="trust-logo-item"><span class="material-symbols-outlined">handyman</span> KALIP-TEKNİK</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════
-         3. FEATURES BENTO GRID — Dijital Fabrika Modülleri
-         ══════════════════════════════════════════════ -->
-    <section class="section-landing container-landing" id="features">
-      <div class="section-header reveal text-center">
-        <div class="section-overline-badge">
+    <!-- ════════════════ METRICS ════════════════ -->
+    <section class="section" style="padding-block: clamp(20px,4vw,48px);">
+      <div class="shell metrics">
+        <div class="metric glass reveal">
           <span class="material-symbols-outlined">widgets</span>
-          <span class="font-label-caps">DİJİTAL FABRİKA MODÜLLERİ</span>
+          <div class="num" data-count="27">0</div>
+          <div class="lab">Entegre modül</div>
+          <div class="bar"><i data-fill="100"></i></div>
         </div>
-        <h2 class="font-display-md mb-4">Fabrikanızı <span>Uçtan Uca</span> Dijitalleştirin</h2>
-        <p class="section-desc font-body-md text-on-surface-variant mx-auto">
-          27 entegre modül ile hammadde girişinden sevkiyata kadar tüm üretim süreçlerinizi tek bir platformdan yönetin.
-        </p>
+        <div class="metric glass reveal d1">
+          <span class="material-symbols-outlined">speed</span>
+          <div class="num" data-count="82" data-prefix="%">0</div>
+          <div class="lab">Anlık tesis OEE skoru</div>
+          <div class="bar"><i data-fill="82"></i></div>
+        </div>
+        <div class="metric glass reveal d2">
+          <span class="material-symbols-outlined">insights</span>
+          <div class="num" data-count="14" data-suffix=" gün">0</div>
+          <div class="lab">Önceden arıza tahmini</div>
+          <div class="bar"><i data-fill="70"></i></div>
+        </div>
+        <div class="metric glass reveal d3">
+          <span class="material-symbols-outlined">bolt</span>
+          <div class="num" data-count="1" data-prefix="&lt;" data-suffix=" sn">0</div>
+          <div class="lab">Gerçek zamanlı veri gecikmesi</div>
+          <div class="bar"><i data-fill="92"></i></div>
+        </div>
       </div>
+    </section>
 
-      <div class="bento-grid reveal">
-        <!-- Large Card (2x2): AI & Kestirimci Bakım -->
-        <div class="bento-card bento-large glass-panel reveal-delay-1">
-          <div class="bento-card-inner">
-            <span class="card-label font-label-caps text-on-surface-variant">AI & KESTİRİMCİ BAKIM</span>
-            <div class="bento-card-content">
-              <h3 class="card-title font-headline-lg">Arızaları <span>14 Gün Önce</span> Tahmin Edin</h3>
-              <p class="card-desc">Titreşim, sıcaklık ve ses sensörlerinden gelen verileri analiz eden AI motorumuz,
-                olası arızaları 14 güne kadar önceden tahmin eder.</p>
+    <!-- ════════════════ MODULES ════════════════ -->
+    <section class="section" id="modules">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="overline"><span class="material-symbols-outlined">grid_view</span><span
+              class="font-label-caps">DİJİTAL FABRİKA MODÜLLERİ</span></span>
+          <h2 class="font-display-md">Hammaddeden sevkiyata, <em>uçtan uca</em> tek platform</h2>
+          <p class="font-body-md">Üretim sahasından kurumsal süreçlere kadar fabrikanın tamamı birbirine bağlı 27 modülle
+            yönetilir. İşte temel dört merkez.</p>
+        </div>
 
-              <div class="sensor-data-stream">
-                <div class="sensor-line">
-                  <span class="sensor-dot active"></span>
-                  <span class="sensor-name">CNC-01 Titreşim</span>
-                  <span class="sensor-value" style="color: var(--tertiary);">0.42 mm/s</span>
-                </div>
-                <div class="sensor-line">
-                  <span class="sensor-dot warning"></span>
-                  <span class="sensor-name">PRS-01 Sıcaklık</span>
-                  <span class="sensor-value" style="color: var(--amber);">78.3 °C</span>
-                </div>
-                <div class="sensor-line">
-                  <span class="sensor-dot active"></span>
-                  <span class="sensor-name">KYN-01 Akım</span>
-                  <span class="sensor-value" style="color: var(--tertiary);">12.8 A</span>
-                </div>
-              </div>
-            </div>
-            <div class="bento-card-stats">
-              <div class="bento-stat">
-                <span class="bento-stat-value text-accent">%94</span>
-                <span class="bento-stat-label">Tahmin Doğruluğu</span>
-              </div>
-              <div class="bento-stat">
-                <span class="bento-stat-value text-accent-cyan">14 gün</span>
-                <span class="bento-stat-label">Önceden Tahmin</span>
-              </div>
-            </div>
+        <div class="mod-grid">
+          <div class="mod-card glass acc-cyan reveal">
+            <span class="chip chip-live tag">MES</span>
+            <div class="ico"><span class="material-symbols-outlined">precision_manufacturing</span></div>
+            <h3>Üretim & OEE</h3>
+            <p>Makine takibi, üretim girişi, dokunmatik kiosk ve dinamik OEE motoru ile anlık verimlilik.</p>
           </div>
-          <div class="bento-card-visual">
-            <span class="material-symbols-outlined bento-watermark">psychology</span>
-            <div class="bento-glow bento-glow--blue"></div>
+          <div class="mod-card glass acc-emerald reveal d1">
+            <span class="chip chip-live tag">AI</span>
+            <div class="ico"><span class="material-symbols-outlined">build</span></div>
+            <h3>Bakım & İş Emri</h3>
+            <p>Kestirimci bakım, arıza kayıtları, periyodik bakım planı ve akıllı iş emri ataması.</p>
+          </div>
+          <div class="mod-card glass acc-indigo reveal d2">
+            <div class="ico"><span class="material-symbols-outlined">verified</span></div>
+            <h3>Kalite & İSG</h3>
+            <p>Hata kayıtları, düzeltici/önleyici faaliyet (CAPA), risk değerlendirme ve İSG eğitim takibi.</p>
+          </div>
+          <div class="mod-card glass acc-amber reveal d3">
+            <div class="ico"><span class="material-symbols-outlined">inventory_2</span></div>
+            <h3>Stok & Satın Alma</h3>
+            <p>Malzeme ve stok hareketleri, tedarikçi yönetimi, satın alma talebi ve onay akışı.</p>
           </div>
         </div>
 
-        <!-- Medium Card (2x1): Gerçek Zamanlı Üretim & OEE -->
-        <div class="bento-card bento-medium glass-panel reveal-delay-2">
-          <div class="bento-card-inner">
-            <span class="card-label font-label-caps text-on-surface-variant">GERÇEK ZAMANLI ÜRETİM</span>
-            <div class="bento-card-content">
-              <h3 class="card-title font-headline-md text-tertiary">Anlık OEE ve Üretim Takibi</h3>
-              <p class="card-desc">Tüm üretim hatlarınızı anlık OEE skoru ile izleyin. Dokunmatik kiosk arayüzü ile
-                operatörler saniyeler içinde veri girişi yapar.</p>
-              <div class="mini-gauge-wrap">
-                <svg class="mini-gauge-svg" viewBox="0 0 56 56">
-                  <circle class="mini-gauge-bg" cx="28" cy="28" r="22" />
-                  <circle class="mini-gauge-fill" cx="28" cy="28" r="22" />
-                </svg>
+        <div class="mod-tags reveal d2">
+          <span>İnsan Kaynakları</span>
+          <span>CRM & Firma</span>
+          <span>Sözleşme</span>
+          <span>Talep / Helpdesk</span>
+          <span>Doküman Yönetimi (DYS)</span>
+          <span>Duyuru</span>
+          <span>Enerji Takibi</span>
+          <span>Fabrika Haritası</span>
+          <span>Site Haritası</span>
+          <span>Takvim</span>
+          <span>Analitik</span>
+          <span>Raporlama</span>
+          <span>Otomasyon</span>
+          <span>Tahminleme</span>
+          <span>Dış Panel</span>
+          <span>REST API v1</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════════ DASHBOARD PREVIEW ════════════════ -->
+    <section class="section" id="preview">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="overline"><span class="material-symbols-outlined">dashboard</span><span
+              class="font-label-caps">YÖNETİM PANELİ</span></span>
+          <h2 class="font-display-md">Tüm fabrika, <em>tek ekranda</em></h2>
+          <p class="font-body-md">Canlı KPI’lar, AI uyarıları ve gerçek zamanlı OEE takibi; göz yormayan endüstriyel
+            karanlık arayüzde bir araya gelir.</p>
+        </div>
+
+        <div class="browser reveal d1">
+          <div class="browser-bar">
+            <div class="browser-dots"><i></i><i></i><i></i></div>
+            <div class="browser-url"><span class="material-symbols-outlined">lock</span> fabrikaos.local/dashboard</div>
+          </div>
+
+          <div class="dash">
+            <!-- sidebar -->
+            <aside class="dash-side">
+              <div class="dash-brand">
+                <span class="bi material-symbols-outlined">precision_manufacturing</span>
+                <b>Fabrika<span>OS</span></b>
+              </div>
+              <div class="dash-group">Genel</div>
+              <div class="dash-nav active"><span class="material-symbols-outlined">space_dashboard</span> Dashboard</div>
+              <div class="dash-nav"><span class="material-symbols-outlined">memory</span> AI Tahminleme</div>
+              <div class="dash-nav"><span class="material-symbols-outlined">support_agent</span> Talep & İş Takip</div>
+              <div class="dash-group">Üretim & Operasyon</div>
+              <div class="dash-nav"><span class="material-symbols-outlined">settings</span> Makine & Üretim</div>
+              <div class="dash-nav"><span class="material-symbols-outlined">inventory_2</span> Stok & Depo</div>
+              <div class="dash-nav"><span class="material-symbols-outlined">verified</span> Kalite Kontrol</div>
+              <div class="dash-nav"><span class="material-symbols-outlined">bolt</span> Enerji</div>
+            </aside>
+
+            <!-- main -->
+            <div class="dash-main">
+              <div class="dash-welcome">
                 <div>
-                  <div class="mini-gauge-text">82.4%</div>
-                  <div class="mini-gauge-label">Tesis OEE</div>
+                  <h4>Hoş geldiniz, Deniz Yazar 👋</h4>
+                  <p>Tüm modüllerden canlı veriler ve KPI takibi</p>
+                </div>
+                <div class="dash-welcome-actions">
+                  <span class="dash-pill primary"><span class="material-symbols-outlined">desktop_windows</span> Kiosk
+                    Modu</span>
+                  <span class="dash-pill"><span class="material-symbols-outlined">calendar_today</span> 02 Haz 2026</span>
                 </div>
               </div>
-            </div>
-          </div>
-          <div class="bento-card-visual">
-            <span class="material-symbols-outlined bento-watermark">speed</span>
-            <div class="bento-glow bento-glow--green"></div>
-          </div>
-        </div>
 
-        <!-- Medium Card (2x1): İnteraktif Fabrika Haritası -->
-        <div class="bento-card bento-medium glass-panel reveal-delay-3">
-          <div class="bento-card-inner">
-            <span class="card-label font-label-caps text-on-surface-variant">DİJİTAL İKİZ</span>
-            <div class="bento-card-content">
-              <h3 class="card-title font-headline-md text-accent">İnteraktif Fabrika Haritası</h3>
-              <p class="card-desc">SVG tabanlı dijital ikiz ile fabrikanızı havadan görüntüleyin. Her makineye
-                tıklayarak anlık durumunu inceleyin.</p>
-              <!-- Mini SVG Factory Preview -->
-              <svg viewBox="0 0 300 80" style="width:100%;margin-top:12px;opacity:0.6;">
-                <rect x="10" y="20" width="50" height="40" rx="4" fill="rgba(52,211,153,0.15)"
-                  stroke="rgba(52,211,153,0.3)" stroke-width="1" />
-                <rect x="70" y="10" width="60" height="50" rx="4" fill="rgba(99,102,241,0.15)"
-                  stroke="rgba(99,102,241,0.3)" stroke-width="1" />
-                <rect x="140" y="25" width="40" height="35" rx="4" fill="rgba(251,191,36,0.15)"
-                  stroke="rgba(251,191,36,0.3)" stroke-width="1" />
-                <rect x="190" y="15" width="55" height="45" rx="4" fill="rgba(99,102,241,0.15)"
-                  stroke="rgba(99,102,241,0.3)" stroke-width="1" />
-                <rect x="255" y="20" width="35" height="40" rx="4" fill="rgba(248,113,113,0.15)"
-                  stroke="rgba(248,113,113,0.3)" stroke-width="1" />
-                <line x1="60" y1="40" x2="70" y2="40" stroke="rgba(255,255,255,0.1)" stroke-width="1"
-                  stroke-dasharray="3 2" />
-                <line x1="130" y1="40" x2="140" y2="40" stroke="rgba(255,255,255,0.1)" stroke-width="1"
-                  stroke-dasharray="3 2" />
-                <line x1="180" y1="40" x2="190" y2="40" stroke="rgba(255,255,255,0.1)" stroke-width="1"
-                  stroke-dasharray="3 2" />
-                <line x1="245" y1="40" x2="255" y2="40" stroke="rgba(255,255,255,0.1)" stroke-width="1"
-                  stroke-dasharray="3 2" />
-                <circle cx="35" cy="40" r="3" fill="rgba(52,211,153,0.8)" />
-                <circle cx="100" cy="35" r="3" fill="rgba(99,102,241,0.8)" />
-                <circle cx="160" cy="42" r="3" fill="rgba(251,191,36,0.8)" />
-                <circle cx="217" cy="37" r="3" fill="rgba(99,102,241,0.8)" />
-                <circle cx="272" cy="40" r="3" fill="rgba(248,113,113,0.8)" />
-              </svg>
-            </div>
-          </div>
-          <div class="bento-card-visual">
-            <span class="material-symbols-outlined bento-watermark">map</span>
-            <div class="bento-glow bento-glow--cyan"></div>
-          </div>
-        </div>
-
-        <!-- Small Card: İK & CRM -->
-        <div class="bento-card bento-small glass-panel reveal-delay-1">
-          <div class="bento-small-icon bento-small-icon--purple">
-            <span class="material-symbols-outlined">groups</span>
-          </div>
-          <span class="card-label font-label-caps text-on-surface-variant">İK & CRM</span>
-          <h3 class="card-title font-headline-md" style="color: var(--accent-purple);">İnsan Kaynakları</h3>
-          <p class="card-desc">Personel özlük, performans takibi, izin yönetimi ve CRM müşteri ilişkileri modülü.</p>
-        </div>
-
-        <!-- Small Card: Stok & Tedarik -->
-        <div class="bento-card bento-small glass-panel reveal-delay-2">
-          <div class="bento-small-icon bento-small-icon--amber">
-            <span class="material-symbols-outlined">inventory_2</span>
-          </div>
-          <span class="card-label font-label-caps text-on-surface-variant">STOK & TEDARİK</span>
-          <h3 class="card-title font-headline-md text-amber">Depo Yönetimi</h3>
-          <p class="card-desc">RFID/Barkod entegre stok takibi, lot bazlı izlenebilirlik ve sipariş uyarıları.</p>
-        </div>
-
-        <!-- Small Card: Kalite & İSG -->
-        <div class="bento-card bento-small glass-panel reveal-delay-3">
-          <div class="bento-small-icon bento-small-icon--green">
-            <span class="material-symbols-outlined">verified</span>
-          </div>
-          <span class="card-label font-label-caps text-on-surface-variant">KALİTE & İSG</span>
-          <h3 class="card-title font-headline-md text-tertiary">Kalite Kontrol</h3>
-          <p class="card-desc">Anlık hata tespiti, CAPA süreçleri, SPC kontrol grafikleri ve İSG uyum takibi.</p>
-        </div>
-
-        <!-- Small Card: Daha Fazla -->
-        <div class="bento-card bento-small glass-panel reveal-delay-4">
-          <div class="bento-small-icon bento-small-icon--pink">
-            <span class="material-symbols-outlined">add_circle</span>
-          </div>
-          <span class="card-label font-label-caps text-on-surface-variant">VE DAHA FAZLASI</span>
-          <h3 class="card-title font-headline-md" style="color: var(--accent-pink);">+20 Modül</h3>
-          <p class="card-desc">DYS, Duyuru, Satın Alma, Sözleşme, Finans ve daha fazlası...</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════
-         4. INTERACTIVE SHOWCASE — Fabrika Kontrol Merkezi
-         ══════════════════════════════════════════════ -->
-    <section class="section-landing container-landing showcase-section" id="showcase">
-      <div class="section-header reveal text-center">
-        <div class="section-overline-badge">
-          <span class="material-symbols-outlined">touch_app</span>
-          <span class="font-label-caps">İNTERAKTİF FABRİKA</span>
-        </div>
-        <h2 class="font-display-md mb-4">Üretim Zeminini <span>Dijital Olarak</span> Yönetin</h2>
-        <p class="section-desc font-body-md text-on-surface-variant mx-auto">
-          Her modüle tıklayın, fabrikanızın o alanında nasıl bir dönüşüm yaşanacağını keşfedin.
-        </p>
-      </div>
-
-      <div class="showcase-layout reveal">
-        <!-- Tab Navigation -->
-        <div class="sf-tabs" id="sfTabs">
-          <button class="sf-tab active" data-tab="hammadde">
-            <span class="material-symbols-outlined">warehouse</span>
-            Hammadde & Depo
-          </button>
-          <button class="sf-tab" data-tab="planlama">
-            <span class="material-symbols-outlined">psychology</span>
-            AI Planlama
-          </button>
-          <button class="sf-tab" data-tab="uretim">
-            <span class="material-symbols-outlined">precision_manufacturing</span>
-            Üretim Takibi
-          </button>
-          <button class="sf-tab" data-tab="bakim">
-            <span class="material-symbols-outlined">build</span>
-            Kestirimci Bakım
-          </button>
-          <button class="sf-tab" data-tab="kalite">
-            <span class="material-symbols-outlined">verified</span>
-            Kalite & CAPA
-          </button>
-          <button class="sf-tab" data-tab="ik_crm">
-            <span class="material-symbols-outlined">groups</span>
-            İK & Kurumsal
-          </button>
-        </div>
-
-        <!-- Content Panels -->
-        <div class="sf-panels">
-          <!-- Hammadde Panel -->
-          <div class="sf-panel active" data-panel="hammadde">
-            <div class="sf-panel-text">
-              <h3 class="sf-panel-title">Hammadde & Depo Yönetimi</h3>
-              <p class="sf-panel-desc">
-                RFID ve Barkod okuyucuları ile deponuzdaki her kalem gerçek zamanlı izlenir. Stok seviyeleri kritik
-                eşiğe düştüğünde otomatik sipariş uyarısı tetiklenir.
-              </p>
-              <div class="sf-panel-features">
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> RFID/Barkod entegre
-                  stok takibi</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Lot/Seri bazlı
-                  izlenebilirlik</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Otomatik min. stok
-                  uyarısı</div>
-              </div>
-            </div>
-            <div class="sf-panel-visual">
-              <div class="sf-visual-card">
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot blue"></div>
-                  <span class="sf-flow-text">Hammadde Girişi → RFID Okuma</span>
-                  <span class="sf-flow-value" style="color: var(--accent-cta);">✓</span>
+              <div class="dash-kpis">
+                <div class="dk c1">
+                  <div class="ic"><span class="material-symbols-outlined">groups</span></div>
+                  <div class="n">19</div>
+                  <div class="l">Aktif Personel</div>
                 </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot blue"></div>
-                  <span class="sf-flow-text">Kalite Kontrol → Onay</span>
-                  <span class="sf-flow-value" style="color: var(--accent-cta);">✓</span>
+                <div class="dk c2">
+                  <div class="ic"><span class="material-symbols-outlined">speed</span></div>
+                  <div class="n">%72.4</div>
+                  <div class="l">Haftalık OEE</div>
                 </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot green"></div>
-                  <span class="sf-flow-text">Depo Lokasyonu → Yerleştirme</span>
-                  <span class="sf-flow-value" style="color: var(--tertiary);">A3-R2</span>
+                <div class="dk c3">
+                  <div class="ic"><span class="material-symbols-outlined">inventory_2</span></div>
+                  <div class="n">5</div>
+                  <div class="l">Kritik Stok</div>
                 </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot cyan"></div>
-                  <span class="sf-flow-text">Çelik Levha Stoku</span>
-                  <span class="sf-flow-value" style="color: var(--accent-cyan);">2,450 kg</span>
+                <div class="dk c4">
+                  <div class="ic"><span class="material-symbols-outlined">task_alt</span></div>
+                  <div class="n">%2.26</div>
+                  <div class="l">Hata Oranı</div>
+                </div>
+                <div class="dk c5">
+                  <div class="ic"><span class="material-symbols-outlined">bolt</span></div>
+                  <div class="n">%0</div>
+                  <div class="l">Enerji Sapma</div>
+                </div>
+                <div class="dk c6">
+                  <div class="ic"><span class="material-symbols-outlined">health_and_safety</span></div>
+                  <div class="n">3</div>
+                  <div class="l">İş Kazası (Yıl)</div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          <!-- AI Planlama Panel -->
-          <div class="sf-panel" data-panel="planlama">
-            <div class="sf-panel-text">
-              <h3 class="sf-panel-title">Yapay Zeka Destekli Planlama</h3>
-              <p class="sf-panel-desc">
-                Akıllı algoritma siparişleri makinelere en optimum şekilde dağıtır. Gecikmeleri önceden tahmin eder,
-                üretim takvimini dinamik olarak yeniden düzenler.
-              </p>
-              <div class="sf-panel-features">
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Otomatik
-                  sipariş-makine eşleştirme</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Gecikme tahmini ve
-                  yeniden planlama</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Kapasite
-                  optimizasyonu</div>
+              <div class="dash-alerts">
+                <span class="da r"><span class="material-symbols-outlined">bolt</span> 4 açık arıza</span>
+                <span class="da a"><span class="material-symbols-outlined">build</span> 4 bakım gecikmiş</span>
+                <span class="da a"><span class="material-symbols-outlined">warning</span> 1 yüksek risk</span>
               </div>
-            </div>
-            <div class="sf-panel-visual">
-              <div class="sf-visual-card">
-                <div class="sf-gantt-row">
-                  <span class="sf-gantt-label">CNC-01</span>
-                  <div class="sf-gantt-track">
-                    <div class="sf-gantt-bar blue" style="left: 0; width: 65%;"></div>
+
+              <div class="dash-panels">
+                <div class="dp dp-chart">
+                  <div class="dp-head">
+                    <span class="t"><span class="material-symbols-outlined">show_chart</span> Haftalık OEE Trendi</span>
                   </div>
+                  <svg viewBox="0 0 520 130" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="dpGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="rgba(56,189,248,0.28)" />
+                        <stop offset="100%" stop-color="rgba(56,189,248,0)" />
+                      </linearGradient>
+                    </defs>
+                    <line x1="0" y1="32" x2="520" y2="32" stroke="rgba(255,255,255,0.05)" stroke-dasharray="4 5" />
+                    <line x1="0" y1="68" x2="520" y2="68" stroke="rgba(255,255,255,0.05)" stroke-dasharray="4 5" />
+                    <line x1="0" y1="104" x2="520" y2="104" stroke="rgba(255,255,255,0.05)" stroke-dasharray="4 5" />
+                    <path d="M 0 46 L 130 48 L 260 54 L 390 58 L 520 66 L 520 130 L 0 130 Z" fill="url(#dpGrad)" />
+                    <path d="M 0 46 L 130 48 L 260 54 L 390 58 L 520 66" fill="none" stroke="#38bdf8" stroke-width="2.5"
+                      stroke-linecap="round" />
+                    <circle cx="0" cy="46" r="3.5" fill="#0e0e12" stroke="#38bdf8" stroke-width="2" />
+                    <circle cx="130" cy="48" r="3.5" fill="#0e0e12" stroke="#38bdf8" stroke-width="2" />
+                    <circle cx="260" cy="54" r="3.5" fill="#0e0e12" stroke="#38bdf8" stroke-width="2" />
+                    <circle cx="390" cy="58" r="3.5" fill="#0e0e12" stroke="#38bdf8" stroke-width="2" />
+                    <circle cx="520" cy="66" r="3.5" fill="#0e0e12" stroke="#56e5a9" stroke-width="2" />
+                  </svg>
                 </div>
-                <div class="sf-gantt-row">
-                  <span class="sf-gantt-label">CNC-02</span>
-                  <div class="sf-gantt-track">
-                    <div class="sf-gantt-bar amber" style="left: 10%; width: 50%;"></div>
-                  </div>
-                </div>
-                <div class="sf-gantt-row">
-                  <span class="sf-gantt-label">PRS-01</span>
-                  <div class="sf-gantt-track">
-                    <div class="sf-gantt-bar green" style="left: 20%; width: 70%;"></div>
-                  </div>
-                </div>
-                <div class="sf-gantt-row">
-                  <span class="sf-gantt-label">KYN-01</span>
-                  <div class="sf-gantt-track">
-                    <div class="sf-gantt-bar blue" style="left: 5%; width: 45%;"></div>
-                  </div>
-                </div>
-                <div class="sf-gantt-row">
-                  <span class="sf-gantt-label">MTJ-01</span>
-                  <div class="sf-gantt-track">
-                    <div class="sf-gantt-bar amber" style="left: 30%; width: 55%;"></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
 
-          <!-- Üretim Takibi Panel -->
-          <div class="sf-panel" data-panel="uretim">
-            <div class="sf-panel-text">
-              <h3 class="sf-panel-title">Gerçek Zamanlı Üretim Takibi</h3>
-              <p class="sf-panel-desc">
-                Tüm üretim hatlarınızı anlık OEE skoru ile izleyin. Dokunmatik ekran uyumlu kiosk arayüzü ile
-                operatörler saniyeler içinde veri girişi yapar.
-              </p>
-              <div class="sf-panel-features">
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Anlık OEE skoru ve
-                  trend analizi</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Dokunmatik Kiosk
-                  modülü</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Dijital İkiz fabrika
-                  haritası</div>
-              </div>
-            </div>
-            <div class="sf-panel-visual">
-              <div class="sf-visual-card">
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot green"></div>
-                  <span class="sf-flow-text">Tesis OEE</span>
-                  <span class="sf-flow-value" style="color: var(--tertiary);">%82.4</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot blue"></div>
-                  <span class="sf-flow-text">Aktif Makineler</span>
-                  <span class="sf-flow-value" style="color: var(--accent-cta);">42 / 45</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot cyan"></div>
-                  <span class="sf-flow-text">Bugünkü Üretim</span>
-                  <span class="sf-flow-value" style="color: var(--accent-cyan);">14,250 adet</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot green"></div>
-                  <span class="sf-flow-text">Hedef Gerçekleşme</span>
-                  <span class="sf-flow-value" style="color: var(--tertiary);">%105</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Bakım Panel -->
-          <div class="sf-panel" data-panel="bakim">
-            <div class="sf-panel-text">
-              <h3 class="sf-panel-title">AI Kestirimci Bakım</h3>
-              <p class="sf-panel-desc">
-                Titreşim, sıcaklık ve ses sensörlerinden gelen verileri analiz eden AI motorumuz, olası arızaları
-                14 güne kadar önceden tahmin eder. Plansız duruşları ortadan kaldırın.
-              </p>
-              <div class="sf-panel-features">
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> %94 tahmin doğruluğu
-                </div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> 14 gün önceden arıza
-                  tahmini</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Akıllı iş emri
-                  ataması</div>
-              </div>
-            </div>
-            <div class="sf-panel-visual">
-              <div class="sf-visual-card">
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot green"></div>
-                  <span class="sf-flow-text">CNC-01 Titreşim</span>
-                  <span class="sf-flow-value" style="color: var(--tertiary);">Normal</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot" style="background: var(--amber); box-shadow: 0 0 8px rgba(251,191,36,0.4);">
+                <div class="dp dp-gauge">
+                  <div class="dp-head">
+                    <span class="t"><span class="material-symbols-outlined">speed</span> Anlık OEE</span>
+                    <span class="chip chip-live"><span class="pulse-dot"></span> Canlı</span>
                   </div>
-                  <span class="sf-flow-text">PRS-01 Sıcaklık</span>
-                  <span class="sf-flow-value" style="color: var(--amber);">Dikkat</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot green"></div>
-                  <span class="sf-flow-text">KYN-01 Akım</span>
-                  <span class="sf-flow-value" style="color: var(--tertiary);">Normal</span>
-                </div>
-                <div class="sf-flow-line" style="border-color: rgba(248, 113, 113, 0.15);">
-                  <div class="sf-flow-dot" style="background: var(--error); box-shadow: 0 0 8px rgba(248,113,113,0.4);">
+                  <div class="dp-gauge-wrap">
+                    <svg viewBox="0 0 150 90">
+                      <path d="M 12 84 A 63 63 0 0 1 138 84" fill="none" stroke="rgba(255,255,255,0.07)"
+                        stroke-width="12" stroke-linecap="round" />
+                      <path d="M 12 84 A 63 63 0 0 1 138 84" fill="none" stroke="url(#oeeGrad)" stroke-width="12"
+                        stroke-linecap="round" stroke-dasharray="198" stroke-dashoffset="55" />
+                    </svg>
+                    <div class="dp-gauge-val">%72.4</div>
                   </div>
-                  <span class="sf-flow-text" style="color: var(--error);">BYA-01 — Bakım Gerekli</span>
-                  <span class="sf-flow-value" style="color: var(--error);">3 gün</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Kalite Panel -->
-          <div class="sf-panel" data-panel="kalite">
-            <div class="sf-panel-text">
-              <h3 class="sf-panel-title">Kalite Kontrol & CAPA</h3>
-              <p class="sf-panel-desc">
-                Üretim hatalarını kaynağında yakalayın. Uygunsuzluk tespit edildiğinde otomatik CAPA (Düzeltici ve
-                Önleyici Faaliyet) süreci başlatılır.
-              </p>
-              <div class="sf-panel-features">
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Anlık hata tespiti
-                  ve alarm</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Otomatik CAPA süreç
-                  başlatma</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> SPC kontrol
-                  grafikleri</div>
-              </div>
-            </div>
-            <div class="sf-panel-visual">
-              <div class="sf-visual-card">
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot green"></div>
-                  <span class="sf-flow-text">Günlük Fire Oranı</span>
-                  <span class="sf-flow-value" style="color: var(--tertiary);">%0.8</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot blue"></div>
-                  <span class="sf-flow-text">Açık CAPA Kaydı</span>
-                  <span class="sf-flow-value" style="color: var(--accent-cta);">3</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot green"></div>
-                  <span class="sf-flow-text">Kalite Uyum Oranı</span>
-                  <span class="sf-flow-value" style="color: var(--tertiary);">%99.2</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot blue"></div>
-                  <span class="sf-flow-text">Kontrol Kartı Durumu</span>
-                  <span class="sf-flow-value" style="color: var(--accent-cta);">Stabil</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- İK & Kurumsal Panel -->
-          <div class="sf-panel" data-panel="ik_crm">
-            <div class="sf-panel-text">
-              <h3 class="sf-panel-title">İnsan Kaynakları & CRM</h3>
-              <p class="sf-panel-desc">
-                Personel özlük dosyalarından müşteri ilişkilerine, doküman yönetiminden satın alma süreçlerine kadar
-                tüm kurumsal operasyonlarınızı tek bir noktadan yönetin.
-              </p>
-              <div class="sf-panel-features">
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> 360° İK ve
-                  Performans Yönetimi</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> Gelişmiş CRM ve
-                  Talep Yönetimi</div>
-                <div class="sf-feature"><span class="material-symbols-outlined">check_circle</span> DYS (Doküman Yönetim
-                  Sistemi)</div>
-              </div>
-            </div>
-            <div class="sf-panel-visual">
-              <div class="sf-visual-card">
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot green"></div>
-                  <span class="sf-flow-text">Aktif Personel</span>
-                  <span class="sf-flow-value" style="color: var(--tertiary);">142</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot blue"></div>
-                  <span class="sf-flow-text">Açık Talepler</span>
-                  <span class="sf-flow-value" style="color: var(--accent-cta);">12</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot"
-                    style="background: var(--accent-purple); box-shadow: 0 0 8px rgba(167,139,250,0.4);"></div>
-                  <span class="sf-flow-text">Bekleyen Sözleşmeler</span>
-                  <span class="sf-flow-value" style="color: var(--accent-purple);">3</span>
-                </div>
-                <div class="sf-flow-line">
-                  <div class="sf-flow-dot green"></div>
-                  <span class="sf-flow-text">Sistemdeki Doküman</span>
-                  <span class="sf-flow-value" style="color: var(--tertiary);">4,850</span>
+                  <div class="dp-gauge-sub">Hedef: %80</div>
                 </div>
               </div>
             </div>
@@ -783,854 +380,201 @@
       </div>
     </section>
 
-    <!-- ══════════════════════════════════════════════
-         5. TECH STACK & INTEGRATION
-         ══════════════════════════════════════════════ -->
-    <section class="section-landing container-landing" id="integration">
-      <div class="section-header reveal text-center">
-        <div class="section-overline-badge">
-          <span class="material-symbols-outlined">hub</span>
-          <span class="font-label-caps">ENTEGRASYON GÜCÜ</span>
-        </div>
-        <h2 class="font-display-md mb-4">Donanım & Yazılım <span>Kusursuz Bütünleşir</span></h2>
-        <p class="section-desc font-body-md text-on-surface-variant mx-auto">
-          Mevcut makineleriniz, PLC'leriniz ve ERP sisteminizle tam uyum. Yeni bir yazılımın eski altyapıya uyum
-          sağlayamaması korkusunu ortadan kaldırıyoruz.
-        </p>
-      </div>
-
-      <div class="bento-grid reveal">
-        <!-- Large Card: IoT & PLC -->
-        <div class="bento-card bento-large glass-panel reveal-delay-1">
-          <div class="bento-card-inner">
-            <span class="card-label font-label-caps text-on-surface-variant">IoT & PLC ENTEGRASYONU</span>
-            <div class="bento-card-content">
-              <h3 class="card-title font-headline-lg">Makinelerinizden<br>Direkt Veri Alın</h3>
-              <p class="card-desc">Siemens, Schneider, Mitsubishi ve ABB PLC'lerinizden Modbus/OPC-UA protokolleri
-                ile gerçek zamanlı veri toplama. Ek donanıma gerek yok.</p>
-              <div class="integration-logos">
-                <span class="integration-logo">Siemens</span>
-                <span class="integration-logo">Schneider</span>
-                <span class="integration-logo">Mitsubishi</span>
-                <span class="integration-logo">ABB</span>
-                <span class="integration-logo">Modbus</span>
-                <span class="integration-logo">OPC-UA</span>
+    <!-- ════════════════ AI BAND ════════════════ -->
+    <section class="section" id="ai">
+      <div class="shell ai-grid">
+        <div class="ai-copy reveal">
+          <span class="overline"
+            style="display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:9999px;border:1px solid var(--glass-border-strong);background:rgba(56,189,248,0.06);color:var(--primary);margin-bottom:20px;">
+            <span class="material-symbols-outlined" style="font-size:18px;">psychology</span>
+            <span class="font-label-caps">YAPAY ZEKA MOTORU</span>
+          </span>
+          <h2 class="font-display-md">Arızayı yaşamadan <em>haftalar önce</em> görün</h2>
+          <p class="font-body-md">FabrikaOS’un scikit-learn tabanlı tahminleme servisleri; üretim, sensör ve geçmiş
+            performans verilerini analiz ederek plansız duruşları ortadan kaldırır.</p>
+          <div class="ai-list">
+            <div class="ai-item">
+              <span class="material-symbols-outlined">monitor_heart</span>
+              <div><b>Kestirimci Bakım</b>
+                <p>Makine kullanım verilerinden olası arızaları önceden tahmin eder, bakımı zamanında planlar.</p>
               </div>
             </div>
-            <div class="bento-card-stats">
-              <div class="bento-stat">
-                <span class="bento-stat-value text-accent">45+</span>
-                <span class="bento-stat-label">Desteklenen Cihaz</span>
+            <div class="ai-item">
+              <span class="material-symbols-outlined">trending_up</span>
+              <div><b>OEE Trend Analizi</b>
+                <p>Son 30 günü analiz ederek gelecekteki verimlilik düşüşlerini proaktif olarak bildirir.</p>
               </div>
-              <div class="bento-stat">
-                <span class="bento-stat-value" style="color: var(--accent-cyan);">&lt;1sn</span>
-                <span class="bento-stat-label">Veri Gecikme</span>
+            </div>
+            <div class="ai-item">
+              <span class="material-symbols-outlined">groups</span>
+              <div><b>AI Operatör Önerisi</b>
+                <p>İş emrinin niteliğine ve operatör performansına göre en uygun personeli eşleştirir.</p>
+              </div>
+            </div>
+            <div class="ai-item">
+              <span class="material-symbols-outlined">inventory</span>
+              <div><b>Stok Tahmin & Anomali Tespiti</b>
+                <p>Tüketim trendlerinden kritik stok seviyelerini ve veri anomalilerini önceden yakalar.</p>
               </div>
             </div>
           </div>
-          <div class="bento-card-visual">
-            <span class="material-symbols-outlined bento-watermark">sensors</span>
-            <div class="bento-glow bento-glow--blue"></div>
-          </div>
         </div>
 
-        <!-- Medium Card: ERP Sync -->
-        <div class="bento-card bento-medium glass-panel reveal-delay-2">
-          <div class="bento-card-inner">
-            <span class="card-label font-label-caps text-on-surface-variant">ERP SENKRONİZASYONU</span>
-            <div class="bento-card-content">
-              <h3 class="card-title font-headline-md text-accent">Mevcut ERP'nizle Kusursuz Entegrasyon</h3>
-              <p class="card-desc">SAP, Logo, Netsis veya Mikro ile çift taraflı veri senkronizasyonu. Stok, sipariş ve
-                fatura verileri otomatik akar.</p>
-              <div class="integration-logos" style="margin-top:12px;">
-                <span class="integration-logo">SAP</span>
-                <span class="integration-logo">Logo</span>
-                <span class="integration-logo">Netsis</span>
-                <span class="integration-logo">Mikro</span>
-              </div>
-            </div>
+        <div class="ai-visual glass reveal d2">
+          <div class="ai-visual-glow"></div>
+          <h4><span class="material-symbols-outlined">sensors</span> Kestirimci Bakım — Risk Skoru</h4>
+          <p class="sub">Canlı sensör analizi · son 24 saat</p>
+          <div class="pred-row">
+            <span class="name">CNC-01</span>
+            <div class="pred-track"><i class="g" data-fill="22"></i></div>
+            <span class="val text-emerald">Düşük</span>
           </div>
-          <div class="bento-card-visual">
-            <span class="material-symbols-outlined bento-watermark">sync</span>
-            <div class="bento-glow bento-glow--purple"></div>
+          <div class="pred-row">
+            <span class="name">KYN-01</span>
+            <div class="pred-track"><i class="g" data-fill="31"></i></div>
+            <span class="val text-emerald">Düşük</span>
           </div>
-        </div>
-
-        <!-- Small: Edge Computing -->
-        <div class="bento-card bento-small glass-panel reveal-delay-1">
-          <div class="bento-small-icon bento-small-icon--green">
-            <span class="material-symbols-outlined">cloud_off</span>
+          <div class="pred-row">
+            <span class="name">PRS-01</span>
+            <div class="pred-track"><i class="a" data-fill="64"></i></div>
+            <span class="val" style="color:var(--amber);">Dikkat</span>
           </div>
-          <span class="card-label font-label-caps text-on-surface-variant">EDGE COMPUTING</span>
-          <h3 class="card-title font-headline-md text-tertiary">Çevrimdışı Çalışma</h3>
-          <p class="card-desc">İnternet kopsa bile üretim durmaz. Veriler lokalde saklanır, bağlantı geldiğinde buluta
-            eşlenir.</p>
-        </div>
-
-        <!-- Small: KVKK -->
-        <div class="bento-card bento-small glass-panel reveal-delay-2">
-          <div class="bento-small-icon bento-small-icon--blue">
-            <span class="material-symbols-outlined">shield</span>
-          </div>
-          <span class="card-label font-label-caps text-on-surface-variant">VERİ GÜVENLİĞİ</span>
-          <h3 class="card-title font-headline-md text-accent">KVKK Uyumlu</h3>
-          <p class="card-desc">Tüm verileriniz Türkiye lokasyonlu sunucularda, şifreli ve güvenli şekilde saklanır.</p>
-        </div>
-
-        <!-- Small: Uptime -->
-        <div class="bento-card bento-small glass-panel reveal-delay-3">
-          <div class="bento-small-icon bento-small-icon--purple">
-            <span class="material-symbols-outlined">monitor_heart</span>
-          </div>
-          <span class="card-label font-label-caps text-on-surface-variant">ÇALIŞMA SÜRESİ</span>
-          <h3 class="card-title font-headline-md" style="color: var(--accent-purple);">%99.9 Uptime</h3>
-          <p class="card-desc">Endüstriyel seviye SLA garantisi. 7/24 sistem izleme ve anında müdahale.</p>
-        </div>
-
-        <!-- Small: API -->
-        <div class="bento-card bento-small glass-panel reveal-delay-4">
-          <div class="bento-small-icon bento-small-icon--cyan">
-            <span class="material-symbols-outlined">api</span>
-          </div>
-          <span class="card-label font-label-caps text-on-surface-variant">API & WEBHOOK</span>
-          <h3 class="card-title font-headline-md" style="color: var(--accent-cyan);">Açık Entegrasyon</h3>
-          <p class="card-desc">REST API ile herhangi bir üçüncü parti sisteme kolayca bağlanın.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════
-         6. DASHBOARD PREVIEW
-         ══════════════════════════════════════════════ -->
-    <section class="section-landing container-landing preview-section" id="preview">
-      <div class="section-header reveal text-center">
-        <div class="section-overline-badge">
-          <span class="material-symbols-outlined">dashboard</span>
-          <span class="font-label-caps">ARAYÜZ</span>
-        </div>
-        <h2 class="font-display-md mb-4">Güçlü <span>Yönetim Paneli</span></h2>
-        <p class="section-desc font-body-md text-on-surface-variant mx-auto">
-          Göz yormayan, yüksek kontrastlı endüstriyel arayüz tasarımı ile tüm üretim hattını tek ekrandan yönetin.
-        </p>
-      </div>
-
-      <div class="browser-frame reveal reveal-delay-1">
-        <div class="browser-topbar">
-          <div class="browser-dots"><span></span><span></span><span></span></div>
-          <div class="browser-url-bar">
-            <span class="material-symbols-outlined lock-icon">lock</span> app.fabrikaos.com/dashboard
-          </div>
-          <div style="width: 42px;"></div>
-        </div>
-
-        <div class="browser-body">
-          <div class="mock-sidebar">
-            <div class="mock-sidebar-brand">
-              <span class="material-symbols-outlined mock-sidebar-brand-icon">precision_manufacturing</span>
-              <div>
-                <div class="mock-sidebar-brand-text">FabrikaOS</div>
-                <div class="mock-sidebar-brand-sub">Enterprise Edition</div>
-              </div>
-            </div>
-
-            <div class="mock-sidebar-label">ANA MODÜLLER</div>
-            <div class="mock-sidebar-item active"><span class="material-symbols-outlined">dashboard</span> Dashboard
-            </div>
-            <div class="mock-sidebar-item"><span class="material-symbols-outlined">map</span> Dijital İkiz</div>
-            <div class="mock-sidebar-item"><span class="material-symbols-outlined">factory</span> Üretim</div>
-            <div class="mock-sidebar-item"><span class="material-symbols-outlined">build</span> Bakım</div>
-          </div>
-
-          <div class="mock-content">
-            <div class="mock-content-header">
-              <div>
-                <h4>Fabrika Genel Bakış</h4>
-                <p>Canlı üretim ve performans metrikleri</p>
-              </div>
-            </div>
-
-            <div class="mock-kpi-grid">
-              <div class="mock-kpi">
-                <div class="mock-kpi-label">Tesis OEE</div>
-                <div class="mock-kpi-value">%82.4</div>
-                <div class="mock-kpi-change positive"><span class="material-symbols-outlined">trending_up</span> +2.1%
-                  düne göre</div>
-              </div>
-              <div class="mock-kpi">
-                <div class="mock-kpi-label">Aktif Makineler</div>
-                <div class="mock-kpi-value">42 / 45</div>
-                <div class="mock-kpi-change negative"><span class="material-symbols-outlined">trending_down</span> -1
-                  makine bakımda</div>
-              </div>
-              <div class="mock-kpi">
-                <div class="mock-kpi-label">Üretim Adedi</div>
-                <div class="mock-kpi-value">14,250</div>
-                <div class="mock-kpi-change positive"><span class="material-symbols-outlined">trending_up</span> Hedefin
-                  %5 üstünde</div>
-              </div>
-              <div class="mock-kpi">
-                <div class="mock-kpi-label">AI Risk Skoru</div>
-                <div class="mock-kpi-value">Düşük</div>
-                <div class="mock-kpi-change" style="color: var(--on-surface-variant);"><span
-                    class="material-symbols-outlined" style="font-size:14px;">info</span> Önemli risk yok</div>
-              </div>
-            </div>
-
-            <div class="mock-chart">
-              <div class="mock-chart-header">
-                <div class="mock-chart-title">Haftalık OEE Trendi</div>
-                <div class="mock-chart-legend">
-                  <span><span class="legend-dot" style="background:var(--accent-cta);"></span> Gerçekleşen</span>
-                  <span><span class="legend-dot" style="background:var(--tertiary);"></span> Hedef</span>
-                </div>
-              </div>
-              <svg width="100%" height="150" viewBox="0 0 800 150" preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stop-color="rgba(99, 102, 241, 0.2)" />
-                    <stop offset="100%" stop-color="rgba(99, 102, 241, 0)" />
-                  </linearGradient>
-                </defs>
-                <line x1="0" y1="25" x2="800" y2="25" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4 4" />
-                <line x1="0" y1="75" x2="800" y2="75" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4 4" />
-                <line x1="0" y1="125" x2="800" y2="125" stroke="rgba(255,255,255,0.04)" stroke-dasharray="4 4" />
-                <path
-                  d="M 0 100 C 100 60, 200 120, 300 70 C 400 20, 500 80, 600 40 C 700 0, 750 30, 800 20 L 800 150 L 0 150 Z"
-                  fill="url(#chartGrad)" />
-                <path d="M 0 100 C 100 60, 200 120, 300 70 C 400 20, 500 80, 600 40 C 700 0, 750 30, 800 20" fill="none"
-                  stroke="var(--accent-cta)" stroke-width="2.5" />
-                <circle cx="300" cy="70" r="4" fill="var(--surface-container)" stroke="var(--accent-cta)"
-                  stroke-width="2" />
-                <circle cx="600" cy="40" r="4" fill="var(--surface-container)" stroke="var(--accent-cyan)"
-                  stroke-width="2" />
-              </svg>
-            </div>
+          <div class="pred-row">
+            <span class="name">BYA-01</span>
+            <div class="pred-track"><i class="r" data-fill="88"></i></div>
+            <span class="val" style="color:var(--error);">3 gün</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ══════════════════════════════════════════════
-         7. TESTIMONIALS (Müşteri Hikayeleri)
-         ══════════════════════════════════════════════ -->
-    <section class="section-landing container-landing" id="testimonials">
-      <div class="section-header reveal text-center">
-        <div class="section-overline-badge">
-          <span class="material-symbols-outlined">reviews</span>
-          <span class="font-label-caps">MÜŞTERİ HİKAYELERİ</span>
+    <!-- ════════════════ STACK ════════════════ -->
+    <section class="section" id="stack" style="padding-block: clamp(56px,7vw,88px);">
+      <div class="shell">
+        <div class="section-head reveal">
+          <span class="overline"><span class="material-symbols-outlined">deployed_code</span><span
+              class="font-label-caps">TEKNOLOJİ ALTYAPISI</span></span>
+          <h2 class="font-display-md">Sağlam, açık ve <em>kanıtlanmış</em> temeller</h2>
         </div>
-        <h2 class="font-display-md mb-4">Sektör Liderleri <span>Bize Güveniyor</span></h2>
-        <p class="section-desc font-body-md text-on-surface-variant mx-auto">
-          FabrikaOS ile üretimde dijital dönüşümü başarıyla tamamlayan iş ortaklarımızın deneyimleri.
-        </p>
-      </div>
-
-      <div class="testimonial-grid">
-        <!-- Testimonial 1 -->
-        <div class="testimonial-card glass-panel reveal reveal-delay-1">
-          <div class="testimonial-stars">
-            <span class="material-symbols-outlined">star</span><span class="material-symbols-outlined">star</span><span
-              class="material-symbols-outlined">star</span><span class="material-symbols-outlined">star</span><span
-              class="material-symbols-outlined">star</span>
-          </div>
-          <p class="testimonial-text">FabrikaOS'a geçtikten sonra OEE oranımız %18 arttı. Kestirimci bakım modülü
-            sayesinde geçen ay yaşanabilecek büyük bir arızayı 10 gün önceden tespit edip milyonlarca liralık duruş
-            zararını engelledik.</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar">A</div>
-            <div>
-              <div class="testimonial-name">Ahmet Yılmaz</div>
-              <div class="testimonial-role">Üretim Müdürü, Çelik Metalurji</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Testimonial 2 -->
-        <div class="testimonial-card glass-panel reveal reveal-delay-2">
-          <div class="testimonial-stars">
-            <span class="material-symbols-outlined">star</span><span class="material-symbols-outlined">star</span><span
-              class="material-symbols-outlined">star</span><span class="material-symbols-outlined">star</span><span
-              class="material-symbols-outlined">star</span>
-          </div>
-          <p class="testimonial-text">Eski sistemimizde üretim verilerini Excel'de tutuyorduk. Şimdi her şey gerçek
-            zamanlı akıyor. Dokunmatik kiosklar o kadar kolay ki, en yaşlı operatörümüz bile 2 günde alıştı. ROI süresi
-            sadece 4 aydı.</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar"
-              style="background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));">C</div>
-            <div>
-              <div class="testimonial-name">Cansu Demir</div>
-              <div class="testimonial-role">Fabrika Direktörü, Oto-Yan Sanayi</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Testimonial 3 -->
-        <div class="testimonial-card glass-panel reveal reveal-delay-3">
-          <div class="testimonial-stars">
-            <span class="material-symbols-outlined">star</span><span class="material-symbols-outlined">star</span><span
-              class="material-symbols-outlined">star</span><span class="material-symbols-outlined">star</span><span
-              class="material-symbols-outlined">star</span>
-          </div>
-          <p class="testimonial-text">IoT entegrasyonu beklediğimizden çok daha pürüzsüz geçti. Eski tip pres
-            makinelerimizden bile veri alabiliyoruz. SAP ile olan kusursuz çift taraflı senkronizasyon, planlama
-            departmanımızın hayatını kurtardı.</p>
-          <div class="testimonial-author">
-            <div class="testimonial-avatar"
-              style="background: linear-gradient(135deg, var(--tertiary), var(--accent-cyan));">K</div>
-            <div>
-              <div class="testimonial-name">Kemal Şahin</div>
-              <div class="testimonial-role">IT Müdürü, Döküm-Tek</div>
-            </div>
-          </div>
+        <div class="stack reveal d1">
+          <span class="stack-item"><span class="material-symbols-outlined">code</span> Flask 3.1</span>
+          <span class="stack-item"><span class="material-symbols-outlined">database</span> SQLAlchemy 2.0</span>
+          <span class="stack-item"><span class="material-symbols-outlined">bolt</span> Socket.IO</span>
+          <span class="stack-item"><span class="material-symbols-outlined">key</span> JWT REST API</span>
+          <span class="stack-item"><span class="material-symbols-outlined">psychology</span> scikit-learn</span>
+          <span class="stack-item"><span class="material-symbols-outlined">conveyor_belt</span> Celery + Redis</span>
+          <span class="stack-item"><span class="material-symbols-outlined">storage</span> SQLite / PostgreSQL</span>
+          <span class="stack-item"><span class="material-symbols-outlined">palette</span> Bootstrap 5</span>
         </div>
       </div>
     </section>
 
-    <!-- ══════════════════════════════════════════════
-         8. PRICING PLANS (Fiyatlandırma)
-         ══════════════════════════════════════════════ -->
-    <section class="section-landing container-landing" id="pricing">
-      <div class="section-header reveal text-center">
-        <div class="section-overline-badge">
-          <span class="material-symbols-outlined">payments</span>
-          <span class="font-label-caps">FİYATLANDIRMA</span>
-        </div>
-        <h2 class="font-display-md mb-4">Her Ölçekteki Fabrika İçin <span>Esnek Planlar</span></h2>
-        <p class="section-desc font-body-md text-on-surface-variant mx-auto">
-          Donanım maliyeti olmadan, kullandığınız modül kadar ödeyin.
-        </p>
-      </div>
-
-      <div class="pricing-grid">
-        <!-- Plan 1 -->
-        <div class="pricing-card glass-panel reveal reveal-delay-1">
-          <h3 class="pricing-name">Başlangıç</h3>
-          <p class="pricing-desc">KOBİ'ler ve dijitalleşmeye yeni başlayan atölyeler için temel üretim takibi.</p>
-          <div class="pricing-price">
-            <span class="pricing-currency">₺</span>
-            <span class="pricing-amount">4.990</span>
-            <span class="pricing-period">/ ay</span>
-          </div>
-          <p class="pricing-note">Yıllık ödemelerde %20 indirim.</p>
-          <div class="pricing-features">
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> 3 Ana Modül</div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> Max 10 Makine
-              Bağlantısı</div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> Temel OEE Raporlama
-            </div>
-            <div class="pricing-feature pricing-feature--disabled"><span class="material-symbols-outlined">cancel</span>
-              AI Kestirimci Bakım</div>
-            <div class="pricing-feature pricing-feature--disabled"><span class="material-symbols-outlined">cancel</span>
-              ERP Entegrasyonu</div>
-          </div>
-          <button class="pricing-cta pricing-cta--outline"
-            onclick="document.getElementById('contact-form').scrollIntoView()">Hemen Başla</button>
-        </div>
-
-        <!-- Plan 2 -->
-        <div class="pricing-card pricing-card--popular glass-panel reveal reveal-delay-2">
-          <div class="pricing-popular-badge">EN ÇOK TERCİH EDİLEN</div>
-          <h3 class="pricing-name">Profesyonel</h3>
-          <p class="pricing-desc">Büyüyen fabrikalar için uçtan uca üretim, kalite ve stok yönetimi.</p>
-          <div class="pricing-price">
-            <span class="pricing-currency">₺</span>
-            <span class="pricing-amount">12.490</span>
-            <span class="pricing-period">/ ay</span>
-          </div>
-          <p class="pricing-note">Yıllık ödemelerde %20 indirim.</p>
-          <div class="pricing-features">
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> Tüm Modüller (27
-              Adet)</div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> Max 50 Makine
-              Bağlantısı</div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> AI Kestirimci Bakım
-            </div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> Tek Yönlü ERP
-              Entegrasyonu</div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> 7/24 Teknik Destek
-            </div>
-          </div>
-          <button class="pricing-cta pricing-cta--primary"
-            onclick="document.getElementById('contact-form').scrollIntoView()">Ücretsiz Dene</button>
-        </div>
-
-        <!-- Plan 3 -->
-        <div class="pricing-card glass-panel reveal reveal-delay-3">
-          <h3 class="pricing-name">Enterprise</h3>
-          <p class="pricing-desc">Çok lokasyonlu büyük endüstriyel tesisler için sınırsız güç.</p>
-          <div class="pricing-price" style="margin-bottom: 22px;">
-            <span class="pricing-amount">Özel</span>
-            <span class="pricing-period">Teklif</span>
-          </div>
-          <p class="pricing-note">İhtiyacınıza göre şekillendirilir.</p>
-          <div class="pricing-features">
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> Sınırsız Modül &
-              Kullanıcı</div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> Sınırsız Makine
-              Bağlantısı</div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> Çift Yönlü ERP
-              Entegrasyonu</div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> On-Premise (Yerel
-              Sunucu)</div>
-            <div class="pricing-feature"><span class="material-symbols-outlined">check_circle</span> Özel Müşteri
-              Temsilcisi</div>
-          </div>
-          <button class="pricing-cta pricing-cta--outline"
-            onclick="document.getElementById('contact-form').scrollIntoView()">Bize Ulaşın</button>
-        </div>
-      </div>
-    </section>
-
-    <!-- ══════════════════════════════════════════════
-         9. CTA + CONVERSION FORM
-         ══════════════════════════════════════════════ -->
-    <section class="section-landing container-landing form-section" id="contact-form">
-      <div class="section-header reveal text-center">
-        <div class="section-overline-badge">
-          <span class="material-symbols-outlined">event</span>
-          <span class="font-label-caps">ÜCRETSİZ ANALİZ</span>
-        </div>
-        <h2 class="font-display-md mb-4">Fabrikanız İçin <span>Özel Keşif Randevusu</span></h2>
-        <p class="section-desc font-body-md text-on-surface-variant mx-auto">
-          Uzman ekibimiz fabrikanızı analiz etsin, size özel ROI raporu hazırlansın. Tamamen ücretsiz.
-        </p>
-      </div>
-
-      <div class="form-wrapper reveal" id="formWrapper">
-        <div class="form-header">
-          <h3>Ücretsiz Fabrika Analiz Randevusu</h3>
-          <p>İki adımda formu doldurun, 48 saat içinde sizi arayalım.</p>
-        </div>
-
-        <!-- Step Indicators -->
-        <div class="form-steps-indicator">
-          <div class="step-indicator">
-            <div class="step-dot active" id="stepDot1">1</div>
-            <span class="step-label active" id="stepLabel1">Fabrika Bilgileri</span>
-          </div>
-          <div class="step-connector" id="stepConnector"></div>
-          <div class="step-indicator">
-            <div class="step-dot" id="stepDot2">2</div>
-            <span class="step-label" id="stepLabel2">İletişim</span>
-          </div>
-        </div>
-
-        <!-- Step 1: Factory Info -->
-        <div class="form-step active" id="formStep1">
-          <div class="form-group">
-            <label for="sektor">Hangi sektörde üretim yapıyorsunuz?</label>
-            <select class="form-select" id="sektor">
-              <option value="" disabled selected>Sektör seçin...</option>
-              <option value="otomotiv">Otomotiv Yan Sanayi</option>
-              <option value="metal">Metal & Döküm</option>
-              <option value="plastik">Plastik & Enjeksiyon</option>
-              <option value="tekstil">Tekstil</option>
-              <option value="gida">Gıda</option>
-              <option value="elektronik">Elektronik</option>
-              <option value="diger">Diğer</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="makine">Fabrikanızdaki aktif makine/hat sayısı nedir?</label>
-            <select class="form-select" id="makine">
-              <option value="" disabled selected>Makine sayısı seçin...</option>
-              <option value="1-10">1 — 10 makine</option>
-              <option value="10-50">10 — 50 makine</option>
-              <option value="50-100">50 — 100 makine</option>
-              <option value="100+">100+ makine</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label for="mevcut_sistem">Mevcut kullandığınız bir ERP sistemi var mı?</label>
-            <select class="form-select" id="mevcut_sistem">
-              <option value="" disabled selected>Seçin...</option>
-              <option value="yok">Kullanmıyorum</option>
-              <option value="sap">SAP</option>
-              <option value="logo">Logo / Tiger</option>
-              <option value="netsis">Netsis</option>
-              <option value="mikro">Mikro</option>
-              <option value="diger_erp">Diğer</option>
-            </select>
-          </div>
-
-          <div class="form-btn-row">
-            <button class="btn-form-next" onclick="goToStep2()">
-              İleri
-              <span class="material-symbols-outlined">arrow_forward</span>
-            </button>
-          </div>
-        </div>
-
-        <!-- Step 2: Contact Info -->
-        <div class="form-step" id="formStep2">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="adSoyad">Ad Soyad</label>
-              <input type="text" class="form-input" id="adSoyad" placeholder="Adınız Soyadınız">
-            </div>
-            <div class="form-group">
-              <label for="firmaAdi">Firma Adı</label>
-              <input type="text" class="form-input" id="firmaAdi" placeholder="Firma adınız">
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="email">E-posta</label>
-              <input type="email" class="form-input" id="email" placeholder="ornek@firma.com">
-            </div>
-            <div class="form-group">
-              <label for="telefon">Telefon</label>
-              <input type="tel" class="form-input" id="telefon" placeholder="05XX XXX XX XX">
-            </div>
-          </div>
-
-          <div class="form-btn-row">
-            <button class="btn-form-back" onclick="goToStep1()">
-              <span class="material-symbols-outlined">arrow_back</span>
-              Geri
-            </button>
-            <button class="btn-form-submit" onclick="submitForm()">
-              Ücretsiz Analiz Randevusu Al
-              <span class="material-symbols-outlined">send</span>
-            </button>
+    <!-- ════════════════ FINAL CTA ════════════════ -->
+    <section class="section" style="padding-block: clamp(40px,6vw,72px);">
+      <div class="shell">
+        <div class="cta glass reveal">
+          <h2 class="font-display-md">Fabrikanızın <em>dijital komuta merkezini</em> açın</h2>
+          <p class="font-body-md">Hazır demo veriyle dolu paneli hemen deneyin; gerçek zamanlı OEE, kestirimci bakım ve
+            27 modülün tamamını kendi gözlerinizle görün.</p>
+          <div class="cta-actions">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Demo Panele Giriş <span
+                class="material-symbols-outlined">login</span></a>
+            <a href="#modules" class="btn btn-ghost">Modüllere Dön <span
+                class="material-symbols-outlined">arrow_upward</span></a>
           </div>
         </div>
       </div>
     </section>
-
   </main>
 
-  <!-- ══════════════════════════════════════════════
-       FOOTER
-       ══════════════════════════════════════════════ -->
-  <footer class="footer-landing">
-    <div class="container-landing">
-      <div class="footer-grid">
-        <div>
-          <a href="/" class="nav-brand" style="margin-bottom: 16px; display: inline-flex;">
-            <span class="material-symbols-outlined brand-icon">precision_manufacturing</span>
-            <span class="brand-text">Fabrika<span>OS</span></span>
-          </a>
-          <p class="footer-brand-desc">Metal, döküm ve ağır sanayi tesisleri için tasarlanmış, uçtan uca veri toplayan
-            yapay zeka destekli akıllı fabrika platformu.</p>
-        </div>
-
-        <div>
-          <h5>Platform</h5>
-          <ul>
-            <li><a href="#features">Modüller</a></li>
-            <li><a href="#integration">Entegrasyon</a></li>
-            <li><a href="#pricing">Fiyatlandırma</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h5>Giriş</h5>
-          <ul>
-            <li><a href="{{ url_for('auth.login') }}">Portal Girişi</a></li>
-            <li><a href="#testimonials">Müşteri Hikayeleri</a></li>
-            <li><a href="#contact-form">Analiz Randevusu</a></li>
-          </ul>
-        </div>
-
-        <div>
-          <h5>Geliştirici</h5>
-          <ul>
-            <li><a href="https://github.com/Scryne/FabrikaOS" target="_blank"
-                style="display: flex; align-items: center; gap: 6px;">
-                <svg height="16" viewBox="0 0 16 16" width="16" fill="currentColor">
-                  <path fill-rule="evenodd"
-                    d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z">
-                  </path>
-                </svg>
-                Kaynak Kodlar
-              </a></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="footer-bottom">
-        <span>© 2026 FabrikaOS — Enterprise MES/ERP Hybrid.</span>
-        <span class="footer-version">v2.1.0 Neon</span>
+  <!-- ════════════════ FOOTER ════════════════ -->
+  <footer class="footer">
+    <div class="shell footer-inner">
+      <span class="brand" style="font-size:1.05rem;">
+        <span class="brand-icon material-symbols-outlined" style="width:28px;height:28px;font-size:17px;">precision_manufacturing</span>
+        <b>Fabrika<span>OS</span></b>
+      </span>
+      <p>© <span id="year">2026</span> FabrikaOS — Fabrika Dijital Yönetim Sistemi (FDYS) · v1.0.0</p>
+      <div class="footer-links">
+        <a href="#modules">Modüller</a>
+        <a href="#selfhost">Kurulum</a>
+        <a href="{{ url_for('auth.login') }}">Giriş</a>
       </div>
     </div>
   </footer>
 
-  <!-- ══════════════════════════════════════════════
-       TOAST NOTIFICATION
-       ══════════════════════════════════════════════ -->
-  <div class="toast-notification glass-panel" id="toastBox">
-    <span class="material-symbols-outlined">check_circle</span>
-    <span id="toastMsg">İşlem başarılı!</span>
-  </div>
-
-  <!-- ══════════════════════════════════════════════
-       SCRIPTS
-       ══════════════════════════════════════════════ -->
+  <!-- ════════════════ SCRIPT ════════════════ -->
   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const heroSection = document.getElementById('hero-section');
+    (function () {
+      // Nav scroll state
+      const nav = document.getElementById('nav');
+      const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
+      onScroll();
+      window.addEventListener('scroll', onScroll, { passive: true });
 
-      // ─── 1. Navbar Scroll & Active Section Spy ───
-      const navbar = document.getElementById('navbar');
-      const navLinks = document.querySelectorAll('.nav-links a[data-section]');
-      const sections = document.querySelectorAll('section[id]');
+      // Mobile menu
+      const menu = document.getElementById('mMenu');
+      document.getElementById('menuOpen').addEventListener('click', () => menu.classList.add('open'));
+      document.getElementById('menuClose').addEventListener('click', () => menu.classList.remove('open'));
+      menu.querySelectorAll('a').forEach(a => a.addEventListener('click', () => menu.classList.remove('open')));
 
-      function updateActiveNav() {
-        const scrollY = window.scrollY + 120;
-        navLinks.forEach(link => link.classList.remove('active'));
-        let currentSection = null;
-        sections.forEach(section => {
-          const top = section.offsetTop;
-          const height = section.offsetHeight;
-          if (scrollY >= top && scrollY < top + height) {
-            currentSection = section.getAttribute('id');
-          }
-        });
-        if (currentSection) {
-          const activeLink = document.querySelector(`.nav-links a[data-section="${currentSection}"]`);
-          if (activeLink) activeLink.classList.add('active');
+      // Year
+      document.getElementById('year').textContent = new Date().getFullYear();
+
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+      // Count-up helper
+      function countUp(el) {
+        const target = parseFloat(el.dataset.count);
+        const prefix = el.dataset.prefix || '';
+        const suffix = el.dataset.suffix || '';
+        if (reduce) { el.innerHTML = prefix + target + suffix; return; }
+        const dur = 1300, start = performance.now();
+        function tick(now) {
+          const p = Math.min((now - start) / dur, 1);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.innerHTML = prefix + Math.round(target * eased) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
         }
+        requestAnimationFrame(tick);
       }
 
-      window.addEventListener('scroll', () => {
-        navbar.classList.toggle('scrolled', window.scrollY > 30);
-        updateActiveNav();
-      });
-      updateActiveNav();
-
-      // ─── 2. Mobile Menu ───
-      const menuToggle = document.getElementById('menuToggle');
-      const menuClose = document.getElementById('menuClose');
-      const mobileMenu = document.getElementById('mobileMenu');
-      const mobileOverlay = document.getElementById('mobileOverlay');
-      const mobileLinks = document.querySelectorAll('.mobile-link');
-
-      function openMenu() {
-        mobileMenu.classList.add('active');
-        mobileOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-      }
-
-      function closeMenu() {
-        mobileMenu.classList.remove('active');
-        mobileOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-      }
-
-      if (menuToggle) menuToggle.addEventListener('click', openMenu);
-      if (menuClose) menuClose.addEventListener('click', closeMenu);
-      if (mobileOverlay) mobileOverlay.addEventListener('click', closeMenu);
-      mobileLinks.forEach(link => link.addEventListener('click', closeMenu));
-
-      // ─── 3. Reveal Animations (IntersectionObserver) ───
-      const revealObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('active');
-            revealObserver.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.1, rootMargin: "0px 0px -50px 0px" });
-
-      document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-      // ─── 4. OEE Gauge Animation ───
-      const oeeGauge = document.getElementById('oeeGaugeFill');
-      const oeeValue = document.getElementById('oeeValue');
-      let oeeAnimated = false;
-
-      const oeeObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting && !oeeAnimated) {
-            oeeAnimated = true;
-            setTimeout(() => {
-              oeeGauge.classList.add('animated');
-            }, 300);
-
-            let current = 0;
-            const target = 82.4;
-            const duration = 2500;
-            const startTime = performance.now();
-
-            function animateOEE(timestamp) {
-              const elapsed = timestamp - startTime;
-              const progress = Math.min(elapsed / duration, 1);
-              const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-              current = (ease * target).toFixed(1);
-              oeeValue.textContent = current;
-              if (progress < 1) requestAnimationFrame(animateOEE);
-            }
-            requestAnimationFrame(animateOEE);
-            oeeObserver.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.3 });
-
-      const dashCard = document.querySelector('.hero-dash-card');
-      if (dashCard) oeeObserver.observe(dashCard);
-
-      // ─── 5. Stats Counter Animation ───
-      const statsObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const statNumbers = entry.target.querySelectorAll('.stat-number');
-            statNumbers.forEach(num => {
-              if (!num.dataset.animated) {
-                const target = parseInt(num.dataset.target);
-                const prefix = num.dataset.prefix || '';
-                const suffix = num.dataset.suffix || '';
-                const duration = 2500;
-                const startTime = performance.now();
-
-                function animateStat(timestamp) {
-                  const elapsed = timestamp - startTime;
-                  const progress = Math.min(elapsed / duration, 1);
-                  const ease = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-                  const current = Math.floor(ease * target);
-                  num.textContent = prefix + current + suffix;
-                  if (progress < 1) requestAnimationFrame(animateStat);
-                }
-                requestAnimationFrame(animateStat);
-                num.dataset.animated = 'true';
-              }
-            });
-
-            // Animate progress bars
-            const bars = entry.target.querySelectorAll('.stat-progress-fill');
-            bars.forEach(bar => {
-              setTimeout(() => bar.classList.add('animated'), 400);
-            });
-
-            statsObserver.unobserve(entry.target);
-          }
-        });
-      }, { threshold: 0.3 });
-
-      const statsBar = document.querySelector('.stats-bar');
-      if (statsBar) statsObserver.observe(statsBar);
-
-      // ─── 6. Shop Floor Tabs with Auto-Rotation ───
-      const sfTabs = document.querySelectorAll('.sf-tab');
-      const sfPanels = document.querySelectorAll('.sf-panel');
-      let tabAutoRotate = null;
-      let currentTabIndex = 0;
-      const TAB_ROTATE_INTERVAL = 5000;
-
-      function switchTab(index) {
-        currentTabIndex = index;
-        const tab = sfTabs[index];
-        const targetPanel = tab.dataset.tab;
-
-        sfTabs.forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
-
-        sfPanels.forEach(panel => {
-          panel.classList.remove('active');
-          if (panel.dataset.panel === targetPanel) {
-            panel.classList.add('active');
-          }
-        });
-      }
-
-      function startAutoRotate() {
-        stopAutoRotate();
-        tabAutoRotate = setInterval(() => {
-          currentTabIndex = (currentTabIndex + 1) % sfTabs.length;
-          switchTab(currentTabIndex);
-        }, TAB_ROTATE_INTERVAL);
-      }
-
-      function stopAutoRotate() {
-        if (tabAutoRotate) {
-          clearInterval(tabAutoRotate);
-          tabAutoRotate = null;
+      // OEE ring
+      const oeeFill = document.getElementById('oeeFill');
+      const oeeNum = document.getElementById('oeeNum');
+      const R = 56, C = 2 * Math.PI * R;
+      oeeFill.style.strokeDasharray = C;
+      oeeFill.style.strokeDashoffset = C;
+      function animateOEE(val) {
+        oeeFill.style.strokeDashoffset = C * (1 - val / 100);
+        if (reduce) { oeeNum.textContent = val; return; }
+        const dur = 1600, start = performance.now();
+        function tick(now) {
+          const p = Math.min((now - start) / dur, 1);
+          oeeNum.textContent = Math.round(val * (1 - Math.pow(1 - p, 3)));
+          if (p < 1) requestAnimationFrame(tick);
         }
+        requestAnimationFrame(tick);
       }
 
-      sfTabs.forEach((tab, index) => {
-        tab.addEventListener('click', () => {
-          switchTab(index);
-          stopAutoRotate();
-          // Restart after user interaction (10s delay)
-          setTimeout(startAutoRotate, 10000);
-        });
-      });
-
-      // Start auto-rotation when showcase section is visible
-      const showcaseObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            startAutoRotate();
-          } else {
-            stopAutoRotate();
-          }
+      // Reveal + trigger child animations on view
+      const io = new IntersectionObserver((entries) => {
+        entries.forEach(e => {
+          if (!e.isIntersecting) return;
+          const el = e.target;
+          el.classList.add('in');
+          el.querySelectorAll('[data-count]').forEach(countUp);
+          el.querySelectorAll('.bar i[data-fill], .pred-track i[data-fill]').forEach(b => {
+            b.style.width = b.dataset.fill + '%';
+          });
+          io.unobserve(el);
         });
       }, { threshold: 0.2 });
+      document.querySelectorAll('.reveal').forEach(el => io.observe(el));
 
-      const showcaseLayout = document.querySelector('.showcase-layout');
-      if (showcaseLayout) showcaseObserver.observe(showcaseLayout);
-
-      // ─── 7. Mouse Parallax on Hero Dashboard ───
-      if (heroSection && window.innerWidth > 768) {
-        const heroDash = document.querySelector('.hero-dash-card');
-        if (heroDash) {
-          heroSection.addEventListener('mousemove', (e) => {
-            const rect = heroSection.getBoundingClientRect();
-            const x = (e.clientX - rect.left) / rect.width - 0.5;
-            const y = (e.clientY - rect.top) / rect.height - 0.5;
-            heroDash.style.transform = `rotateY(${x * -8}deg) rotateX(${y * 6}deg)`;
-          });
-
-          heroSection.addEventListener('mouseleave', () => {
-            heroDash.style.transform = 'rotateY(-4deg) rotateX(3deg)';
-          });
-        }
-      }
-    });
-
-    // ─── Form Step Navigation ───
-    function goToStep2() {
-      document.getElementById('formStep1').classList.remove('active');
-      document.getElementById('formStep2').classList.add('active');
-      document.getElementById('stepDot1').classList.remove('active');
-      document.getElementById('stepDot1').classList.add('completed');
-      document.getElementById('stepDot1').innerHTML = '<span class="material-symbols-outlined" style="font-size:14px;">check</span>';
-      document.getElementById('stepDot2').classList.add('active');
-      document.getElementById('stepLabel1').classList.remove('active');
-      document.getElementById('stepLabel2').classList.add('active');
-      document.getElementById('stepConnector').classList.add('active');
-    }
-
-    function goToStep1() {
-      document.getElementById('formStep2').classList.remove('active');
-      document.getElementById('formStep1').classList.add('active');
-      document.getElementById('stepDot2').classList.remove('active');
-      document.getElementById('stepDot1').classList.remove('completed');
-      document.getElementById('stepDot1').classList.add('active');
-      document.getElementById('stepDot1').innerHTML = '1';
-      document.getElementById('stepLabel2').classList.remove('active');
-      document.getElementById('stepLabel1').classList.add('active');
-      document.getElementById('stepConnector').classList.remove('active');
-    }
-
-    function submitForm() {
-      const toast = document.getElementById('toastBox');
-      document.getElementById('toastMsg').textContent = 'Talebiniz alındı! 48 saat içinde sizi arayacağız.';
-      toast.classList.add('show');
-      setTimeout(() => toast.classList.remove('show'), 4000);
-
-      // Reset form
-      setTimeout(() => {
-        goToStep1();
-        document.querySelectorAll('.form-input').forEach(input => input.value = '');
-        document.querySelectorAll('.form-select').forEach(select => select.selectedIndex = 0);
-      }, 500);
-    }
+      // Kick off the hero OEE ring once page is ready
+      window.addEventListener('load', () => setTimeout(() => animateOEE(82), 400));
+    })();
   </script>
 </body>
 

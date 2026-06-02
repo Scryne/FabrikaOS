@@ -10,23 +10,26 @@ echo.
 echo ==================================================
 
 :: Proje kok dizinine gec
-cd ..
+set "SCRIPT_DIR=%~dp0"
+cd /d "%SCRIPT_DIR%.."
 
 :: Sanal ortami kontrol et
-if not exist "venv\Scripts\activate.bat" (
+set "VENV_DIR=.venv"
+if not exist "%VENV_DIR%\Scripts\activate.bat" set "VENV_DIR=venv"
+if not exist "%VENV_DIR%\Scripts\activate.bat" (
     echo [HATA] Sanal ortam bulunamadi! Lutfen kurulum adimlarini izleyin.
     pause
     exit /b 1
 )
 
-:: Sanal ortami aktif et
-call venv\Scripts\activate.bat
+set "PYTHON_EXE=%VENV_DIR%\Scripts\python.exe"
+set "WAITRESS_EXE=%VENV_DIR%\Scripts\waitress-serve.exe"
 
 :: Waitress yuklu degilse kur
-python -c "import waitress" 2>nul
+"%PYTHON_EXE%" -c "import waitress" 2>nul
 if errorlevel 1 (
     echo [*] Waitress kurulyor...
-    pip install waitress
+    "%PYTHON_EXE%" -m pip install waitress
 )
 
 :: Ortam degiskenlerini uretim moduna ayarla
@@ -40,6 +43,6 @@ echo [*] Durdurmak icin CTRL+C basin.
 echo.
 
 :: Waitress ile baslat
-waitress-serve --port=8080 --threads=8 "run:app"
+"%WAITRESS_EXE%" --port=8080 --threads=8 "run:app"
 
 pause

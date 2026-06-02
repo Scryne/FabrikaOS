@@ -28,15 +28,15 @@ git clone https://github.com/Scryne/FabrikaOS.git
 cd FabrikaOS
 
 # 2. Sanal ortam oluşturun
-python -m venv venv
+python -m venv .venv
 
 # Windows:
-venv\Scripts\activate
+.venv\Scripts\activate
 # Linux/Mac:
-# source venv/bin/activate
+# source .venv/bin/activate
 
 # 3. Bağımlılıkları yükleyin
-pip install -r requirements.txt
+python -m pip install -r requirements.txt
 
 # 4. .env dosyasını oluşturun
 echo FLASK_APP=run.py > .env
@@ -57,11 +57,13 @@ Sistem `http://localhost:5000` adresinde aktif olacaktır.
 
 1. Python 3.12+ sürümünün yüklü olduğundan emin olun.
 2. Komut satırında proje ana klasörüne gidin.
-3. Bağımlılıkları yükleyin: `pip install -r requirements.txt`
+3. Bağımlılıkları yükleyin: `python -m pip install -r requirements.txt`
 4. `.env` dosyasında `FDYS_CONFIG=production` ve benzersiz `SECRET_KEY` ayarlayın.
 5. Veritabanını oluşturun: `flask db upgrade && python seed_data.py`
 6. `deployment` klasörü içindeki `run_server.bat` dosyasını çalıştırın.
 7. Sunucu **http://localhost:8080** adresinde başlayacaktır.
+
+> **Not:** Eğer eski bir sanal ortam başka bir klasörden taşındıysa, `pip` launcher'ı eski yolu tutabilir. Bu durumda `pip` yerine `python -m pip` kullanın veya sanal ortamı silip yeniden oluşturun.
 
 > ⚠️ **Üretim ortamında** `SECRET_KEY` mutlaka değiştirilmelidir. Varsayılan anahtar ile production modda uygulama başlamayı reddeder.
 
