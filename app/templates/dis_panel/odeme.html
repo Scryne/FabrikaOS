@@ -56,46 +56,50 @@
                             <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Kart Bilgileri
                         </h5>
                         
-                        <form action="{{ url_for('dis_panel.odeme_basarili', borc_id=borc.id) }}" method="POST" id="paymentForm">
+                        <form action="{{ url_for('dis_panel.odeme_basarili', borc_id=borc.id) }}" method="POST" id="paymentForm" class="needs-validation" novalidate>
                             <!-- Simülasyon için tutar hidden olarak gidiyor -->
                             <input type="hidden" name="tutar" value="{{ borc.kalan_tutar }}">
                             
                             <div class="mb-4">
                                 <label class="form-label text-muted small fw-bold mb-1">Kart Üzerindeki İsim</label>
-                                <input type="text" class="form-control form-control-lg fs-6" placeholder="Örn: AHMET YILMAZ" required>
+                                <input type="text" id="cardName" class="form-control form-control-lg fs-6" placeholder="Örn: AHMET YILMAZ" required pattern="^[a-zA-ZğüşıöçĞÜŞİÖÇ\s]+$">
+                                <div class="invalid-feedback">Lütfen geçerli bir isim giriniz (sadece harfler).</div>
                             </div>
                             
                             <div class="mb-4">
                                 <label class="form-label text-muted small fw-bold mb-1">Kart Numarası</label>
-                                <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
+                                <div class="input-group input-group-lg shadow-sm rounded-3">
                                     <span class="input-group-text bg-transparent border-end-0 px-3"><i class="bi bi-credit-card text-muted"></i></span>
-                                    <input type="text" class="form-control fs-6 border-start-0 ps-0" placeholder="0000 0000 0000 0000" maxlength="19" required>
+                                    <input type="text" id="cardNumber" class="form-control fs-6 border-start-0" placeholder="0000 0000 0000 0000" maxlength="19" required pattern="^\d{4}\s\d{4}\s\d{4}\s\d{4}$">
+                                    <div class="invalid-feedback">Kart numarası 16 haneli olmalıdır.</div>
                                 </div>
                             </div>
                             
                             <div class="row mb-4">
                                 <div class="col-7">
                                     <label class="form-label text-muted small fw-bold mb-1">Son Kullanma (Ay/Yıl)</label>
-                                    <div class="d-flex gap-2">
-                                        <select class="form-select form-select-lg fs-6 shadow-sm" required>
+                                    <div class="d-flex gap-2 position-relative">
+                                        <select id="cardMonth" class="form-select form-select-lg fs-6 shadow-sm" required>
                                             <option value="" disabled selected>Ay</option>
                                             {% for i in range(1, 13) %}
                                             <option value="{{ '%02d' % i }}">{{ '%02d' % i }}</option>
                                             {% endfor %}
                                         </select>
-                                        <select class="form-select form-select-lg fs-6 shadow-sm" required>
+                                        <select id="cardYear" class="form-select form-select-lg fs-6 shadow-sm" required>
                                             <option value="" disabled selected>Yıl</option>
                                             {% for i in range(2026, 2036) %}
                                             <option value="{{ i }}">{{ i }}</option>
                                             {% endfor %}
                                         </select>
+                                        <div class="invalid-feedback position-absolute top-100" id="dateError" style="display:none; width: 100%;">Tarih geçersiz.</div>
                                     </div>
                                 </div>
                                 <div class="col-5">
                                     <label class="form-label text-muted small fw-bold mb-1">CVV</label>
-                                    <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden">
-                                        <input type="password" class="form-control fs-6 border-end-0" placeholder="***" maxlength="3" required>
+                                    <div class="input-group input-group-lg shadow-sm rounded-3">
+                                        <input type="password" id="cardCvv" class="form-control fs-6 border-end-0" placeholder="***" maxlength="4" required pattern="^\d{3,4}$">
                                         <span class="input-group-text bg-transparent border-start-0"><i class="bi bi-info-circle text-muted" title="Kartınızın arkasındaki 3 haneli güvenlik kodu"></i></span>
+                                        <div class="invalid-feedback">CVV 3 veya 4 haneli bir sayı olmalıdır.</div>
                                     </div>
                                 </div>
                             </div>
@@ -117,12 +121,118 @@
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('paymentForm');
     const btn = document.getElementById('payBtn');
+    const cardNumber = document.getElementById('cardNumber');
+    const cardMonth = document.getElementById('cardMonth');
+    const cardYear = document.getElementById('cardYear');
+    const dateError = document.getElementById('dateError');
+    
+    // Kart numarası formatlama (0000 0000 0000 0000)
+    if (cardNumber) {
+        cardNumber.addEventListener('input', function (e) {
+            let value = e.target.value.replace(/\D/g, '');
+            let formattedValue = '';
+            for (let i = 0; i < value.length; i++) {
+                if (i > 0 && i % 4 === 0) {
+                    formattedValue += ' ';
+                }
+                formattedValue += value[i];
+            }
+            e.target.value = formattedValue;
+        });
+    }
+    
+    // Son kullanma tarihi doğrulama
+    function isDateValid() {
+        if (!cardMonth.value || !cardYear.value) return true; // Required validation will catch this
+        const currentDate = new Date();
+        const currentMonth = currentDate.getMonth() + 1;
+        const currentYear = currentDate.getFullYear();
+        
+        const selectedMonth = parseInt(cardMonth.value, 10);
+        const selectedYear = parseInt(cardYear.value, 10);
+        
+        if (selectedYear < currentYear || (selectedYear === currentYear && selectedMonth < currentMonth)) {
+            return false;
+        }
+        return true;
+    }
     
     if(form && btn) {
         form.addEventListener('submit', function(e) {
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>İşleniyor...';
-            btn.disabled = true;
-            // Form native olarak submit olacak ve simülasyon tamamlanacak
+            let validDate = isDateValid();
+            
+            if (!form.checkValidity() || !validDate) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                if (!validDate && cardMonth.value && cardYear.value) {
+                    dateError.style.display = 'block';
+                    cardMonth.setCustomValidity("Invalid");
+                    cardYear.setCustomValidity("Invalid");
+                } else {
+                    dateError.style.display = 'none';
+                    cardMonth.setCustomValidity("");
+                    cardYear.setCustomValidity("");
+                }
+            } else {
+                btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>İşleniyor...';
+                btn.disabled = true;
+            }
+            form.classList.add('was-validated');
+        });
+        
+        // Eş zamanlı doğrulama (Real-time validation)
+        const allInputs = form.querySelectorAll('input, select');
+        
+        function validateInput(input) {
+            if (input.id === 'cardMonth' || input.id === 'cardYear') {
+                if (!isDateValid() && cardMonth.value && cardYear.value) {
+                    dateError.style.display = 'block';
+                    cardMonth.setCustomValidity("Invalid");
+                    cardYear.setCustomValidity("Invalid");
+                    cardMonth.classList.add('is-invalid');
+                    cardMonth.classList.remove('is-valid');
+                    cardYear.classList.add('is-invalid');
+                    cardYear.classList.remove('is-valid');
+                } else {
+                    dateError.style.display = 'none';
+                    cardMonth.setCustomValidity("");
+                    cardYear.setCustomValidity("");
+                    if (cardMonth.value) {
+                        cardMonth.classList.add('is-valid');
+                        cardMonth.classList.remove('is-invalid');
+                    }
+                    if (cardYear.value) {
+                        cardYear.classList.add('is-valid');
+                        cardYear.classList.remove('is-invalid');
+                    }
+                }
+            } else {
+                // Diğer inputlar
+                if (input.checkValidity()) {
+                    input.classList.remove('is-invalid');
+                    input.classList.add('is-valid');
+                } else {
+                    input.classList.remove('is-valid');
+                    input.classList.add('is-invalid');
+                }
+            }
+        }
+
+        allInputs.forEach(input => {
+            if (input.type !== 'hidden') {
+                input.addEventListener('input', function() {
+                    validateInput(this);
+                });
+                input.addEventListener('blur', function() {
+                    validateInput(this);
+                });
+                if (input.tagName === 'SELECT') {
+                    input.addEventListener('change', function() {
+                        validateInput(this);
+                    });
+                }
+            }
         });
     }
 });

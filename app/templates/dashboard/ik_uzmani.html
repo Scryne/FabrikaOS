@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+{% block title %}İK Dashboard{% endblock %}
+
+{% block content %}
+<!-- Welcome Header (IK Uzmanı Özel) -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="welcome-section">
+        <h2>Hoş geldiniz, {{ current_user.ad_soyad }} 📋</h2>
+        <p class="text-muted mb-0">İnsan Kaynakları ve Personel Yönetimi Paneli</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a href="{{ url_for('personel.index') }}" class="btn btn-sm text-white fw-bold shadow-sm" style="background-color: #667eea; border-radius: 8px;">
+            <i class="bi bi-person-plus me-1"></i>Personel Ekle
+        </a>
+        <a href="{{ url_for('personel.izinler') }}" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm" style="border-radius: 8px;">
+            <i class="bi bi-check2-square me-1"></i>İzin Onayla
+        </a>
+        <span class="badge" style="background:var(--bg-card);color:var(--text-secondary);padding:0.6em 1em;font-size:0.8rem;border:1px solid var(--border-color);">
+            <i class="bi bi-calendar3 me-1"></i>{{ bugun.strftime('%d.%m.%Y') }}
+        </span>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #667eea !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Aktif Personel</h6>
+                    <div class="rounded p-2" style="background:rgba(102,126,234,0.12);color:#667eea;">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0">{{ stats.aktif_personel }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #f59e0b !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Bekleyen İzinler</h6>
+                    <div class="rounded p-2" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                        <i class="bi bi-calendar-x"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 {% if stats.bekleyen_izin > 0 %}text-warning{% endif %}">{{ stats.bekleyen_izin }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #10b981 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Bu Ay Başlayanlar</h6>
+                    <div class="rounded p-2" style="background:rgba(16,185,129,0.12);color:#10b981;">
+                        <i class="bi bi-person-check-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-success">+{{ stats.bu_ay_baslayanlar }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #ef4444 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Süresi Dolan Eğitim</h6>
+                    <div class="rounded p-2" style="background:rgba(239,68,68,0.12);color:#ef4444;">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 {% if stats.suresi_dolan_egitim > 0 %}text-danger{% endif %}">{{ stats.suresi_dolan_egitim }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        
+        <!-- Bekleyen İzin Talepleri -->
+        <div class="card border-0 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold" style="color:#667eea;"><i class="bi bi-clock-history me-2"></i>Son İzin Talepleri</h5>
+                <a href="{{ url_for('personel.izinler') }}" class="btn btn-sm btn-outline-secondary">Tümünü Gör</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Personel</th>
+                                <th>İzin Türü</th>
+                                <th>Tarih Aralığı</th>
+                                <th>Süre</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for izin in bekleyen_izinler %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2 text-white" style="width: 32px; height: 32px; background-color: #667eea; font-size: 0.8rem;">
+                                            {{ izin.calisan.ad_soyad[:2].upper() }}
+                                        </div>
+                                        <div>
+                                            <span class="d-block fw-bold">{{ izin.calisan.ad_soyad }}</span>
+                                            <small class="text-muted">{{ izin.calisan.departman }}</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge bg-light text-dark border">{{ izin.tur_adi }}</span></td>
+                                <td>{{ izin.baslangic_tarihi.strftime('%d.%m.%Y') }} - {{ izin.bitis_tarihi.strftime('%d.%m.%Y') }}</td>
+                                <td><strong>{{ (izin.bitis_tarihi - izin.baslangic_tarihi).days + 1 }}</strong> gün</td>
+                                <td><span class="badge {{ izin.durum_badge }}">{{ izin.durum_adi }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">Bekleyen izin talebi bulunmuyor.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Son Bildirimler -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-bell text-secondary me-2"></i>Son Bildirimler</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for bildirim in son_bildirimler %}
+                    <a href="{{ url_for('dashboard.bildirimler') }}" class="list-group-item list-group-item-action py-3 border-0">
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold">{{ bildirim.baslik }}</h6>
+                            <small class="text-muted">{{ bildirim.olusturma_tarihi.strftime('%d.%m %H:%M') }}</small>
+                        </div>
+                        <p class="mb-0 text-muted small">{{ bildirim.mesaj }}</p>
+                    </a>
+                    {% else %}
+                    <div class="p-3 text-center text-muted small">Yeni bildirim yok.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        
+        <!-- Departman Dağılımı -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold" style="color:#667eea;"><i class="bi bi-pie-chart me-2"></i>Departman Dağılımı</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for dept in departmanlar %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                        <span class="text-muted">{{ dept.ad }}</span>
+                        <span class="fw-bold">{{ dept.sayi }}</span>
+                    </li>
+                    <div class="progress mb-2" style="height: 6px;">
+                        <div class="progress-bar" style="width: {{ (dept.sayi / stats.aktif_personel * 100)|round }}%; background-color: #667eea;"></div>
+                    </div>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted px-0 border-0">Departman verisi yok.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Yeni Personeller -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-person-lines-fill text-success me-2"></i>Son Katılanlar</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for personel in yeni_personeller %}
+                    <li class="list-group-item px-4 py-3 border-0">
+                        <div class="d-flex align-items-center">
+                            {% if personel.fotograf %}
+                                <img src="{{ url_for('static', filename='uploads/' + personel.fotograf) }}" class="rounded-circle me-3" width="36" height="36" style="object-fit: cover;">
+                            {% else %}
+                                <div class="rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold text-white" style="width:36px;height:36px;font-size:0.8rem;background:#4f8cff;">
+                                    {{ personel.ad_soyad[:2] | upper }}
+                                </div>
+                            {% endif %}
+                            <div>
+                                <h6 class="mb-0 small fw-bold">{{ personel.ad_soyad }}</h6>
+                                <small class="text-muted">{{ personel.pozisyon or 'Pozisyon Belirtilmemiş' }}</small>
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">Personel bulunmuyor.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

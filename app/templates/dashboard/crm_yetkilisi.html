@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% block title %}CRM Dashboard{% endblock %}
+
+{% block content %}
+<!-- Welcome Header (CRM Yetkilisi Özel) -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="welcome-section">
+        <h2>İyi günler, {{ current_user.ad_soyad }} 🤝</h2>
+        <p class="text-muted mb-0">Müşteri İlişkileri ve Talep Yönetimi Paneli</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a href="{{ url_for('crm.firma_ekle') }}" class="btn btn-sm text-white fw-bold shadow-sm" style="background-color: #3b82f6; border-radius: 8px;">
+            <i class="bi bi-building-add me-1"></i>Firma Ekle
+        </a>
+        <a href="{{ url_for('crm.index') }}" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm" style="border-radius: 8px;">
+            <i class="bi bi-headset me-1"></i>CRM Paneli
+        </a>
+        <span class="badge" style="background:var(--bg-card);color:var(--text-secondary);padding:0.6em 1em;font-size:0.8rem;border:1px solid var(--border-color);">
+            <i class="bi bi-calendar3 me-1"></i>{{ bugun.strftime('%d.%m.%Y') }}
+        </span>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #3b82f6 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Toplam Müşteri</h6>
+                    <div class="rounded p-2" style="background:rgba(59,130,246,0.12);color:#3b82f6;">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-primary">{{ stats.toplam_musteri }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #10b981 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Aktif Sözleşmeler</h6>
+                    <div class="rounded p-2" style="background:rgba(16,185,129,0.12);color:#10b981;">
+                        <i class="bi bi-file-earmark-check-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-success">{{ stats.aktif_sozlesme }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #f59e0b !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Açık Talepler</h6>
+                    <div class="rounded p-2" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                        <i class="bi bi-chat-left-text-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 {% if stats.acik_talepler > 0 %}text-warning{% endif %}">{{ stats.acik_talepler }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #8b5cf6 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Bu Ay Yeni Müşteri</h6>
+                    <div class="rounded p-2" style="background:rgba(139,92,246,0.12);color:#8b5cf6;">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0" style="color:#8b5cf6;">+{{ stats.bu_ay_yeni_musteri }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        
+        <!-- Açık Talepler -->
+        <div class="card border-0 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold" style="color:#3b82f6;"><i class="bi bi-list-check me-2"></i>Açık Müşteri Talepleri / Şikayetler</h5>
+                <a href="{{ url_for('talep.index') }}" class="btn btn-sm btn-outline-secondary">Tümünü Gör</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Talep No</th>
+                                <th>Müşteri / Taraf</th>
+                                <th>Kategori</th>
+                                <th>Durum</th>
+                                <th>Tarih</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for talep in acik_talepler %}
+                            <tr>
+                                <td>
+                                    <span class="d-block fw-bold">{{ talep.talep_no }}</span>
+                                    <small class="text-muted">{{ talep.baslik[:30] }}...</small>
+                                </td>
+                                <td>{{ talep.talep_eden_adi }}</td>
+                                <td><span class="badge bg-light text-dark border">{{ talep.kategori_adi }}</span></td>
+                                <td><span class="badge bg-{{ talep.durum_sinif }}">{{ talep.durum_adi }}</span></td>
+                                <td>{{ talep.olusturma_tarihi.strftime('%d.%m.%Y') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">Açık talep bulunmuyor.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Son Bildirimler -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-bell text-secondary me-2"></i>Son Bildirimler</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for bildirim in son_bildirimler %}
+                    <a href="{{ url_for('dashboard.bildirimler') }}" class="list-group-item list-group-item-action py-3 border-0">
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold">{{ bildirim.baslik }}</h6>
+                            <small class="text-muted">{{ bildirim.olusturma_tarihi.strftime('%d.%m %H:%M') }}</small>
+                        </div>
+                        <p class="mb-0 text-muted small">{{ bildirim.mesaj }}</p>
+                    </a>
+                    {% else %}
+                    <div class="p-3 text-center text-muted small">Yeni bildirim yok.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        
+        <!-- Sektör Dağılımı -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold" style="color:#3b82f6;"><i class="bi bi-pie-chart me-2"></i>Firma Sektör Dağılımı</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for sektor in sektorler %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                        <span class="text-muted text-capitalize">{{ sektor.ad }}</span>
+                        <span class="fw-bold">{{ sektor.sayi }}</span>
+                    </li>
+                    <div class="progress mb-2" style="height: 6px;">
+                        {% set total_musteri = stats.toplam_musteri %}
+                        {% if total_musteri == 0 %}{% set total_musteri = 1 %}{% endif %}
+                        <div class="progress-bar bg-primary" style="width: {{ (sektor.sayi / total_musteri * 100)|round }}%;"></div>
+                    </div>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted px-0 border-0">Sektör verisi yok.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Son İletişim Kayıtları -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-headset text-success me-2"></i>Son Aktiviteler</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for iletisim in son_aktiviteler %}
+                    <li class="list-group-item px-4 py-3 border-0">
+                        <div class="d-flex align-items-start">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3 mt-1 text-white" style="width:32px;height:32px;background:#10b981;">
+                                {% if iletisim.iletisim_turu == 'telefon' %}<i class="bi bi-telephone"></i>
+                                {% elif iletisim.iletisim_turu == 'eposta' %}<i class="bi bi-envelope"></i>
+                                {% else %}<i class="bi bi-person"></i>{% endif %}
+                            </div>
+                            <div>
+                                <h6 class="mb-0 small fw-bold">{{ iletisim.konu[:40] }}...</h6>
+                                <small class="text-muted d-block">İlgili: {{ iletisim.ilgili_tip_adi }} ({{ iletisim.ilgili_id }})</small>
+                                <small class="text-muted">{{ iletisim.tarih.strftime('%d.%m.%Y %H:%M') }}</small>
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted py-4">Son aktivite bulunmuyor.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

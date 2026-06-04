@@ -30,26 +30,55 @@ function initSiteMap(elementId, apiUrl, isDark = false) {
 
     // Cluster Grupları
     markersOrtaklar = L.markerClusterGroup({
+        polygonOptions: {
+            fillColor: '#3b82f6',
+            color: '#3b82f6',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.2
+        },
         iconCreateFunction: function(cluster) {
             return L.divIcon({ 
                 html: `<div><span>${cluster.getChildCount()}</span></div>`,
-                className: 'marker-cluster marker-cluster-small', 
+                className: 'marker-cluster marker-cluster-small bg-primary bg-opacity-75 text-white fw-bold border border-primary', 
                 iconSize: L.point(40, 40) 
             });
         }
     });
 
     markersFirmalar = L.markerClusterGroup({
+        polygonOptions: {
+            fillColor: '#10b981',
+            color: '#10b981',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.2
+        },
         iconCreateFunction: function(cluster) {
             return L.divIcon({ 
                 html: `<div><span>${cluster.getChildCount()}</span></div>`,
-                className: 'marker-cluster marker-cluster-small', 
+                className: 'marker-cluster marker-cluster-small bg-success bg-opacity-75 text-white fw-bold border border-success', 
                 iconSize: L.point(40, 40) 
             });
         }
     });
 
-    markersTalepler = L.markerClusterGroup();
+    markersTalepler = L.markerClusterGroup({
+        polygonOptions: {
+            fillColor: '#f59e0b',
+            color: '#f59e0b',
+            weight: 2,
+            opacity: 1,
+            fillOpacity: 0.2
+        },
+        iconCreateFunction: function(cluster) {
+            return L.divIcon({ 
+                html: `<div><span>${cluster.getChildCount()}</span></div>`,
+                className: 'marker-cluster marker-cluster-small bg-warning bg-opacity-75 text-dark fw-bold border border-warning', 
+                iconSize: L.point(40, 40) 
+            });
+        }
+    });
 
     // Verileri Yükle
     loadMapData();

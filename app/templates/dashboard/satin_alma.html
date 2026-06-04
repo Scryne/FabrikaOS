@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% block title %}Satın Alma Dashboard{% endblock %}
+
+{% block content %}
+<!-- Welcome Header (Satın Alma Özel) -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="welcome-section">
+        <h2>Hoş geldiniz, {{ current_user.ad_soyad }} 📦</h2>
+        <p class="text-muted mb-0">Tedarik Zinciri ve Satın Alma Paneli</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a href="{{ url_for('satin_alma.talep_ekle') }}" class="btn btn-sm text-white fw-bold shadow-sm" style="background-color: #f59e0b; border-radius: 8px;">
+            <i class="bi bi-cart-plus me-1"></i>Talep Oluştur
+        </a>
+        <a href="{{ url_for('stok.index') }}" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm" style="border-radius: 8px;">
+            <i class="bi bi-search me-1"></i>Stok Sorgula
+        </a>
+        <span class="badge" style="background:var(--bg-card);color:var(--text-secondary);padding:0.6em 1em;font-size:0.8rem;border:1px solid var(--border-color);">
+            <i class="bi bi-calendar3 me-1"></i>{{ bugun.strftime('%d.%m.%Y') }}
+        </span>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #f59e0b !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Bekleyen Talepler</h6>
+                    <div class="rounded p-2" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                        <i class="bi bi-cart-dash-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 {% if stats.bekleyen_talepler > 0 %}text-warning{% endif %}">{{ stats.bekleyen_talepler }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #ef4444 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Kritik Stok Uyarısı</h6>
+                    <div class="rounded p-2" style="background:rgba(239,68,68,0.12);color:#ef4444;">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 {% if stats.kritik_stok > 0 %}text-danger{% endif %}">{{ stats.kritik_stok }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #3b82f6 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Aktif Tedarikçi</h6>
+                    <div class="rounded p-2" style="background:rgba(59,130,246,0.12);color:#3b82f6;">
+                        <i class="bi bi-truck"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-primary">{{ stats.aktif_tedarikciler }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #10b981 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Aylık Sipariş Tutarı</h6>
+                    <div class="rounded p-2" style="background:rgba(16,185,129,0.12);color:#10b981;">
+                        <i class="bi bi-wallet-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-success">₺{{ "{:,.0f}".format(stats.bu_ay_siparis_tutari) }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        
+        <!-- Bekleyen Talepler -->
+        <div class="card border-0 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold" style="color:#f59e0b;"><i class="bi bi-cart3 me-2"></i>Onay/İşlem Bekleyen Talepler</h5>
+                <a href="{{ url_for('satin_alma.talepler') }}" class="btn btn-sm btn-outline-secondary">Tümünü Gör</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Talep No</th>
+                                <th>Talep Eden</th>
+                                <th>Kalem / Miktar</th>
+                                <th>Öncelik</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for talep in bekleyen_talepler %}
+                            <tr>
+                                <td>
+                                    <span class="d-block fw-bold">{{ talep.talep_no }}</span>
+                                    <small class="text-muted">{{ talep.olusturma_tarihi.strftime('%d.%m.%Y') }}</small>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="rounded-circle d-flex align-items-center justify-content-center me-2 text-white bg-secondary" style="width: 24px; height: 24px; font-size: 0.6rem;">
+                                            {{ talep.talep_eden.ad_soyad[:2].upper() if talep.talep_eden else '—' }}
+                                        </div>
+                                        <span class="small">{{ talep.talep_eden.ad_soyad if talep.talep_eden else 'Sistem' }}</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="d-block fw-bold">{{ talep.kalem_adi }}</span>
+                                    <small class="text-muted">{{ talep.miktar }} {{ talep.birim_adi }}</small>
+                                </td>
+                                <td><span class="badge bg-{{ talep.oncelik_sinif }}">{{ talep.aciliyet_adi }}</span></td>
+                                <td><span class="badge {{ talep.durum_badge }}">{{ talep.durum_adi }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4 text-muted">Bekleyen satın alma talebi bulunmuyor.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Son Siparişler -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-truck text-primary me-2"></i>Son Siparişler</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sipariş No</th>
+                                <th>Tedarikçi</th>
+                                <th>Tutar</th>
+                                <th>Durum</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for siparis in son_siparisler %}
+                            <tr>
+                                <td><span class="fw-bold">{{ siparis.siparis_no }}</span></td>
+                                <td>{{ siparis.tedarikci.ad if siparis.tedarikci else '—' }}</td>
+                                <td>₺{{ "{:,.2f}".format(siparis.genel_toplam or 0) }}</td>
+                                <td><span class="badge {{ siparis.durum_badge }}">{{ siparis.durum_adi }}</span></td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">Sipariş bulunmuyor.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        
+        <!-- Kritik Stok Uyarıları -->
+        <div class="card border-0 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="card-title mb-0 fw-bold" style="color:#ef4444;"><i class="bi bi-exclamation-octagon me-2"></i>Kritik Stok ({{ stats.kritik_stok }})</h6>
+                <a href="{{ url_for('stok.index') }}" class="btn btn-sm btn-outline-secondary">Depo</a>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for malzeme in kritik_stoklar %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-4 py-3 border-0">
+                        <div>
+                            <h6 class="mb-0 fw-bold">{{ malzeme.ad }}</h6>
+                            <small class="text-muted">Kod: {{ malzeme.kod }}</small>
+                        </div>
+                        <div class="text-end">
+                            <span class="badge bg-danger rounded-pill">{{ malzeme.mevcut_miktar }} {{ malzeme.birim }}</span>
+                            <div class="small text-muted mt-1">Min: {{ malzeme.minimum_stok }}</div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted py-4 border-0">
+                        <i class="bi bi-check2-circle fs-3 d-block mb-2 text-success opacity-75"></i>
+                        Kritik seviyede stok yok.
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- İyi Performanslı Tedarikçiler -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-star-fill text-warning me-2"></i>Öne Çıkan Tedarikçiler</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for tedarikci in iyi_tedarikciler %}
+                    <li class="list-group-item px-4 py-3 border-0 d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3 text-white bg-primary" style="width:32px;height:32px;font-size:0.8rem;">
+                                {{ tedarikci.ad[:2].upper() }}
+                            </div>
+                            <div>
+                                <h6 class="mb-0 small fw-bold">{{ tedarikci.ad }}</h6>
+                                <small class="text-muted">Performans: {{ tedarikci.performans_puani or '-' }}/5.0</small>
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted py-4">Tedarikçi değerlendirmesi bulunmuyor.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

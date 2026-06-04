@@ -24,6 +24,16 @@ def index():
         return operator_dashboard()
     elif current_user.rol == 'teknisyen':
         return teknisyen_dashboard()
+    elif current_user.rol == 'ik_uzmani':
+        return ik_uzmani_dashboard()
+    elif current_user.rol == 'isg_uzmani':
+        return isg_uzmani_dashboard()
+    elif current_user.rol == 'muhasebe':
+        return muhasebe_dashboard()
+    elif current_user.rol == 'crm_yetkilisi':
+        return crm_yetkilisi_dashboard()
+    elif current_user.rol == 'satin_alma':
+        return satin_alma_dashboard()
 
     # Yönetici Dashboard'u için veri hazırlığı
     bugun = datetime.now(timezone.utc).date()
@@ -503,6 +513,228 @@ def teknisyen_dashboard():
                            kritik_stok_listesi=kritik_stok_listesi,
                            teknisyen_is_emirleri=teknisyen_is_emirleri,
                            enerji_ozet=enerji_ozet,
+                           son_bildirimler=son_bildirimler,
+                           bugun=bugun)
+
+def ik_uzmani_dashboard():
+    """İK Uzmanları için personel ve izin odaklı gösterge paneli."""
+    bugun = datetime.now(timezone.utc).date()
+    
+    # İK KPI'ları
+    aktif_personel = Calisan.query.filter_by(aktif=True).count()
+    bekleyen_izinler = IzinTalebi.query.filter_by(durum='bekliyor').all()
+    bekleyen_izin_sayisi = len(bekleyen_izinler)
+    
+    bu_ay_baslayanlar = Calisan.query.filter(
+        Calisan.ise_baslama >= bugun.replace(day=1),
+        Calisan.aktif == True
+    ).count()
+    
+    suresi_dolan_egitim = IsgEgitimi.query.filter(
+        IsgEgitimi.gecerlilik_bitis < bugun,
+        IsgEgitimi.durum == 'gecerli'
+    ).count()
+    
+    # Departman Dağılımı
+    dept_dagilimi = db.session.query(Calisan.departman, func.count(Calisan.id)).filter_by(aktif=True).group_by(Calisan.departman).all()
+    departmanlar = [{'ad': d[0] or 'Belirtilmemiş', 'sayi': d[1]} for d in dept_dagilimi]
+    
+    # Son Katılanlar
+    yeni_personeller = Calisan.query.filter_by(aktif=True).order_by(Calisan.ise_baslama.desc()).limit(5).all()
+    
+    # Son Bildirimler
+    son_bildirimler = Bildirim.query.filter_by(kullanici_id=current_user.id).order_by(Bildirim.olusturma_tarihi.desc()).limit(5).all()
+    
+    stats = {
+        'aktif_personel': aktif_personel,
+        'bekleyen_izin': bekleyen_izin_sayisi,
+        'bu_ay_baslayanlar': bu_ay_baslayanlar,
+        'suresi_dolan_egitim': suresi_dolan_egitim
+    }
+    
+    return render_template('dashboard/ik_uzmani.html',
+                           stats=stats,
+                           bekleyen_izinler=bekleyen_izinler[:5],
+                           departmanlar=departmanlar,
+                           yeni_personeller=yeni_personeller,
+                           son_bildirimler=son_bildirimler,
+                           bugun=bugun)
+
+def isg_uzmani_dashboard():
+    """İSG Uzmanları için güvenlik, risk ve eğitim odaklı gösterge paneli."""
+    bugun = datetime.now(timezone.utc).date()
+    yil_basi = datetime(bugun.year, 1, 1)
+    
+    is_kazalari = IsKazasi.query.filter(IsKazasi.tarih >= yil_basi, IsKazasi.ramak_kala == False).count()
+    ramak_kalalar = IsKazasi.query.filter(IsKazasi.tarih >= yil_basi, IsKazasi.ramak_kala == True).count()
+    
+    acik_riskler = RiskDegerlendirme.query.filter_by(durum='acik').all()
+    yuksek_risk_sayisi = sum(1 for r in acik_riskler if r.risk_seviyesi == 'yuksek')
+    
+    suresi_dolan_egitimler = IsgEgitimi.query.filter(
+        IsgEgitimi.gecerlilik_bitis < bugun,
+        IsgEgitimi.durum == 'gecerli'
+    ).all()
+    suresi_dolan_egitim_sayisi = len(suresi_dolan_egitimler)
+    
+    # Risk Seviyesi Dağılımı
+    risk_dagilimi = db.session.query(RiskDegerlendirme.risk_seviyesi, func.count(RiskDegerlendirme.id)).filter_by(durum='acik').group_by(RiskDegerlendirme.risk_seviyesi).all()
+    risk_seviyeleri = [{'seviye': d[0], 'sayi': d[1]} for d in risk_dagilimi]
+    
+    son_olaylar = IsKazasi.query.order_by(IsKazasi.tarih.desc()).limit(5).all()
+    son_bildirimler = Bildirim.query.filter_by(kullanici_id=current_user.id).order_by(Bildirim.olusturma_tarihi.desc()).limit(5).all()
+    
+    # Güvenlik Skoru (Basit bir formül: %100 - (Kaza*5 + YüksekRisk*2))
+    guvenlik_skoru = max(0, 100 - (is_kazalari * 5) - (yuksek_risk_sayisi * 2))
+    
+    stats = {
+        'is_kazasi': is_kazalari,
+        'ramak_kala': ramak_kalalar,
+        'yuksek_risk': yuksek_risk_sayisi,
+        'suresi_dolan_egitim': suresi_dolan_egitim_sayisi,
+        'guvenlik_skoru': guvenlik_skoru
+    }
+    
+    return render_template('dashboard/isg_uzmani.html',
+                           stats=stats,
+                           acik_riskler=acik_riskler[:5],
+                           suresi_dolan_egitimler=suresi_dolan_egitimler[:5],
+                           risk_seviyeleri=risk_seviyeleri,
+                           son_olaylar=son_olaylar,
+                           son_bildirimler=son_bildirimler,
+                           bugun=bugun)
+
+def muhasebe_dashboard():
+    """Muhasebe/Finans için sözleşme, maliyet ve enerji odaklı gösterge paneli."""
+    from app.models.sozlesme import Sozlesme
+    from app.models.satin_alma import SatinAlmaTalebi
+    from app.models.stok import Malzeme
+    
+    bugun = datetime.now(timezone.utc).date()
+    otuz_gun_once = bugun - timedelta(days=30)
+    
+    # Aylık Enerji Maliyeti
+    aylik_enerji_maliyeti = db.session.query(func.sum(EnerjiTuketimi.toplam_maliyet)).filter(EnerjiTuketimi.donem_baslangic >= otuz_gun_once).scalar() or 0
+    
+    # Aktif Sözleşmeler
+    aktif_sozlesmeler = Sozlesme.query.filter_by(durum='aktif').all()
+    aktif_sozlesme_sayisi = len(aktif_sozlesmeler)
+    
+    # Kritik Stok (Maliyet açısından önemli)
+    kritik_stok = Malzeme.query.filter(Malzeme.mevcut_miktar <= Malzeme.minimum_stok).count()
+    
+    # Bekleyen Satın Alma Talepleri
+    satin_alma_talepleri = SatinAlmaTalebi.query.filter_by(durum='bekliyor').count()
+    
+    # Vadesi yaklaşan sözleşmeler (Sonraki 30 gün)
+    otuz_gun_sonra = bugun + timedelta(days=30)
+    yaklasan_sozlesmeler = [s for s in aktif_sozlesmeler if s.bitis_tarihi and bugun <= s.bitis_tarihi <= otuz_gun_sonra]
+    yaklasan_sozlesmeler.sort(key=lambda x: x.bitis_tarihi if x.bitis_tarihi else bugun)
+    
+    # Enerji Trend (Son 6 ay - basitleştirilmiş)
+    enerji_trend = db.session.query(EnerjiTuketimi.donem_baslangic, func.sum(EnerjiTuketimi.toplam_maliyet)).group_by(EnerjiTuketimi.donem_baslangic).order_by(EnerjiTuketimi.donem_baslangic.desc()).limit(6).all()
+    
+    son_bildirimler = Bildirim.query.filter_by(kullanici_id=current_user.id).order_by(Bildirim.olusturma_tarihi.desc()).limit(5).all()
+    
+    stats = {
+        'aylik_enerji_maliyeti': aylik_enerji_maliyeti,
+        'aktif_sozlesme': aktif_sozlesme_sayisi,
+        'kritik_stok': kritik_stok,
+        'satin_alma_talepleri': satin_alma_talepleri
+    }
+    
+    return render_template('dashboard/muhasebe.html',
+                           stats=stats,
+                           yaklasan_sozlesmeler=yaklasan_sozlesmeler[:5],
+                           enerji_trend=enerji_trend,
+                           son_bildirimler=son_bildirimler,
+                           bugun=bugun)
+
+def crm_yetkilisi_dashboard():
+    """CRM Yetkilisi için müşteri, sözleşme ve talep odaklı gösterge paneli."""
+    from app.models.crm import Firma, Ortak, CrmIletisimGecmisi
+    from app.models.sozlesme import Sozlesme
+    from app.models.talep import Talep
+    
+    bugun = datetime.now(timezone.utc).date()
+    ayin_basi = bugun.replace(day=1)
+    
+    toplam_firma = Firma.query.filter_by(durum='aktif').count()
+    toplam_ortak = Ortak.query.filter_by(durum='aktif').count()
+    toplam_musteri = toplam_firma + toplam_ortak
+    
+    aktif_sozlesme = Sozlesme.query.filter_by(durum='aktif').count()
+    
+    acik_talepler = Talep.query.filter(Talep.durum.in_(['acik', 'devam'])).order_by(Talep.olusturma_tarihi.desc()).all()
+    acik_talep_sayisi = len(acik_talepler)
+    
+    yeni_musteri_firma = Firma.query.filter(func.date(Firma.olusturma_tarihi) >= ayin_basi).count()
+    yeni_musteri_ortak = Ortak.query.filter(func.date(Ortak.olusturma_tarihi) >= ayin_basi).count()
+    bu_ay_yeni_musteri = yeni_musteri_firma + yeni_musteri_ortak
+    
+    # Firma Sektör Dağılımı
+    sektor_dagilimi = db.session.query(Firma.sektor, func.count(Firma.id)).filter_by(durum='aktif').group_by(Firma.sektor).all()
+    sektorler = [{'ad': d[0] or 'Diğer', 'sayi': d[1]} for d in sektor_dagilimi]
+    
+    # Son Aktiviteler / İletişim
+    son_aktiviteler = CrmIletisimGecmisi.query.order_by(CrmIletisimGecmisi.tarih.desc()).limit(5).all()
+    
+    son_bildirimler = Bildirim.query.filter_by(kullanici_id=current_user.id).order_by(Bildirim.olusturma_tarihi.desc()).limit(5).all()
+    
+    stats = {
+        'toplam_musteri': toplam_musteri,
+        'aktif_sozlesme': aktif_sozlesme,
+        'acik_talepler': acik_talep_sayisi,
+        'bu_ay_yeni_musteri': bu_ay_yeni_musteri
+    }
+    
+    return render_template('dashboard/crm_yetkilisi.html',
+                           stats=stats,
+                           acik_talepler=acik_talepler[:5],
+                           sektorler=sektorler,
+                           son_aktiviteler=son_aktiviteler,
+                           son_bildirimler=son_bildirimler,
+                           bugun=bugun)
+
+def satin_alma_dashboard():
+    """Satın Alma için tedarikçi, stok ve sipariş odaklı gösterge paneli."""
+    from app.models.satin_alma import SatinAlmaTalebi, SatinAlmaSiparis
+    from app.models.stok import Malzeme, Tedarikci
+    
+    bugun = datetime.now(timezone.utc).date()
+    ayin_basi = bugun.replace(day=1)
+    
+    bekleyen_talepler = SatinAlmaTalebi.query.filter_by(durum='bekliyor').order_by(SatinAlmaTalebi.olusturma_tarihi.desc()).all()
+    bekleyen_talep_sayisi = len(bekleyen_talepler)
+    
+    kritik_stoklar = Malzeme.query.filter(Malzeme.mevcut_miktar <= Malzeme.minimum_stok).all()
+    kritik_stok_sayisi = len(kritik_stoklar)
+    
+    aktif_tedarikciler = Tedarikci.query.filter_by(aktif=True).count()
+    
+    bu_ay_siparisler = SatinAlmaSiparis.query.filter(func.date(SatinAlmaSiparis.siparis_tarihi) >= ayin_basi).all()
+    bu_ay_siparis_tutari = sum(s.genel_toplam or 0 for s in bu_ay_siparisler)
+    
+    son_siparisler = SatinAlmaSiparis.query.order_by(SatinAlmaSiparis.siparis_tarihi.desc()).limit(5).all()
+    
+    # Tedarikçi Performansı (Örnek veriler, ortalama teslimat vb.)
+    iyi_tedarikciler = Tedarikci.query.filter(Tedarikci.performans_puani >= 4.0).limit(5).all()
+    
+    son_bildirimler = Bildirim.query.filter_by(kullanici_id=current_user.id).order_by(Bildirim.olusturma_tarihi.desc()).limit(5).all()
+    
+    stats = {
+        'bekleyen_talepler': bekleyen_talep_sayisi,
+        'kritik_stok': kritik_stok_sayisi,
+        'aktif_tedarikciler': aktif_tedarikciler,
+        'bu_ay_siparis_tutari': bu_ay_siparis_tutari
+    }
+    
+    return render_template('dashboard/satin_alma.html',
+                           stats=stats,
+                           bekleyen_talepler=bekleyen_talepler[:5],
+                           kritik_stoklar=kritik_stoklar[:5],
+                           son_siparisler=son_siparisler,
+                           iyi_tedarikciler=iyi_tedarikciler,
                            son_bildirimler=son_bildirimler,
                            bugun=bugun)
 

@@ -32,7 +32,7 @@
                         <label class="form-label fw-medium">{{ form.kullanici_adi.label.text }}</label>
                         <div class="input-group">
                             <span class="input-group-text bg-body border-end-0"><i class="bi bi-person text-muted"></i></span>
-                            {{ form.kullanici_adi(class="form-control border-start-0 ps-0" + (" is-invalid" if form.kullanici_adi.errors else ""), placeholder="Kullanıcı adınız") }}
+                            {{ form.kullanici_adi(class="form-control border-start-0" + (" is-invalid" if form.kullanici_adi.errors else ""), placeholder="Kullanıcı adınız") }}
                         </div>
                         {% for error in form.kullanici_adi.errors %}
                         <div class="text-danger small mt-1">{{ error }}</div>
@@ -46,7 +46,7 @@
                         </div>
                         <div class="input-group">
                             <span class="input-group-text bg-body border-end-0"><i class="bi bi-lock text-muted"></i></span>
-                            {{ form.sifre(class="form-control border-start-0 ps-0" + (" is-invalid" if form.sifre.errors else ""), placeholder="Şifreniz") }}
+                            {{ form.sifre(class="form-control border-start-0" + (" is-invalid" if form.sifre.errors else ""), placeholder="Şifreniz") }}
                         </div>
                         {% for error in form.sifre.errors %}
                         <div class="text-danger small mt-1">{{ error }}</div>

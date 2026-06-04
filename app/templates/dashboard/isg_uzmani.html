@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% block title %}İSG Dashboard{% endblock %}
+
+{% block content %}
+<!-- Welcome Header (İSG Uzmanı Özel) -->
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="welcome-section">
+        <h2>Güvenli bir gün olsun, {{ current_user.ad_soyad }} 🛡️</h2>
+        <p class="text-muted mb-0">İş Sağlığı ve Güvenliği Paneli</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2 align-items-center">
+        <a href="{{ url_for('isg.olay_bildir') }}" class="btn btn-sm text-white fw-bold shadow-sm" style="background-color: #ef4444; border-radius: 8px;">
+            <i class="bi bi-exclamation-triangle me-1"></i>Olay Bildir
+        </a>
+        <a href="{{ url_for('isg.index') }}" class="btn btn-sm btn-outline-secondary fw-bold shadow-sm" style="border-radius: 8px;">
+            <i class="bi bi-shield-check me-1"></i>Risk Değerlendirme
+        </a>
+        <span class="badge" style="background:var(--bg-card);color:var(--text-secondary);padding:0.6em 1em;font-size:0.8rem;border:1px solid var(--border-color);">
+            <i class="bi bi-calendar3 me-1"></i>{{ bugun.strftime('%d.%m.%Y') }}
+        </span>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #ef4444 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">İş Kazası (Yıllık)</h6>
+                    <div class="rounded p-2" style="background:rgba(239,68,68,0.12);color:#ef4444;">
+                        <i class="bi bi-bandaid-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 {% if stats.is_kazasi > 0 %}text-danger{% else %}text-success{% endif %}">{{ stats.is_kazasi }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #f59e0b !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Ramak Kala Olayları</h6>
+                    <div class="rounded p-2" style="background:rgba(245,158,11,0.12);color:#f59e0b;">
+                        <i class="bi bi-exclamation-circle-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 text-warning">{{ stats.ramak_kala }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #dc2626 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Açık Yüksek Riskler</h6>
+                    <div class="rounded p-2" style="background:rgba(220,38,38,0.12);color:#dc2626;">
+                        <i class="bi bi-shield-fill-exclamation"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 {% if stats.yuksek_risk > 0 %}text-danger{% endif %}">{{ stats.yuksek_risk }}</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-xl-3 col-md-6">
+        <div class="card border-0 h-100 shadow-sm" style="border-left: 4px solid #3b82f6 !important;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <h6 class="text-muted mb-0">Süresi Dolan Eğitim</h6>
+                    <div class="rounded p-2" style="background:rgba(59,130,246,0.12);color:#3b82f6;">
+                        <i class="bi bi-mortarboard-fill"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold mb-0 {% if stats.suresi_dolan_egitim > 0 %}text-primary{% endif %}">{{ stats.suresi_dolan_egitim }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column -->
+    <div class="col-lg-8">
+        
+        <!-- Açık Riskler -->
+        <div class="card border-0 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0 fw-bold" style="color:#ef4444;"><i class="bi bi-shield-exclamation me-2"></i>Açık Risk Değerlendirmeleri</h5>
+                <a href="{{ url_for('isg.index') }}" class="btn btn-sm btn-outline-secondary">Tümünü Gör</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Tehlike</th>
+                                <th>Lokasyon</th>
+                                <th>Risk Seviyesi</th>
+                                <th>Tarih</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for risk in acik_riskler %}
+                            <tr>
+                                <td><span class="fw-bold">{{ risk.tehlike }}</span></td>
+                                <td>{{ risk.lokasyon or '—' }}</td>
+                                <td>
+                                    {% if risk.risk_seviyesi == 'yuksek' %}
+                                        <span class="badge bg-danger">Yüksek</span>
+                                    {% elif risk.risk_seviyesi == 'orta' %}
+                                        <span class="badge bg-warning text-dark">Orta</span>
+                                    {% else %}
+                                        <span class="badge bg-success">Düşük</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ risk.olusturma_tarihi.strftime('%d.%m.%Y') }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">Açık risk değerlendirmesi bulunmuyor.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Eğitim Takvimi (Süresi Dolanlar) -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0 fw-bold"><i class="bi bi-journal-text text-primary me-2"></i>Eğitim Güncellemeleri Gereken Personeller</h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="list-group list-group-flush">
+                    {% for egitim in suresi_dolan_egitimler %}
+                    <div class="list-group-item px-4 py-3 border-0">
+                        <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                            <h6 class="mb-0 fw-bold">{{ egitim.calisan.ad_soyad }}</h6>
+                            <span class="badge bg-danger">Süresi Doldu</span>
+                        </div>
+                        <p class="mb-0 text-muted small">{{ egitim.egitim_adi }} (Bitiş: {{ egitim.gecerlilik_bitis.strftime('%d.%m.%Y') }})</p>
+                    </div>
+                    {% else %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="bi bi-check-circle fs-2 d-block mb-2 text-success opacity-75"></i>
+                        Eğitim süresi dolan personel bulunmuyor.
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Right Column -->
+    <div class="col-lg-4">
+        
+        <!-- Güvenlik Skoru -->
+        <div class="card border-0 mb-4 bg-dark text-white shadow" style="background: linear-gradient(135deg, #2d3748, #1a202c) !important;">
+            <div class="card-body text-center py-5">
+                <h6 class="text-uppercase text-muted fw-bold mb-3" style="letter-spacing: 1px;">Tesis Güvenlik Skoru</h6>
+                <div class="display-3 fw-bold mb-2 {% if stats.guvenlik_skoru < 70 %}text-danger{% elif stats.guvenlik_skoru < 90 %}text-warning{% else %}text-success{% endif %}">
+                    {{ stats.guvenlik_skoru }}
+                </div>
+                <div class="small text-muted">Hedef: 90+</div>
+            </div>
+        </div>
+        
+        <!-- Risk Seviyesi Dağılımı -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold" style="color:#ef4444;"><i class="bi bi-pie-chart me-2"></i>Açık Risk Dağılımı</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    {% for r in risk_seviyeleri %}
+                    <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-2 border-0">
+                        <span class="text-muted text-capitalize">{{ r.seviye }}</span>
+                        <span class="fw-bold">{{ r.sayi }}</span>
+                    </li>
+                    <div class="progress mb-2" style="height: 6px;">
+                        {% set total_risk = stats.yuksek_risk %}
+                        {% if total_risk == 0 %}{% set total_risk = 1 %}{% endif %}
+                        <div class="progress-bar {% if r.seviye == 'yuksek' %}bg-danger{% elif r.seviye == 'orta' %}bg-warning{% else %}bg-success{% endif %}" style="width: {{ (r.sayi / total_risk * 100)|round }}%;"></div>
+                    </div>
+                    {% else %}
+                    <a href="{{ url_for('dashboard.bildirimler') }}" class="list-group-item list-group-item-action py-3 border-0">Açık risk verisi yok.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Son Olaylar -->
+        <div class="card border-0 mb-4">
+            <div class="card-header">
+                <h6 class="card-title mb-0 fw-bold"><i class="bi bi-clock-history text-secondary me-2"></i>Son Olaylar (Kaza / Ramak Kala)</h6>
+            </div>
+            <div class="card-body p-0">
+                <ul class="list-group list-group-flush">
+                    {% for olay in son_olaylar %}
+                    <li class="list-group-item px-4 py-3 border-0">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-3 text-white" style="width:36px;height:36px;background:{% if olay.ramak_kala %}#f59e0b{% else %}#ef4444{% endif %};">
+                                <i class="bi {% if olay.ramak_kala %}bi-exclamation-circle{% else %}bi-bandaid{% endif %}"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-0 small fw-bold">{{ olay.kaza_turu or 'Bilinmiyor' }}</h6>
+                                <small class="text-muted">{{ olay.tarih.strftime('%d.%m.%Y %H:%M') }}</small>
+                            </div>
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-center text-muted">Kayıtlı olay bulunmuyor.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}
