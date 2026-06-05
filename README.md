@@ -683,23 +683,23 @@ Demo ortamı, gerçekçi bir metal sanayi tesisini simüle eder:
 ```mermaid
 gantt
     title FabrikaOS Geliştirme Yol Haritası
-    dateFormat YYYY-Q
-    axisFormat %Y-Q%q
+    dateFormat YYYY-MM-DD
+    axisFormat %Y Q%q
 
     section v1.0 — Tamamlandı ✅
-    Çekirdek MES + ERP (27 Modül)        :done, 2026-Q1, 2026-Q2
-    AI Tahminleme (4 Motor)              :done, 2026-Q1, 2026-Q2
-    Dijital İkiz + Fabrika Haritası      :done, 2026-Q1, 2026-Q2
-    REST API v1 (JWT)                    :done, 2026-Q1, 2026-Q2
+    Çekirdek MES + ERP (27 Modül)        :done, 2026-01-01, 2026-06-30
+    AI Tahminleme (4 Motor)              :done, 2026-01-01, 2026-06-30
+    Dijital İkiz + Fabrika Haritası      :done, 2026-01-01, 2026-06-30
+    REST API v1 (JWT)                    :done, 2026-01-01, 2026-06-30
 
     section v1.5 — Planlanan
-    PWA Mobil Uygulama                   :2026-Q3, 2026-Q4
-    Çoklu Dil Desteği (EN, DE)           :2026-Q3, 2026-Q4
+    PWA Mobil Uygulama                   :2026-07-01, 2026-12-31
+    Çoklu Dil Desteği (EN, DE)           :2026-07-01, 2026-12-31
 
     section v2.0 — Vizyon
-    IoT Sensör Entegrasyonu              :2026-Q4, 2027-Q1
-    Docker + Kubernetes                  :2026-Q4, 2027-Q1
-    Gelişmiş ML Pipeline                 :2027-Q1, 2027-Q2
+    IoT Sensör Entegrasyonu              :2026-10-01, 2027-03-31
+    Docker + Kubernetes                  :2026-10-01, 2027-03-31
+    Gelişmiş ML Pipeline                 :2027-01-01, 2027-06-30
 ```
 
 <br>
