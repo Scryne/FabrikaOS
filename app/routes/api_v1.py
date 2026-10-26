@@ -138,12 +138,22 @@ def uygula_sayfalama(query, model, sayfa, adet, siralama, yon):
     return sonuclar, meta
 
 
+def _jwt_kullanici_id():
+    """Token'daki kullanıcı kimliği. PyJWT 2.10+ `sub` alanının metin olmasını şart koşuyor: token
+    metinle üretilir, burada sayıya çevrilir (önceden tamsayı veriliyordu, JWT'li uçlar 422 dönüyordu)."""
+    kimlik = get_jwt_identity()
+    try:
+        return int(kimlik)
+    except (TypeError, ValueError):
+        return None
+
+
 def api_yetki_kontrol(modul_adi, izin_turu=None):
     """JWT kimliğindeki kullanıcının modül erişimini kontrol eder."""
     def decorator(f):
         @wraps(f)
         def wrapper(*args, **kwargs):
-            kullanici_id = get_jwt_identity()
+            kullanici_id = _jwt_kullanici_id()
             kullanici = db.session.get(Kullanici, kullanici_id)
             if not kullanici:
                 return api_yanit(mesaj='Kullanıcı bulunamadı', durum=401)
@@ -206,13 +216,13 @@ def auth_login():
 
     # Token oluştur
     access_token = create_access_token(
-        identity=kullanici.id,
+        identity=str(kullanici.id),
         additional_claims={
             'rol': kullanici.rol,
             'ad_soyad': kullanici.ad_soyad,
         }
     )
-    refresh_token = create_refresh_token(identity=kullanici.id)
+    refresh_token = create_refresh_token(identity=str(kullanici.id))
 
     # Giriş kaydı
     kullanici.giris_basarili()
@@ -241,14 +251,14 @@ def auth_login():
 @jwt_required(refresh=True)
 def auth_refresh():
     """Refresh token ile yeni access token alır."""
-    kullanici_id = get_jwt_identity()
+    kullanici_id = _jwt_kullanici_id()
     kullanici = db.session.get(Kullanici, kullanici_id)
 
     if not kullanici or not kullanici.aktif:
         return api_yanit(mesaj='Geçersiz kullanıcı', durum=401)
 
     access_token = create_access_token(
-        identity=kullanici.id,
+        identity=str(kullanici.id),
         additional_claims={
             'rol': kullanici.rol,
             'ad_soyad': kullanici.ad_soyad,
@@ -265,7 +275,7 @@ def auth_refresh():
 @jwt_required()
 def auth_me():
     """Mevcut kullanıcı bilgilerini döner."""
-    kullanici_id = get_jwt_identity()
+    kullanici_id = _jwt_kullanici_id()
     kullanici = db.session.get(Kullanici, kullanici_id)
 
     if not kullanici:
@@ -734,7 +744,7 @@ def talep_ekle():
         return api_yanit(mesaj='baslik zorunludur', durum=400)
 
     try:
-        kullanici_id = get_jwt_identity()
+        kullanici_id = _jwt_kullanici_id()
         kullanici = db.session.get(Kullanici, kullanici_id)
 
         # Otomatik talep no

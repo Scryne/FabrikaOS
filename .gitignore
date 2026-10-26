@@ -4,3 +4,10 @@
 
 venv/
 .venv/
+
+# Yerel ortam ve çalışma zamanı dosyaları (2026-10-26 denetimi: .env, veritabanı, log ve .pyc izleniyordu)
+.env
+__pycache__/
+*.pyc
+instance/
+logs/*.log
